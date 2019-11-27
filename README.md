@@ -7,7 +7,7 @@ Dodane są 2 serwisy:
 
 Do uruchomienia potrzebny jest zainstalowany docker i docker-compose
 
-Uruchamiamy poleceniem 'docker-compose up' w głównym katalogu (tam gdzie plik docker-compose.yml
+Uruchamiamy poleceniem 'docker-compose up --build' w głównym katalogu (tam gdzie plik docker-compose.yml). Flaga '--build' powoduje zbudowanie serwisów, więc jest wymagana przy pierwszym uruchomieniu, później w zależności od preferencji.
 Jeśli jest to pierwsze uruchomienie aplikacji trzeba przed tym puścić migracje komendą 'docker-compose run web python manage.py migrate
 
 Aby sprawdzić działanie np. w przeglądarce należy zmienić 'localhost' na adres ip wirtualnej maszyny. Ip maszyny można sprawdzić komendą 'docker-machine ip'
