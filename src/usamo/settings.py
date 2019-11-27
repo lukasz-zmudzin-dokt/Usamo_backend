@@ -25,7 +25,7 @@ SECRET_KEY = '#e3ap7ubp$1xremt8l2$oit4eji%z&g9#2^6f1n#&+bw%^7sc0'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -76,8 +76,12 @@ WSGI_APPLICATION = 'usamo.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'usamo_test',
+        'USER': 'postgres',
+        'PASSWORD': 'postgres',
+        'HOST': 'db',
+        'PORT': '5432'
     }
 }
 
