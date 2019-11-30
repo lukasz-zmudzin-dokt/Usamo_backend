@@ -7,25 +7,18 @@ from .models import Account
 
 class UserSerializer(serializers.ModelSerializer):
 
-    confirmed_password = serializers.CharField(style={'input_type': 'password'}, write_only=True)
     phone_number = serializers.CharField(source='account.phone_number')
 
     class Meta:
         model = User
-        fields = ['email', 'username', 'last_name', 'first_name', 'password', 'confirmed_password', 'phone_number']
+        fields = ['email', 'username', 'last_name', 'first_name', 'password', 'phone_number']
         extra_kwargs = {
             'password': {'write_only': True}
         }
 
     def create(self, validated_data):
 
-        print(validated_data)
-
         password = validated_data.pop('password')
-        confirmed_password = validated_data.pop('confirmed_password')
-
-        if password != confirmed_password:
-            raise serializers.ValidationError({'password': 'Passwords must be equal'})
 
         account_data = validated_data.pop('account', None)
         try:
