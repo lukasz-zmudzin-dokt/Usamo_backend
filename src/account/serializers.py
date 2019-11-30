@@ -25,14 +25,14 @@ class UserSerializer(serializers.ModelSerializer):
         confirmed_password = validated_data.pop('confirmed_password')
 
         if password != confirmed_password:
-            raise serializers.ValidationError({'password:', 'Passwords must be equal'})
+            raise serializers.ValidationError({'password': 'Passwords must be equal'})
 
         account_data = validated_data.pop('account', None)
         try:
             validate_international_phonenumber(account_data['phone_number'])
         except ValidationError:
             print(account_data['phone_number'])
-            raise serializers.ValidationError({'phone_number', 'Phone number is invalid'})
+            raise serializers.ValidationError({'phone_number': 'Phone number is invalid'})
 
         user = super(UserSerializer, self).create(validated_data)
         self.update_or_create_account(user, account_data)
