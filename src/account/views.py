@@ -4,7 +4,7 @@ from rest_framework import views
 from rest_framework.authtoken.models import Token
 from .serializers import UserSerializer
 from .account_status import AccountStatus
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from django.core.exceptions import ObjectDoesNotExist
 
 
@@ -14,7 +14,7 @@ class RegistationView(views.APIView):
     """
     Required parameters: first_name, last_name, email, username, password, confirmed_password, phone_number
     """
-
+    permission_classes = [AllowAny]
     def post(self, request):
 
         serializer = UserSerializer(data=request.data)
