@@ -5,13 +5,13 @@ services:
     image: postgres:10.11
     volumes:
       - postgres_data:/var/lib/postgresql/data/
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=usamo_test
+    env_file:
+      - ./src/usamo/settings/test/test.env
   web:
+    env_file:
+      - ./src/usamo/settings/test/test.env
     environment:
-      - DJANGO_SETTINGS_MODULE=usamo.settings.test_settings
+      - DJANGO_SETTINGS_MODULE=usamo.settings.test.test_settings
     build: ./src
     command: python manage.py runserver 0.0.0.0:8000
     volumes:
