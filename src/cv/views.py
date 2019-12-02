@@ -22,8 +22,10 @@ def generate(request):
     module_dir = os.path.dirname(__file__)  # get current directory
     file_path = os.path.join(module_dir, 'data.json')
     template_path = os.path.join(module_dir, 'templates/')
-    cv_1_path = os.path.join(module_dir, 'templates/cv/cv1.html')
-    cv_2_path = os.path.join(module_dir, 'templates/cv/cv2.html')
+    cv_1_path = os.path.join(module_dir, 'cv1.html')
+    pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
+    cv_2_path = os.path.join(module_dir, 'cv2.html')
+    pdf_2_path = os.path.join(module_dir, 'cv2.pdf')
 
     with open(file_path) as json_file:
         data = json.load(json_file)
@@ -35,12 +37,12 @@ def generate(request):
     with open(cv_1_path, "w") as f:
         f.write(template.render(**data))
     # TODO: install wkhtmltopdf
-    # pdfkit.from_file('basic-cv.html', 'basic-cv.pdf')
+    pdfkit.from_file(cv_1_path, pdf_1_path)
 
     template = env.get_template('template2.tpl')
     with open(cv_2_path, "w") as f:
         f.write(template.render(**data))
-    # pdfkit.from_file('basic-cv2.html', 'basic-cv2.pdf', options=options)
+    pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
 
-    #return HttpResponse("CVs generated!")
-    return render(request, 'cv/cv2.html')
+    return HttpResponse("CVs generated!")
+    #return render(request, 'cv/cv2.html')
