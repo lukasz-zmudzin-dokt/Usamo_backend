@@ -49,5 +49,11 @@ def generate(request):
         f.write(template.render(**data))
     pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
 
+    # right now it returns the second pdf
+    with open(pdf_2_path, 'rb') as f:
+        d = f.read()
+        response = HttpResponse(d, content_type='application/pdf')
+        return response
+
     # return HttpResponse("CVs generated!")
-    return render(request, 'cv2-generated.html')
+    # return render(request, 'cv2-generated.html')
