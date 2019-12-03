@@ -28,9 +28,10 @@ class UserSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError({'phone_number': 'Phone number is invalid'})
 
         user = super(UserSerializer, self).create(validated_data)
-        self.update_or_create_account(user, account_data)
+        account, wasCreated = self.update_or_create_account(user, account_data)
         user.set_password(password)
         user.save()
+        account.save()
         return user
 
     def update(self, instance, validated_data):
@@ -39,4 +40,5 @@ class UserSerializer(serializers.ModelSerializer):
         return super(UserSerializer, self).update(instance, validated_data)
 
     def update_or_create_account(self, user, account_data):
-        Account.objects.update_or_create(user=user, defaults=account_data)
+        return Account.objects.update_or_create(user=user, defaults=account_data)
+
