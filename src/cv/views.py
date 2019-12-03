@@ -12,6 +12,7 @@ def index(request):
 
 
 def generate(request):
+    # options for second pdf
     options = {
         'page-size': 'Letter',
         'margin-top': '0in',
@@ -19,30 +20,34 @@ def generate(request):
         'margin-bottom': '0in',
         'margin-left': '0in'
     }
+
+    # get paths
     module_dir = os.path.dirname(__file__)  # get current directory
     file_path = os.path.join(module_dir, 'data.json')
     template_path = os.path.join(module_dir, 'templates/')
-    cv_1_path = os.path.join(module_dir, 'cv1.html')
+    cv_1_path = os.path.join(module_dir, 'templates/cv1.html')
     pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
-    cv_2_path = os.path.join(module_dir, 'cv2.html')
+    cv_2_path = os.path.join(module_dir, 'templates/cv2.html')
     pdf_2_path = os.path.join(module_dir, 'cv2.pdf')
 
+    # get data and jinja
     with open(file_path) as json_file:
         data = json.load(json_file)
-
     env = jinja2.environment.Environment(
         loader=jinja2.FileSystemLoader(template_path)
     )
     template = env.get_template('template.tpl')
+
+    # generate first html and pdf
     with open(cv_1_path, "w") as f:
         f.write(template.render(**data))
-    # TODO: install wkhtmltopdf
     pdfkit.from_file(cv_1_path, pdf_1_path)
 
+    # generate second html and pdf
     template = env.get_template('template2.tpl')
     with open(cv_2_path, "w") as f:
         f.write(template.render(**data))
     pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
 
-    return HttpResponse("CVs generated!")
-    #return render(request, 'cv/cv2.html')
+    # return HttpResponse("CVs generated!")
+    return render(request, 'cv2.html')

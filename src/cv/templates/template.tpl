@@ -3,6 +3,51 @@
         <meta charset="UTF-8">
         <link rel="stylesheet" href="css/styles.css">
         <link href="https://fonts.googleapis.com/css?family=Montserrat:200,400,600,800&display=swap" rel="stylesheet">
+        <style>
+            * {
+              margin: 0;
+            }
+
+            body {
+              font-family: 'Montserrat', sans-serif;
+            }
+
+            .container {
+              margin: 0 10px;
+              margin-top: 15px;
+            }
+
+            header {
+              text-align: center;
+              margin: 20px;
+            }
+
+            h2 {
+              text-align: left;
+              font-weight: 400;
+              border-bottom: 1px solid grey;
+              margin: 0.5rem 0;
+            }
+
+            h3 {
+              font-weight: 600;
+              margin: 0.5rem 0;
+            }
+
+            h4 {
+              font-weight: 400;
+              margin: 0.5rem 0;
+            }
+
+            p {
+              margin: 0.5rem 0;
+            }
+
+            .item {
+              margin-left: 25%;
+              padding: 10px 0;
+            }
+        </style>
     </head>
     <body>
         <header>
