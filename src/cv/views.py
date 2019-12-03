@@ -25,9 +25,9 @@ def generate(request):
     module_dir = os.path.dirname(__file__)  # get current directory
     file_path = os.path.join(module_dir, 'data.json')
     template_path = os.path.join(module_dir, 'templates/')
-    cv_1_path = os.path.join(module_dir, 'templates/cv1.html')
+    cv_1_path = os.path.join(module_dir, 'templates/cv1-generated.html')
     pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
-    cv_2_path = os.path.join(module_dir, 'templates/cv2.html')
+    cv_2_path = os.path.join(module_dir, 'templates/cv2-generated.html')
     pdf_2_path = os.path.join(module_dir, 'cv2.pdf')
 
     # get data and jinja
@@ -50,4 +50,4 @@ def generate(request):
     pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
 
     # return HttpResponse("CVs generated!")
-    return render(request, 'cv2.html')
+    return render(request, 'cv2-generated.html')
