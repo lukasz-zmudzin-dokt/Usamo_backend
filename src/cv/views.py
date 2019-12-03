@@ -23,7 +23,7 @@ def generate(request):
 
     # get paths
     module_dir = os.path.dirname(__file__)  # get current directory
-    file_path = os.path.join(module_dir, 'data.json')
+    file_path = os.path.join(module_dir, 'data_sample.json')
     template_path = os.path.join(module_dir, 'templates/')
     cv_1_path = os.path.join(module_dir, 'templates/cv1-generated.html')
     pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
