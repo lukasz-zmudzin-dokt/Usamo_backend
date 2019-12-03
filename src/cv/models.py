@@ -2,6 +2,7 @@ import datetime
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
+from phonenumber_field.modelfields import PhoneNumberField
 
 
 def current_year():
@@ -17,7 +18,7 @@ class CV(models.Model):
     picture = models.ImageField(upload_to='cv_pictures/')
     date_of_birth = models.DateTimeField()
     hobbies = models.CharField(max_length=100)
-    phone_number = user.account.phone_number
+    phone_number = PhoneNumberField()
 
 
 class School(models.Model):
