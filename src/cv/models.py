@@ -15,6 +15,9 @@ def max_value_current_year(value):
 
 class CV(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=50)
+    email = models.EmailField()
     picture = models.ImageField(upload_to='cv_pictures/')
     date_of_birth = models.DateTimeField()
     hobbies = models.CharField(max_length=100)

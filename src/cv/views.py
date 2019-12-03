@@ -6,12 +6,30 @@ import jinja2
 import pdfkit
 import os
 import io
+from cv.serializers import *
+from rest_framework import status
+from rest_framework.response import Response
 
 def index(request):
     return HttpResponse("Hello, world. You're at the CV generator.")
 
 
-def generate(request):
+def post(request):
+    serializer = CVSerializer(data=request.data)
+    response_data = {}
+
+    if serializer.is_valid():
+        cv = serializer.create(serializer.validated_data)
+        response_data['response_message'] = "Successfully registered a new user"
+        response_data['first_name'] = cv.user.first_name
+        response_data['username'] = cv.user.username
+    else:
+        return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+
+    return Response(response_data, status=status.HTTP_201_CREATED)
+
+
+def generate(data):
     # options for second pdf
     options = {
         'page-size': 'Letter',
@@ -31,8 +49,8 @@ def generate(request):
     pdf_2_path = os.path.join(module_dir, 'cv2.pdf')
 
     # get data and jinja
-    with io.open(file_path, "r", encoding="utf-8") as json_file:
-        data = json.load(json_file)
+#    with io.open(file_path, "r", encoding="utf-8") as json_file:
+#        data = json.load(json_file)
     env = jinja2.environment.Environment(
         loader=jinja2.FileSystemLoader(template_path)
     )
