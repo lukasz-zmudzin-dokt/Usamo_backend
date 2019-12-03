@@ -5,7 +5,7 @@ import json
 import jinja2
 import pdfkit
 import os
-
+import io
 
 def index(request):
     return HttpResponse("Hello, world. You're at the CV generator.")
@@ -27,20 +27,20 @@ def generate(request):
     cv_2_path = os.path.join(module_dir, 'cv2.html')
     pdf_2_path = os.path.join(module_dir, 'cv2.pdf')
 
-    with open(file_path) as json_file:
+    with io.open(file_path, "r", encoding="utf-8") as json_file:
         data = json.load(json_file)
 
     env = jinja2.environment.Environment(
         loader=jinja2.FileSystemLoader(template_path)
     )
     template = env.get_template('template.tpl')
-    with open(cv_1_path, "w") as f:
+    with io.open(cv_1_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
     # TODO: install wkhtmltopdf
     pdfkit.from_file(cv_1_path, pdf_1_path)
 
     template = env.get_template('template2.tpl')
-    with open(cv_2_path, "w") as f:
+    with io.open(cv_2_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
     pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
 

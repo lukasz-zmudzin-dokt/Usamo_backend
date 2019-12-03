@@ -8,3 +8,9 @@ db.sqlite3
 
 # virtualenvs
 usamodzielnieni/
+
+# generated cvs
+cv/cv1.html
+cv/cv2.html
+cv/cv1.pdf
+cv/cv2.pdf
