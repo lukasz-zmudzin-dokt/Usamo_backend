@@ -3,3 +3,12 @@ __pycache__/
 db.sqlite3
 # others
 .vscode/
+.DS_Store
+.idea
+
+# virtualenvs
+usamodzielnieni/
+
+# cv pdfs and htmls
+*.pdf
+*-generated.html

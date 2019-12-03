@@ -1,0 +1,57 @@
+{
+    "basic_info": {
+        "name": "Monika",
+        "surname": "Osiak",
+        "date_of_birth": "08-05-1998",
+        "telephone": "123456789",
+        "email": "monika.osiak@email.com"
+    },
+    "education": [
+        {
+            "place": "I LO im. B. Prusa w Siedlcach",
+            "date_start": "2014",
+            "date_end": "2017",
+            "additional_info": "profil matematyczno-fizyczny"
+        },
+        {
+            "place": "Politechnika Warszawska",
+            "date_start": "2017",
+            "date_end": "2021",
+            "additional_info": "Informatyka Stosowana, specjalizacja: Inżynieria Danych i Multimedia"
+        }
+    ],
+    "experience": [
+        {
+            "place": "Samsung R&D Poland",
+            "date_start": "2019",
+            "date_end": "",
+            "additional_info": "Bixby Research Team"
+        },
+        {
+            "place": "Goldman Sachs",
+            "date_start": "2020",
+            "date_end": "",
+            "additional_info": "Summer Analyst Internship"
+        }
+    ],
+    "skills": [
+        "Python 3.x",
+        "Flask",
+        "Django 2.x",
+        "HTML",
+        "CSS",
+        "kreatywne pisanie"
+    ],
+    "languages": {
+        "polski": "ojczysty",
+        "angielski": "B2",
+        "włoski": "A2",
+        "francuski": "A1"
+    },
+    "hobbies": [
+        "język i kultura Włoch",
+        "Formula 1",
+        "robienie na drutach",
+        "zumba"
+    ]
+}
