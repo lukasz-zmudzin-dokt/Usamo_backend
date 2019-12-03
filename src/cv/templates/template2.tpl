@@ -73,7 +73,7 @@
     </head>
     <body>
         <header>
-            <h1 id="name">{{basic_info.name}}</br>{{basic_info.surname}}</h1>
+            <h1 id="name">{{basic_info.first_name}}</br>{{basic_info.last_name}}</h1>
             <div id="contact">
                 <p><b>Data urodzenia: </b></br>ur. {{basic_info.date_of_birth}}</p>
                 <p><b>Telefon: </b></br>{{basic_info.telephone}}</p>
@@ -81,24 +81,24 @@
             </div>
         </header>
 
-        <div class="container" id="education">
+        <div class="container" id="schools">
             <h2>Wykształcenie</h2>
-            {% for item in education %}
+            {% for item in schools %}
             <div class="item">
-                <h4>{{item.date_start}} - {% if item.date_end %}{{item.date_end}}{% else %}...{% endif %}</h4>
-                <h3>{{item.place}}</h3>
+                <h4>{{item.year_start}} - {% if item.year_end %}{{item.year_end}}{% else %}...{% endif %}</h4>
+                <h3>{{item.name}}</h3>
                 <p>{{item.additional_info}}</p>
             </div>
             {% endfor %}
         </div>
 
-        <div class="container" id="experience">
+        <div class="container" id="experiences">
             <h2>Doświadczenie</h2>
-            {% for item in experience %}
+            {% for item in experiences %}
             <div class="item">
-                <h4>{{item.date_start}} - {% if item.date_end %}{{item.date_end}}{% else %}...{% endif %}</h4>
-                <h3>{{item.place}}</h3>
-                <p>{{item.additional_info}}</p>
+                <h4>{{item.year_start}} - {% if item.year_end %}{{item.year_end}}{% else %}...{% endif %}</h4>
+                <h3>{{item.title}}</h3>
+                <p>{{item.description}}</p>
             </div>
             {% endfor %}
         </div>
@@ -107,16 +107,16 @@
             <h2>Umiejętności</h2>
             <p class="item">
                 {% for item in skills %}
-                {{item}},
+                {{item.description}},
                 {% endfor %}
             </p>
         </div>
-        
+
         <div class="container" id="languages">
             <h2>Języki</h2>
             <p class="item">
                 {% for item in languages %}
-                {{item}},
+                {{item.name}} - {{item.level}},
                 {% endfor %}
             </p>
         </div>

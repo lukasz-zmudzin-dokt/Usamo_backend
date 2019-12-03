@@ -1,3 +1,4 @@
+from django.core.serializers import serialize
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -6,27 +7,35 @@ import jinja2
 import pdfkit
 import os
 import io
+
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
 from cv.serializers import *
 from rest_framework import status
 from rest_framework.response import Response
+from rest_framework import views
 
 def index(request):
     return HttpResponse("Hello, world. You're at the CV generator.")
 
 
-def post(request):
-    serializer = CVSerializer(data=request.data)
-    response_data = {}
+class GenerateView(views.APIView):
+    @permission_classes([IsAuthenticated])
+    def post(self, request):
+        request_data = request.data
+        request_data['user_id'] = request.user.id
+        serializer = CVSerializer(data=request_data)
 
-    if serializer.is_valid():
-        cv = serializer.create(serializer.validated_data)
-        response_data['response_message'] = "Successfully registered a new user"
-        response_data['first_name'] = cv.user.first_name
-        response_data['username'] = cv.user.username
-    else:
-        return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+        if serializer.is_valid():
+            cv = serializer.create(serializer.validated_data)
+            response = HttpResponse(generate(request_data), content_type='application/pdf', status=status.HTTP_201_CREATED)
+            response['response_message'] = "Generated CV successfully"
+        else:
+            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
-    return Response(response_data, status=status.HTTP_201_CREATED)
+        return response
 
 
 def generate(data):
