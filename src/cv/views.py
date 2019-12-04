@@ -1,4 +1,5 @@
-from django.http import HttpResponse
+from django.core.serializers import serialize
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 import json
@@ -7,11 +8,43 @@ import pdfkit
 import os
 import io
 
+from django.views.decorators.csrf import csrf_exempt
+from rest_framework.decorators import permission_classes
+from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.renderers import JSONRenderer
+
+from cv.serializers import *
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework import views
+
 def index(request):
     return HttpResponse("Hello, world. You're at the CV generator.")
 
 
-def generate(request):
+class GenerateView(views.APIView):
+    @permission_classes([IsAuthenticated])
+    def post(self, request):
+        response_data = {}
+        request_data = request.data
+        request_data['cv_id'] = request.user.id
+        serializer = CVSerializer(data=request_data)
+        if serializer.is_valid():
+            cv = serializer.create(serializer.validated_data)
+            response = HttpResponse(generate(request_data), content_type='application/pdf')
+            return response
+        else:
+            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+
+    def get(self, request):
+        try:
+            cv = CV.objects.get(cv_id=request.user.id)
+        except CV.DoesNotExist:
+            return HttpResponse(status=404)
+        serializer = CVSerializer(cv)
+        return JsonResponse(serializer.data, safe=False)
+
+def generate(data):
     # options for second pdf
     options = {
         'page-size': 'Letter',
@@ -31,8 +64,8 @@ def generate(request):
     pdf_2_path = os.path.join(module_dir, 'cv2.pdf')
 
     # get data and jinja
-    with io.open(file_path, "r", encoding="utf-8") as json_file:
-        data = json.load(json_file)
+#    with io.open(file_path, "r", encoding="utf-8") as json_file:
+#        data = json.load(json_file)
     env = jinja2.environment.Environment(
         loader=jinja2.FileSystemLoader(template_path)
     )
