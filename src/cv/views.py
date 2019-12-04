@@ -1,5 +1,5 @@
 from django.core.serializers import serialize
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 import json
@@ -11,6 +11,7 @@ import io
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.renderers import JSONRenderer
 
 from cv.serializers import *
 from rest_framework import status
@@ -24,19 +25,24 @@ def index(request):
 class GenerateView(views.APIView):
     @permission_classes([IsAuthenticated])
     def post(self, request):
+        response_data = {}
         request_data = request.data
-        request_data['user_id'] = request.user.id
+        request_data['cv_id'] = request.user.id
         serializer = CVSerializer(data=request_data)
-
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
-            response = HttpResponse(generate(request_data), content_type='application/pdf', status=status.HTTP_201_CREATED)
-            response['response_message'] = "Generated CV successfully"
+            response_data['response_message'] = "Generated CV successfully"
+            return Response(response_data, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
-        return response
-
+    def get(self, request):
+        try:
+            cv = CV.objects.get(cv_id=request.user.id)
+        except CV.DoesNotExist:
+            return HttpResponse(status=404)
+        serializer = CVSerializer(cv)
+        return JsonResponse(serializer.data, safe=False)
 
 def generate(data):
     # options for second pdf

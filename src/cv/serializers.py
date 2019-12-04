@@ -6,6 +6,7 @@ from rest_framework.relations import PrimaryKeyRelatedField
 
 from .models import *
 
+
 class SchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
@@ -37,31 +38,73 @@ class BasicInfoSerializer(serializers.ModelSerializer):
 
 
 class CVSerializer(serializers.ModelSerializer):
-    basic_info = BasicInfoSerializer(read_only=True)
-    schools = SchoolSerializer(many=True, read_only=True)
-    experiences = ExperienceSerializer(many=True, read_only=True)
-    skills = SkillSerializer(many=True, read_only=True)
-    languages = LanguageSerializer(many=True, read_only=True)
-    user_id = serializers.IntegerField()
+    basic_info = BasicInfoSerializer(many=False)
+    schools = SchoolSerializer(many=True)
+    experiences = ExperienceSerializer(many=True)
+    skills = SkillSerializer(many=True)
+    languages = LanguageSerializer(many=True)
+    cv_id = serializers.IntegerField()
+
     class Meta:
         model = CV
-        fields = ['user_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
+        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
+        depth = 2
 
     def create(self, validated_data):
-        cv_data = validated_data.pop('cv', None)
-        if not CV.objects.filter(user_id=validated_data['user_id']).exists():
-            cv = super(CVSerializer, self).create(validated_data)
-            cv, wasCreated = self.update_or_create_cv(cv, cv_data)
-            cv.save()
-            return cv
-        else:
-            self.update(CV.objects.get(user_id=validated_data['user_id']), validated_data)
-            return self
+        if not CV.objects.filter(cv_id=validated_data['cv_id']).exists():
+            basic_info_data = validated_data.pop('basic_info')
+            schools_data = validated_data.pop('schools')
+            experiences_data = validated_data.pop('experiences')
+            skills_data = validated_data.pop('skills')
+            languages_data = validated_data.pop('languages')
+            cv = CV.objects.create(**validated_data)
 
-    def update(self, instance, validated_data):
-        cv_data = validated_data.pop('cv', None)
-        self.update_or_create_cv(instance.user_id, cv_data)
-        return super(CVSerializer, self).update(instance, validated_data)
+            BasicInfo.objects.create(cv=cv, **basic_info_data)
+
+            for school_data in schools_data:
+                School.objects.create(cv=cv, **school_data)
+
+            for experience_data in experiences_data:
+                Experience.objects.create(cv=cv, **experience_data)
+
+            for skill_data in skills_data:
+                Skill.objects.create(cv=cv, **skill_data)
+
+            for language_data in languages_data:
+                Language.objects.create(cv=cv, **language_data)
+
+            return cv
+
+        else:
+            cv = self.update(CV.objects.get(cv_id=validated_data['cv_id']), validated_data)
+            return cv
+
+    def update(self, cv, validated_data):
+        ''' instance.basic_info = validated_data['basic_info']
+        instance.schools = validated_data['schools']
+        instance.experiences = validated_data['experiences']
+        instance.skills = validated_data['skills']
+        instance.languages = validated_data['languages']'''
+        basic_info_data = validated_data.pop('basic_info')
+        schools_data = validated_data.pop('schools')
+        experiences_data = validated_data.pop('experiences')
+        skills_data = validated_data.pop('skills')
+        languages_data = validated_data.pop('languages')
+        BasicInfo.objects.update(cv=cv, **basic_info_data)
+
+        for school_data in schools_data:
+            School.objects.update(cv=cv, **school_data)
+
+        for experience_data in experiences_data:
+            Experience.objects.update(cv=cv, **experience_data)
+
+        for skill_data in skills_data:
+            Skill.objects.update(cv=cv, **skill_data)
+
+        for language_data in languages_data:
+            Language.objects.update(cv=cv, **language_data)
+
+        return cv
 
     def update_or_create_cv(self, user_id, cv_data):
-        return CV.objects.update_or_create(user_id=user_id, defaults=cv_data)
+        return CV.objects.update_or_create(defaults=cv_data)
