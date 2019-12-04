@@ -22,3 +22,6 @@ sqlparse==0.3.0
 typed-ast==1.4.0
 Werkzeug==0.16.0
 wrapt==1.11.2
+gunicorn 
+whitenoise 
+dj-database-url
