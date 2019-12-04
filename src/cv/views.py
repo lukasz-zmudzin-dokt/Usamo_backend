@@ -31,8 +31,8 @@ class GenerateView(views.APIView):
         serializer = CVSerializer(data=request_data)
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
-            response_data['response_message'] = "Generated CV successfully"
-            return Response(response_data, status.HTTP_201_CREATED)
+            response = HttpResponse(generate(request_data), content_type='application/pdf')
+            return response
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 

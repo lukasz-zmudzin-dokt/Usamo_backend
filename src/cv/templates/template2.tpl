@@ -76,7 +76,7 @@
             <h1 id="name">{{basic_info.first_name}}</br>{{basic_info.last_name}}</h1>
             <div id="contact">
                 <p><b>Data urodzenia: </b></br>ur. {{basic_info.date_of_birth}}</p>
-                <p><b>Telefon: </b></br>{{basic_info.telephone}}</p>
+                <p><b>Telefon: </b></br>{{basic_info.phone_number}}</p>
                 <p><b>E-mail: </b></br>{{basic_info.email}}</p>
             </div>
         </header>
