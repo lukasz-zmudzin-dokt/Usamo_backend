@@ -25,4 +25,4 @@ wrapt==1.11.2
 gunicorn 
 whitenoise 
 dj-database-url
-wkhtmltopdf-pack
+git+git://github.com/johnfraney/wkhtmltopdf-pack.git
