@@ -1,3 +1,5 @@
+import os
+
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
@@ -5,9 +7,8 @@ from django.shortcuts import render
 import json
 import jinja2
 import pdfkit
-import os
+import subprocess
 import io
-
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -80,7 +81,7 @@ def generate(data):
     template = env.get_template('template2.tpl')
     with io.open(cv_2_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
-    pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
+    pdfkit.from_file(cv_2_path, pdf_2_path, configuration=_get_pdfkit_config(), options=options)
 
     # right now it returns the second pdf
     with open(pdf_2_path, 'rb') as f:
@@ -90,3 +91,9 @@ def generate(data):
 
     # return HttpResponse("CVs generated!")
     # return render(request, 'cv2-generated.html')
+
+
+def _get_pdfkit_config():
+    WKHTMLTOPDF_CMD = subprocess.Popen(['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')],
+                                        stdout=subprocess.PIPE).communicate()[0].strip()
+    return pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_CMD)
