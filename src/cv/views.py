@@ -3,6 +3,7 @@ import os
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from usamo import settings
 
 import json
 import jinja2
@@ -55,6 +56,8 @@ def generate(data):
         'margin-left': '0in'
     }
 
+    pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
+
     # get paths
     module_dir = os.path.dirname(__file__)  # get current directory
     file_path = os.path.join(module_dir, 'data_sample.json')
@@ -75,13 +78,13 @@ def generate(data):
     # generate first html and pdf
     with io.open(cv_1_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
-    pdfkit.from_file(cv_1_path, pdf_1_path, configuration=_get_pdfkit_config())
+    pdfkit.from_file(cv_1_path, pdf_1_path, configuration=pdfkit_config)
 
     # generate second html and pdf
     template = env.get_template('template2.tpl')
     with io.open(cv_2_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
-    pdfkit.from_file(cv_2_path, pdf_2_path, configuration=_get_pdfkit_config(), options=options)
+    pdfkit.from_file(cv_2_path, pdf_2_path, configuration=pdfkit_config, options=options)
 
     # right now it returns the second pdf
     with open(pdf_2_path, 'rb') as f:
@@ -91,7 +94,3 @@ def generate(data):
 
     # return HttpResponse("CVs generated!")
     # return render(request, 'cv2-generated.html')
-
-
-def _get_pdfkit_config():
-    return pdfkit.configuration(wkhtmltopdf='./bin/wkhtmltopdf')
