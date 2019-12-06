@@ -14,15 +14,21 @@ def max_value_current_year(value):
 
 
 class CV(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    cv_id = models.IntegerField(null=True)
+
+
+class BasicInfo(models.Model):
+    cv = models.ForeignKey(CV, related_name='basic_info', on_delete=models.CASCADE, null=True)
+    first_name = models.CharField(max_length=30)
+    last_name = models.CharField(max_length=50)
+    email = models.EmailField()
     picture = models.ImageField(upload_to='cv_pictures/')
-    date_of_birth = models.DateTimeField()
-    hobbies = models.CharField(max_length=100)
-    phone_number = PhoneNumberField()
+    date_of_birth = models.DateField
+    phone_number = models.CharField(max_length=12)
 
 
 class School(models.Model):
-    cv = models.ForeignKey(CV, on_delete=models.CASCADE)
+    cv = models.ForeignKey(CV, related_name='schools', on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=200)
     year_start = models.PositiveIntegerField(
         default=current_year(),
@@ -31,13 +37,15 @@ class School(models.Model):
             max_value_current_year])
     year_end = models.PositiveIntegerField(
         default=current_year(),
+        null=True,
         validators=[
             MinValueValidator(1990),
             max_value_current_year])
+    additional_info = models.CharField(max_length=150, null=True)
 
 
 class Experience(models.Model):
-    cv = models.ForeignKey(CV, on_delete=models.CASCADE)
+    cv = models.ForeignKey(CV, related_name='experiences', on_delete=models.CASCADE, null=True)
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=400)
     year_start = models.PositiveIntegerField(
@@ -47,17 +55,18 @@ class Experience(models.Model):
             max_value_current_year])
     year_end = models.PositiveIntegerField(
         default=current_year(),
+        null=True,
         validators=[
             MinValueValidator(1990),
             max_value_current_year])
 
 
 class Skill(models.Model):
-    cv = models.ForeignKey(CV, on_delete=models.CASCADE)
+    cv = models.ForeignKey(CV, related_name='skills', on_delete=models.CASCADE, null=True)
     description = models.CharField(max_length=50)
 
 
 class Language(models.Model):
-    cv = models.ForeignKey(CV, on_delete=models.CASCADE)
+    cv = models.ForeignKey(CV, related_name='languages', on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=20)
     level = models.CharField(max_length=20)
