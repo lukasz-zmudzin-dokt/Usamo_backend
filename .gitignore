@@ -4,8 +4,7 @@ db.sqlite3
 
 .idea
 
-src/.env
-src/usamo/settings/test/test.env
+**/*.env
 # others
 .vscode/
 .DS_Store

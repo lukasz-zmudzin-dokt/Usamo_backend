@@ -1,17 +1,17 @@
-from ..settings import *
 import os
+import dotenv
 
-db_name = os.environ['POSTGRES_DB']
-db_user = os.environ['POSTGRES_USER']
-db_password = os.environ['POSTGRES_PASSWORD']
+from ..settings import *
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': db_name,
-        'USER': db_user,
-        'PASSWORD': db_password,
-        'HOST': 'db',
-        'PORT': '5432'
-    }
+dotenv.read_dotenv(os.path.join(os.path.dirname(__file__), 'test.env'))
+
+envs = {
+    'NAME': os.getenv('POSTGRES_DB'),
+    'USER': os.getenv('POSTGRES_USER'),
+    'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+    'HOST': os.getenv('POSTGRES_HOST')
 }
+
+db_from_env = {k: v for k, v in envs.items() if v is not None}
+
+DATABASES['default'].update(db_from_env)

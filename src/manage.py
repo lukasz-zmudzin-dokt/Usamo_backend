@@ -6,7 +6,7 @@ import dotenv
 
 
 def main():
-    dotenv.read_dotenv()
+    dotenv.read_dotenv(override=True)
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'usamo.settings.settings')
     try:
