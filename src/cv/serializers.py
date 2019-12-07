@@ -38,73 +38,39 @@ class BasicInfoSerializer(serializers.ModelSerializer):
 
 
 class CVSerializer(serializers.ModelSerializer):
-    basic_info = BasicInfoSerializer(many=False)
+    basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
     experiences = ExperienceSerializer(many=True)
     skills = SkillSerializer(many=True)
     languages = LanguageSerializer(many=True)
-    cv_id = serializers.IntegerField()
 
     class Meta:
         model = CV
         fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
-        depth = 2
 
     def create(self, validated_data):
-        if not CV.objects.filter(cv_id=validated_data['cv_id']).exists():
-            basic_info_data = validated_data.pop('basic_info')
-            schools_data = validated_data.pop('schools')
-            experiences_data = validated_data.pop('experiences')
-            skills_data = validated_data.pop('skills')
-            languages_data = validated_data.pop('languages')
-            cv = CV.objects.create(**validated_data)
+        if CV.objects.filter(cv_id=validated_data['cv_id']).exists():
+            CV.objects.get(cv_id=validated_data['cv_id']).delete()
 
-            BasicInfo.objects.create(cv=cv, **basic_info_data)
-
-            for school_data in schools_data:
-                School.objects.create(cv=cv, **school_data)
-
-            for experience_data in experiences_data:
-                Experience.objects.create(cv=cv, **experience_data)
-
-            for skill_data in skills_data:
-                Skill.objects.create(cv=cv, **skill_data)
-
-            for language_data in languages_data:
-                Language.objects.create(cv=cv, **language_data)
-
-            return cv
-
-        else:
-            cv = self.update(CV.objects.get(cv_id=validated_data['cv_id']), validated_data)
-            return cv
-
-    def update(self, cv, validated_data):
-        ''' instance.basic_info = validated_data['basic_info']
-        instance.schools = validated_data['schools']
-        instance.experiences = validated_data['experiences']
-        instance.skills = validated_data['skills']
-        instance.languages = validated_data['languages']'''
         basic_info_data = validated_data.pop('basic_info')
         schools_data = validated_data.pop('schools')
         experiences_data = validated_data.pop('experiences')
         skills_data = validated_data.pop('skills')
         languages_data = validated_data.pop('languages')
-        BasicInfo.objects.update(cv=cv, **basic_info_data)
+        cv = CV.objects.create(**validated_data)
+
+        BasicInfo.objects.create(cv=cv, **basic_info_data)
 
         for school_data in schools_data:
-            School.objects.update(cv=cv, **school_data)
+            School.objects.create(cv=cv, **school_data)
 
         for experience_data in experiences_data:
-            Experience.objects.update(cv=cv, **experience_data)
+            Experience.objects.create(cv=cv, **experience_data)
 
         for skill_data in skills_data:
-            Skill.objects.update(cv=cv, **skill_data)
+            Skill.objects.create(cv=cv, **skill_data)
 
         for language_data in languages_data:
-            Language.objects.update(cv=cv, **language_data)
+            Language.objects.create(cv=cv, **language_data)
 
         return cv
-
-    def update_or_create_cv(self, user_id, cv_data):
-        return CV.objects.update_or_create(defaults=cv_data)

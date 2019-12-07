@@ -1,22 +1,17 @@
-from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
-
-import json
 import jinja2
 import pdfkit
 import os
 import io
 
-from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import permission_classes
-from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework.renderers import JSONRenderer
+from rest_framework.permissions import IsAuthenticated
 
 from cv.serializers import *
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework import views
+
 
 def index(request):
     return HttpResponse("Hello, world. You're at the CV generator.")
@@ -25,24 +20,36 @@ def index(request):
 class GenerateView(views.APIView):
     @permission_classes([IsAuthenticated])
     def post(self, request):
-        response_data = {}
         request_data = request.data
         request_data['cv_id'] = request.user.id
         serializer = CVSerializer(data=request_data)
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
-            response = HttpResponse(generate(request_data), content_type='application/pdf')
-            return response
+            return Response('CV successfully generated.', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
+    @permission_classes([IsAuthenticated])
     def get(self, request):
         try:
             cv = CV.objects.get(cv_id=request.user.id)
         except CV.DoesNotExist:
             return HttpResponse(status=404)
         serializer = CVSerializer(cv)
-        return JsonResponse(serializer.data, safe=False)
+        response = HttpResponse(generate(serializer.data), content_type='application/pdf')
+        return response
+
+
+class DataView(views.APIView):
+    @permission_classes([IsAuthenticated])
+    def get(self, request):
+        try:
+            cv = CV.objects.get(cv_id=request.user.id)
+        except CV.DoesNotExist:
+            return HttpResponse(status=404)
+        serializer = CVSerializer(instance=cv)
+        return JsonResponse(serializer.data )
+
 
 def generate(data):
     # options for second pdf

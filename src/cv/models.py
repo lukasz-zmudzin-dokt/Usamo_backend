@@ -18,13 +18,13 @@ class CV(models.Model):
 
 
 class BasicInfo(models.Model):
-    cv = models.ForeignKey(CV, related_name='basic_info', on_delete=models.CASCADE, null=True)
+    cv = models.OneToOneField(CV, related_name='basic_info', on_delete=models.CASCADE, null=True)
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=50)
     email = models.EmailField()
     picture = models.ImageField(upload_to='cv_pictures/')
-    date_of_birth = models.DateField
     phone_number = models.CharField(max_length=12)
+    date_of_birth = models.CharField(max_length=12)
 
 
 class School(models.Model):
@@ -36,7 +36,6 @@ class School(models.Model):
             MinValueValidator(1990),
             max_value_current_year])
     year_end = models.PositiveIntegerField(
-        default=current_year(),
         null=True,
         validators=[
             MinValueValidator(1990),
@@ -54,7 +53,6 @@ class Experience(models.Model):
             MinValueValidator(1990),
             max_value_current_year])
     year_end = models.PositiveIntegerField(
-        default=current_year(),
         null=True,
         validators=[
             MinValueValidator(1990),
