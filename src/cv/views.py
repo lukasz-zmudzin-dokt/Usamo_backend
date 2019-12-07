@@ -88,14 +88,12 @@ def generate(data):
 
 def _get_pdfkit_config():
     try:
+        # using WKHTMLTOPDF_BINARY
         wkhtmltopdf_cmd = subprocess.Popen(['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')],
                                            stdout=subprocess.PIPE).communicate()[0].strip()
 
         pdfkit_config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_cmd)
     except (FileNotFoundError, AttributeError):
-        try:
-            pdfkit_config = pdfkit.configuration(wkhtmltopdf='./bin/wkhtmltopdf')
-        except OSError:
-            #use default wkhtmltopdf configuration
-            pdfkit_config = None
+        # using default wkhtmltopdf configuration
+        pdfkit_config = None
     return pdfkit_config
