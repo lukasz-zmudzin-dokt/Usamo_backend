@@ -1,13 +1,15 @@
+import os
+
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from usamo import settings
 
 import json
 import jinja2
 import pdfkit
-import os
+import subprocess
 import io
-
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -54,6 +56,8 @@ def generate(data):
         'margin-left': '0in'
     }
 
+    pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
+
     # get paths
     module_dir = os.path.dirname(__file__)  # get current directory
     file_path = os.path.join(module_dir, 'data_sample.json')
@@ -74,13 +78,13 @@ def generate(data):
     # generate first html and pdf
     with io.open(cv_1_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
-    pdfkit.from_file(cv_1_path, pdf_1_path)
+    pdfkit.from_file(cv_1_path, pdf_1_path, configuration=pdfkit_config)
 
     # generate second html and pdf
     template = env.get_template('template2.tpl')
     with io.open(cv_2_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
-    pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
+    pdfkit.from_file(cv_2_path, pdf_2_path, configuration=pdfkit_config, options=options)
 
     # right now it returns the second pdf
     with open(pdf_2_path, 'rb') as f:
