@@ -7,11 +7,11 @@ from rest_framework.authtoken.models import Token
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
 
 
-# Create your models here.
-
 class Account(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     phone_number = PhoneNumberField()
+    facility_name = models.CharField(max_length=60)
+    facility_address = models.CharField(max_length=120)
     status = models.IntegerField(default=AccountStatus.WAITING_FOR_VERIFICATION.value, choices=ACCOUNT_STATUS_CHOICES)
 
 
