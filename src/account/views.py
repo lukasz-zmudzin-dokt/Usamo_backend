@@ -9,12 +9,14 @@ from django.core.exceptions import ObjectDoesNotExist
 
 
 # Create your views here.
-
 class RegistationView(views.APIView):
     """
-    Required parameters: first_name, last_name, email, username, password, confirmed_password, phone_number
+    Required parameters: first_name, last_name, email,
+    username, password, phone_number, facility_name,
+    facility_address
     """
     permission_classes = [AllowAny]
+
     def post(self, request):
 
         serializer = UserSerializer(data=request.data)
@@ -36,6 +38,7 @@ class RegistationView(views.APIView):
 
 class LogoutView(views.APIView):
     permission_classes = [IsAuthenticated]
+
 
     def post(self, request):
         return self.logout(request)
