@@ -70,7 +70,6 @@
 
             #name {
               font-size: 4rem;
-              border: 1px solid #000;
               text-align: left;
               max-height: 120px;
               width: 600px;
