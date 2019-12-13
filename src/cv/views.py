@@ -84,7 +84,7 @@ class PictureView(views.APIView):
             Response('Make sure the form key is "picture"', status.HTTP_406_NOT_ACCEPTABLE)
         serializer = CVSerializer(data=data)
         if serializer.is_valid():
-            serializer.update(cv, serializer.validated_data)
+            serializer.create(serializer.validated_data)
             return Response('File added successfully', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)

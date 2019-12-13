@@ -71,7 +71,7 @@ class CVSerializer(serializers.ModelSerializer):
         Skill.objects.filter(cv=cv).delete()
         Language.objects.filter(cv=cv).delete()
 
-        return self.create_lists(cv, validated_data)
+        return cv
 
     @staticmethod
     def create_lists(cv, validated_data):
