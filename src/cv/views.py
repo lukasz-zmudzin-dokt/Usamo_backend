@@ -81,7 +81,7 @@ class PictureView(views.APIView):
         try:
             data['basic_info']['picture'] = request.FILES['picture']
         except MultiValueDictKeyError:
-            Response('Make sure the header key is "picture"', status.HTTP_406_NOT_ACCEPTABLE)
+            Response('Make sure the form key is "picture"', status.HTTP_406_NOT_ACCEPTABLE)
         serializer = CVSerializer(data=data)
         if serializer.is_valid():
             serializer.update(cv, serializer.validated_data)
