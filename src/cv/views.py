@@ -120,7 +120,7 @@ def generate(data, first_name, last_name):
     cv_1_path = os.path.join(module_dir, 'templates/cv1-generated.html')
     pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
     cv_2_path = os.path.join(module_dir, 'templates/cv2-generated.html')
-    pdf_2_path = os.path.join(module_dir, f'CV_{first_name}_{last_name}.pdf')
+    pdf_2_path = f'cv/CV_{first_name}_{last_name}.pdf'
 
     # get data and jinja
 #    with io.open(file_path, "r", encoding="utf-8") as json_file:
@@ -140,7 +140,6 @@ def generate(data, first_name, last_name):
     with io.open(cv_2_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
     pdfkit.from_file(cv_2_path, pdf_2_path, configuration=pdfkit_config, options=options)
-
     # right now it returns the second pdf
     return pdf_2_path
     # return HttpResponse("CVs generated!")
