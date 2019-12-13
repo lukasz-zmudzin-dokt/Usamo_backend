@@ -32,9 +32,11 @@ class LanguageSerializer(serializers.ModelSerializer):
 
 
 class BasicInfoSerializer(serializers.ModelSerializer):
+    picture = serializers.ImageField(required=False)
+
     class Meta:
         model = BasicInfo
-        fields = ['first_name', 'last_name', 'email', 'date_of_birth', 'phone_number']
+        fields = ['first_name', 'last_name', 'email', 'date_of_birth', 'phone_number', 'picture']
 
 
 class CVSerializer(serializers.ModelSerializer):
@@ -50,27 +52,44 @@ class CVSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         if CV.objects.filter(cv_id=validated_data['cv_id']).exists():
-            CV.objects.get(cv_id=validated_data['cv_id']).delete()
+            cv = self.update(CV.objects.all().get(cv_id=validated_data['cv_id']), validated_data)
+        else:
+            basic_info_data = validated_data.pop('basic_info')
+            cv = CV.objects.create(cv_id=validated_data['cv_id'])
 
+            BasicInfo.objects.create(cv=cv, **basic_info_data)
+
+        return self.create_lists(cv, validated_data)
+
+    def update(self, cv, validated_data):
         basic_info_data = validated_data.pop('basic_info')
+        serializer = BasicInfoSerializer()
+        serializer.update(cv.basic_info, basic_info_data)
+
+        School.objects.filter(cv=cv).delete()
+        Experience.objects.filter(cv=cv).delete()
+        Skill.objects.filter(cv=cv).delete()
+        Language.objects.filter(cv=cv).delete()
+
+        return self.create_lists(cv, validated_data)
+
+    @staticmethod
+    def create_lists(cv, validated_data):
         schools_data = validated_data.pop('schools')
         experiences_data = validated_data.pop('experiences')
         skills_data = validated_data.pop('skills')
         languages_data = validated_data.pop('languages')
-        cv = CV.objects.create(**validated_data)
 
-        BasicInfo.objects.create(cv=cv, **basic_info_data)
+        for data in schools_data:
+            School.objects.create(cv=cv, **data)
 
-        for school_data in schools_data:
-            School.objects.create(cv=cv, **school_data)
+        for data in experiences_data:
+            Experience.objects.create(cv=cv, **data)
 
-        for experience_data in experiences_data:
-            Experience.objects.create(cv=cv, **experience_data)
+        for data in skills_data:
+            Skill.objects.create(cv=cv, **data)
 
-        for skill_data in skills_data:
-            Skill.objects.create(cv=cv, **skill_data)
-
-        for language_data in languages_data:
-            Language.objects.create(cv=cv, **language_data)
+        for data in languages_data:
+            Language.objects.create(cv=cv, **data)
 
         return cv

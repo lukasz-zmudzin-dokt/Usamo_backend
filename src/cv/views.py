@@ -4,6 +4,8 @@ import os
 from django.core.serializers import serialize
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
+from django.utils.datastructures import MultiValueDictKeyError
+
 from usamo import settings
 
 import json
@@ -44,8 +46,18 @@ class GenerateView(views.APIView):
         except CV.DoesNotExist:
             return HttpResponse(status=404)
         serializer = CVSerializer(cv)
-        response = HttpResponse(generate(serializer.data), content_type='application/pdf')
+        response = Response(generate(serializer.data, request.user.first_name, request.user.last_name), status.HTTP_200_OK)
         return response
+
+    @permission_classes([IsAuthenticated])
+    def delete(self, request):
+        module_dir = os.path.dirname(__file__)
+        path = os.path.join(module_dir, f'CV_{request.user.first_name}_{request.user.last_name}.pdf')
+        if os.path.isfile(path):
+            os.remove(path)
+            return Response('File deleted successfully', status.HTTP_200_OK)
+        else:
+            return Response('No such file exists', status.HTTP_404_NOT_FOUND)
 
 
 class DataView(views.APIView):
@@ -59,7 +71,37 @@ class DataView(views.APIView):
         return JsonResponse(serializer.data )
 
 
-def generate(data):
+class PictureView(views.APIView):
+    @permission_classes([IsAuthenticated])
+    def post(self, request):
+        user_id = request.user.id
+        cv = CV.objects.get(cv_id=user_id)
+        serializer = CVSerializer(instance=cv)
+        data = serializer.data
+        try:
+            data['basic_info']['picture'] = request.FILES['picture']
+        except MultiValueDictKeyError:
+            Response('Make sure the header key is "picture"', status.HTTP_406_NOT_ACCEPTABLE)
+        serializer = CVSerializer(data=data)
+        if serializer.is_valid():
+            serializer.update(cv, serializer.validated_data)
+            return Response('File added successfully', status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+
+    @permission_classes([IsAuthenticated])
+    def get(self, request):
+        try:
+            cv = CV.objects.get(cv_id=request.user.id)
+            picture = BasicInfo.objects.get(cv=cv).picture
+        except CV.DoesNotExist:
+            return Response('CV not found', status.HTTP_404_NOT_FOUND)
+    #    try:
+        return Response(picture, status.HTTP_200_OK)
+    #    except ValueError:
+    #        return Response('Picture not found', status.HTTP_404_NOT_FOUND)
+
+def generate(data, first_name, last_name):
     # options for second pdf
     options = {
         'page-size': 'Letter',
@@ -78,7 +120,7 @@ def generate(data):
     cv_1_path = os.path.join(module_dir, 'templates/cv1-generated.html')
     pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
     cv_2_path = os.path.join(module_dir, 'templates/cv2-generated.html')
-    pdf_2_path = os.path.join(module_dir, 'cv2.pdf')
+    pdf_2_path = os.path.join(module_dir, f'CV_{first_name}_{last_name}.pdf')
 
     # get data and jinja
 #    with io.open(file_path, "r", encoding="utf-8") as json_file:
@@ -86,12 +128,12 @@ def generate(data):
     env = jinja2.environment.Environment(
         loader=jinja2.FileSystemLoader(template_path)
     )
-    template = env.get_template('template.tpl')
+#    template = env.get_template('template.tpl')
 
     # generate first html and pdf
-    with io.open(cv_1_path, "w", encoding="utf-8") as f:
-        f.write(template.render(**data))
-    pdfkit.from_file(cv_1_path, pdf_1_path, configuration=pdfkit_config)
+#    with io.open(cv_1_path, "w", encoding="utf-8") as f:
+#        f.write(template.render(**data))
+#    pdfkit.from_file(cv_1_path, pdf_1_path)
 
     # generate second html and pdf
     template = env.get_template('template2.tpl')
@@ -100,10 +142,6 @@ def generate(data):
     pdfkit.from_file(cv_2_path, pdf_2_path, configuration=pdfkit_config, options=options)
 
     # right now it returns the second pdf
-    with open(pdf_2_path, 'rb') as f:
-        d = f.read()
-        response = HttpResponse(d, content_type='application/pdf')
-        return response
-
+    return pdf_2_path
     # return HttpResponse("CVs generated!")
     # return render(request, 'cv2-generated.html')
