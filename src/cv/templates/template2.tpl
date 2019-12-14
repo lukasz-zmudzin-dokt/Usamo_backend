@@ -2,7 +2,7 @@
     <head>
         <meta charset="UTF-8">
         <link rel="stylesheet" href="css/styles2.css">
-        <link href="https://fonts.googleapis.com/css?family=Montserrat:200,400,600,800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:200,400,600,800&display=swap&subset=latin-ext" rel="stylesheet"> 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
         <script type="text/javascript">
             var autoSizeText;
