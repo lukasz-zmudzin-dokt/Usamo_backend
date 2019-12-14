@@ -135,7 +135,7 @@
             {% endfor %}
         </div>
 
-        <div class="container" id="experiences">
+        {% if experiences %}<div class="container" id="experiences">
             <h2>Doświadczenie</h2>
             {% for item in experiences %}
             <div class="item">
@@ -144,7 +144,7 @@
                 <p>{{item.description}}</p>
             </div>
             {% endfor %}
-        </div>
+        </div> {% endif %}
 
         <div class="container" id="skills">
             <h2>Umiejętności</h2>
