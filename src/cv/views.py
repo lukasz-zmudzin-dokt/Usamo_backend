@@ -141,6 +141,7 @@ def generate(data, first_name, last_name):
         f.write(template.render(**data))
     if sys.platform != 'win32' and sys.platform != 'win64':
         pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
+        options['zoom'] = '0.78125'
         pdfkit.from_file(cv_2_path, pdf_2_path, configuration=pdfkit_config, options=options)
     else:
         pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
