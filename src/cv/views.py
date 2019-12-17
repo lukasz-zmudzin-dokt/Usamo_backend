@@ -1,3 +1,5 @@
+import sys
+
 from django.http import HttpResponse, JsonResponse
 import os
 
@@ -111,8 +113,6 @@ def generate(data, first_name, last_name):
         'margin-left': '0in'
     }
 
-    pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
-
     # get paths
     module_dir = os.path.dirname(__file__)  # get current directory
     file_path = os.path.join(module_dir, 'data_sample.json')
@@ -139,7 +139,12 @@ def generate(data, first_name, last_name):
     template = env.get_template('template2.tpl')
     with io.open(cv_2_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
-    pdfkit.from_file(cv_2_path, pdf_2_path, configuration=pdfkit_config, options=options)
+    if sys.platform != 'win32' and sys.platform != 'win64':
+        pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
+        options['zoom'] = '0.78125'
+        pdfkit.from_file(cv_2_path, pdf_2_path, configuration=pdfkit_config, options=options)
+    else:
+        pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
     # right now it returns the second pdf
     return pdf_2_path
     # return HttpResponse("CVs generated!")

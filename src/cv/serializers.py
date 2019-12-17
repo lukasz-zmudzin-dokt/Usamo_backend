@@ -42,7 +42,7 @@ class BasicInfoSerializer(serializers.ModelSerializer):
 class CVSerializer(serializers.ModelSerializer):
     basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
-    experiences = ExperienceSerializer(many=True)
+    experiences = ExperienceSerializer(many=True, required=False)
     skills = SkillSerializer(many=True)
     languages = LanguageSerializer(many=True)
 
@@ -76,15 +76,19 @@ class CVSerializer(serializers.ModelSerializer):
     @staticmethod
     def create_lists(cv, validated_data):
         schools_data = validated_data.pop('schools')
-        experiences_data = validated_data.pop('experiences')
+        try:
+            experiences_data = validated_data.pop('experiences')
+        except KeyError:
+            experiences_data = False
         skills_data = validated_data.pop('skills')
         languages_data = validated_data.pop('languages')
 
         for data in schools_data:
             School.objects.create(cv=cv, **data)
 
-        for data in experiences_data:
-            Experience.objects.create(cv=cv, **data)
+        if experiences_data:
+            for data in experiences_data:
+                Experience.objects.create(cv=cv, **data)
 
         for data in skills_data:
             Skill.objects.create(cv=cv, **data)
