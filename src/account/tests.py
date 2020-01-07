@@ -39,7 +39,7 @@ class RegistrationTestCase(APITestCase):
         self.assertEquals(Account.objects.get().facility_name, self.registration_data['facility_name'])
         self.assertEquals(Account.objects.get().status, AccountStatus.WAITING_FOR_VERIFICATION.value)
 
-        self.assertNotEqual(Account.objects.get().user.password, '')
+        self.assertNotEquals(Account.objects.get().user.password, '')
         self.assertNotEquals(Account.objects.get().user.password, self.registration_data['password'])
 
 

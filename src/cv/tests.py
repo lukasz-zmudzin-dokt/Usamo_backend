@@ -29,5 +29,5 @@ class PictureTestCase(APITestCase):
         cls.url = 'cv/picture/'
         cls.token = 'insert_token_here'
         cls.cv_data = cv_test_data
-        cls.picture = SimpleUploadedFile(name='test_image.jpg',
+        cls.picture = SimpleUploadedFile(name='test_image.png',
                                          content=open('cv_pic.png', 'rb').read(), content_type='image/png')
