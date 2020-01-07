@@ -50,3 +50,14 @@ cv_test_data = {
                 }
             ]
         }
+
+user_data = {
+            'username': 'testusername',
+            'email': 'test@email.com',
+            'password': 'testpassword',
+            'first_name': 'testname',
+            'last_name': 'testlastname',
+            'phone_number': '+48123456789',
+            'facility_name': 'test facility name',
+            'facility_address': 'testState, testStreet testNum'
+        }

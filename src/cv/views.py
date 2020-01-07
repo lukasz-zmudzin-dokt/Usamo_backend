@@ -77,21 +77,25 @@ class DataView(views.APIView):
 class PictureView(views.APIView):
     @permission_classes([IsAuthenticated])
     def post(self, request):
-        user_id = request.user.id
-        cv = CV.objects.get(cv_id=user_id)
+        user = request.user
+        user_id = user.id
+        try:
+            cv = CV.objects.get(cv_id=request.user.id)
+        except CV.DoesNotExist:
+            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(instance=cv)
         data = serializer.data
         try:
             pict = request.FILES['picture']
             ext = pict.name.split('.')[-1]
-            pict.name = str(cv.id) + '.' + ext
+            pict.name = f'CV_{user.first_name}_{user.last_name}.' + ext
             data['basic_info']['picture'] = pict
         except MultiValueDictKeyError:
-            Response('Make sure the form key is "picture"', status.HTTP_406_NOT_ACCEPTABLE)
+            Response('Make sure the form key is "picture".', status.HTTP_406_NOT_ACCEPTABLE)
         serializer = CVSerializer(data=data)
         if serializer.is_valid():
             serializer.create(serializer.validated_data)
-            return Response('File added successfully', status.HTTP_201_CREATED)
+            return Response('File added successfully.', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -100,12 +104,12 @@ class PictureView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=request.user.id)
         except CV.DoesNotExist:
-            return Response('CV not found', status.HTTP_404_NOT_FOUND)
-        picture = BasicInfo.objects.get(cv=cv).picture
-        if picture is None:
-            return Response('Picture not found', status.HTTP_404_NOT_FOUND)
-        return Response(picture.url, status.HTTP_200_OK)
-    
+            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
+        bi = BasicInfo.objects.get(cv=cv)
+        if not bi.picture:
+            return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
+        return Response(bi.picture.url, status.HTTP_200_OK)
+        
 def generate(data, first_name, last_name):
     # options for second pdf
     options = {
