@@ -120,7 +120,7 @@ def generate(data, first_name, last_name):
     cv_1_path = os.path.join(module_dir, 'templates/cv1-generated.html')
     pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
     cv_2_path = os.path.join(module_dir, 'templates/cv2-generated.html')
-    pdf_2_path = f'cv/CV_{first_name}_{last_name}.pdf'
+    pdf_2_path = f'{os.path.dirname(os.path.abspath(__file__))}/CV_{first_name}_{last_name}.pdf'
 
     # get data and jinja
 #    with io.open(file_path, "r", encoding="utf-8") as json_file:
