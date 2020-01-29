@@ -14,6 +14,7 @@ import json
 import jinja2
 import pdfkit
 import subprocess
+import platform
 import io
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import permission_classes
@@ -46,7 +47,7 @@ class GenerateView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=request.user.id)
         except CV.DoesNotExist:
-            return HttpResponse(status=404)
+            return Response('CV not found', status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(cv)
         response = Response(generate(serializer.data, request.user.first_name, request.user.last_name), status.HTTP_200_OK)
         return response
@@ -68,26 +69,33 @@ class DataView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=request.user.id)
         except CV.DoesNotExist:
-            return HttpResponse(status=404)
+            return Response('CV not found', status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(instance=cv)
-        return JsonResponse(serializer.data )
+        return JsonResponse(serializer.data)
 
 
 class PictureView(views.APIView):
     @permission_classes([IsAuthenticated])
     def post(self, request):
-        user_id = request.user.id
-        cv = CV.objects.get(cv_id=user_id)
+        user = request.user
+        user_id = user.id
+        try:
+            cv = CV.objects.get(cv_id=request.user.id)
+        except CV.DoesNotExist:
+            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(instance=cv)
         data = serializer.data
         try:
-            data['basic_info']['picture'] = request.FILES['picture']
+            pict = request.FILES['picture']
+            ext = pict.name.split('.')[-1]
+            pict.name = f'CV_{user.first_name}_{user.last_name}.' + ext
+            data['basic_info']['picture'] = pict
         except MultiValueDictKeyError:
-            Response('Make sure the form key is "picture"', status.HTTP_406_NOT_ACCEPTABLE)
+            Response('Make sure the form key is "picture".', status.HTTP_406_NOT_ACCEPTABLE)
         serializer = CVSerializer(data=data)
         if serializer.is_valid():
             serializer.create(serializer.validated_data)
-            return Response('File added successfully', status.HTTP_201_CREATED)
+            return Response('File added successfully.', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -95,14 +103,13 @@ class PictureView(views.APIView):
     def get(self, request):
         try:
             cv = CV.objects.get(cv_id=request.user.id)
-            picture = BasicInfo.objects.get(cv=cv).picture
         except CV.DoesNotExist:
-            return Response('CV not found', status.HTTP_404_NOT_FOUND)
-    #    try:
-        return Response(picture, status.HTTP_200_OK)
-    #    except ValueError:
-    #        return Response('Picture not found', status.HTTP_404_NOT_FOUND)
-
+            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
+        bi = BasicInfo.objects.get(cv=cv)
+        if not bi.picture:
+            return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
+        return Response(bi.picture.url, status.HTTP_200_OK)
+        
 def generate(data, first_name, last_name):
     # options for second pdf
     options = {
@@ -139,12 +146,9 @@ def generate(data, first_name, last_name):
     template = env.get_template('template2.tpl')
     with io.open(cv_2_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
-    if sys.platform != 'win32' and sys.platform != 'win64':
-        pdfkit_config = pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_CMD)
+    if platform.system() == 'Windows':
         options['zoom'] = '0.78125'
-        pdfkit.from_file(cv_2_path, pdf_2_path, configuration=pdfkit_config, options=options)
-    else:
-        pdfkit.from_file(cv_2_path, pdf_2_path, options=options)
+    pdfkit.from_file(cv_2_path, pdf_2_path, configuration=settings._get_pdfkit_config(), options=options)
     # right now it returns the second pdf
     return pdf_2_path
     # return HttpResponse("CVs generated!")

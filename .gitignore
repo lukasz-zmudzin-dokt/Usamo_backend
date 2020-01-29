@@ -1,6 +1,7 @@
 # Python/Django related
 __pycache__/
 db.sqlite3
+media/
 # others
 .vscode/
 .DS_Store
