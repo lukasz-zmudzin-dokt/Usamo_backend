@@ -1,4 +1,6 @@
+from django.http import JsonResponse
 from rest_framework import status
+from rest_framework.decorators import permission_classes
 from rest_framework.response import Response
 from rest_framework import views
 from rest_framework.authtoken.models import Token
@@ -39,7 +41,6 @@ class RegistationView(views.APIView):
 class LogoutView(views.APIView):
     permission_classes = [IsAuthenticated]
 
-
     def post(self, request):
         return self.logout(request)
 
@@ -50,3 +51,11 @@ class LogoutView(views.APIView):
             pass
 
         return Response({'success': 'Successfully deleted the old token'}, status.HTTP_200_OK)
+
+
+class DataView(views.APIView):
+    @permission_classes([IsAuthenticated])
+    def get(self, request):
+        serializer = UserSerializer(instance=request.user)
+        return JsonResponse(serializer.data)
+
