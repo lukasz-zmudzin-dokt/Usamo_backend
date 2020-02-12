@@ -15,14 +15,16 @@ class Account(models.Model):
     status = models.IntegerField(default=AccountStatus.WAITING_FOR_VERIFICATION.value, choices=ACCOUNT_STATUS_CHOICES)
 
 
+class EmployerAccount(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='employer_account')
+    phone_number = PhoneNumberField()
+    company_name = models.CharField(max_length=60)
+    company_address = models.CharField(max_length=120)
+    nip = models.CharField(max_length=10)
+    status = models.IntegerField(default=AccountStatus.WAITING_FOR_VERIFICATION.value, choices=ACCOUNT_STATUS_CHOICES)
+
+
 @receiver(post_save, sender=User)
 def create_user_account(sender, instance, created, **kwargs):
     if created:
         Token.objects.create(user=instance)
-        Account.objects.create(user=instance)
-
-
-@receiver(post_save, sender=User)
-def save_user_account(sender, instance, **kwargs):
-    instance.account.save()
-
