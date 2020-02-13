@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase
 from rest_framework.test import APIClient
 from django.core.files.uploadedfile import SimpleUploadedFile
 from cv import models
+from cv.models import CV
 from cv.cv_test_data import cv_test_data
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import force_authenticate
