@@ -1,9 +1,9 @@
-from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
 from rest_framework import serializers
 
-from .models import Account, EmployerAccount
+
+from .models import DefaultAccount, EmployerAccount, Account
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -12,7 +12,7 @@ class UserSerializer(serializers.ModelSerializer):
     facility_name = serializers.CharField(source='account.facility_name')
 
     class Meta:
-        model = User
+        model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
                   'password', 'phone_number', 'facility_name', 'facility_address']
         extra_kwargs = {
@@ -50,7 +50,7 @@ class UserSerializer(serializers.ModelSerializer):
         return super(UserSerializer, self).update(instance, validated_data)
 
     def update_or_create_account(self, user, account_data):
-        return Account.objects.update_or_create(user=user, defaults=account_data)
+        return DefaultAccount.objects.update_or_create(user=user, defaults=account_data)
 
 
 class EmployerSerializer(serializers.ModelSerializer):
@@ -59,7 +59,7 @@ class EmployerSerializer(serializers.ModelSerializer):
     company_name = serializers.CharField(source='account.company_name')
 
     class Meta:
-        model = User
+        model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
                   'password', 'phone_number', 'company_name', 'company_address']
         extra_kwargs = {

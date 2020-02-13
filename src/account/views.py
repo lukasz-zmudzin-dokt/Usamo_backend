@@ -33,6 +33,7 @@ class BasicRegistrationView(views.APIView):
         response_data['username'] = user.username
         token = Token.objects.get(user=user).key
         response_data['token'] = token
+        response_data['status'] = AccountStatus(user.status).name.lower()
 
 
 class RegistrationView(BasicRegistrationView):
@@ -41,19 +42,12 @@ class RegistrationView(BasicRegistrationView):
     username, password, phone_number, facility_name,
     facility_address
     """
-    def set_response_params(self, user, response_data):
-        super(RegistrationView, self).set_response_params(user, response_data)
-        response_data['status'] = AccountStatus(user.account.status).name.lower()
-
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         return self.perform_registration(serializer=serializer, )
 
 
 class EmployerRegistrationView(BasicRegistrationView):
-
-    # def set_response_params(self, user, response_data):
-    #
 
     def post(self, request):
         serializer = EmployerSerializer(data=request.data)
