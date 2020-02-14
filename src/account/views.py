@@ -8,10 +8,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from .account_status import AccountStatus
-from .serializers import UserSerializer, EmployerSerializer
-
-
-# Create your views here.
+from .serializers import DefaultAccountSerializer, EmployerAccountSerializer
 
 
 class BasicRegistrationView(views.APIView):
@@ -42,15 +39,16 @@ class RegistrationView(BasicRegistrationView):
     username, password, phone_number, facility_name,
     facility_address
     """
+
     def post(self, request):
-        serializer = UserSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer, )
+        serializer = DefaultAccountSerializer(data=request.data)
+        return self.perform_registration(serializer=serializer)
 
 
 class EmployerRegistrationView(BasicRegistrationView):
 
     def post(self, request):
-        serializer = EmployerSerializer(data=request.data)
+        serializer = EmployerAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
 
 
@@ -72,5 +70,5 @@ class LogoutView(views.APIView):
 class DataView(views.APIView):
     @permission_classes([IsAuthenticated])
     def get(self, request):
-        serializer = UserSerializer(instance=request.user)
+        serializer = DefaultAccountSerializer(instance=request.user)
         return JsonResponse(serializer.data)
