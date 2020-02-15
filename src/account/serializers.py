@@ -9,14 +9,11 @@ from .models import DefaultAccount, EmployerAccount, Account
 
 
 class AbstractAccountSerializer(serializers.ModelSerializer):
-    phone_number = serializers.CharField(source='account.phone_number')
 
     def create(self, validated_data):
         password = validated_data.pop('password')
-        account_data = validated_data.pop('account', None)
-
+        account_data = self.get_account_data(validated_data)
         try:
-            self.__validate_phone_number(account_data['phone_number'])
             self.perform_additional_validation(account_data)
         except serializers.ValidationError as error:
             raise error
@@ -33,7 +30,8 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         self.update_or_create_account(instance, account_data)
         return super(AbstractAccountSerializer, self).update(instance, validated_data)
 
-    def __validate_phone_number(self, phone_number):
+    @staticmethod
+    def _validate_phone_number(phone_number):
         try:
             validate_international_phonenumber(phone_number)
         except ValidationError:
@@ -47,10 +45,15 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
     def perform_additional_validation(self, data):
         return
 
+    @abc.abstractmethod
+    def get_account_data(self, validated_data):
+        return
+
 
 class DefaultAccountSerializer(AbstractAccountSerializer):
     facility_address = serializers.CharField(source='account.facility_address')
     facility_name = serializers.CharField(source='account.facility_name')
+    phone_number = serializers.CharField(source='account.phone_number')
 
     class Meta:
         model = Account
@@ -75,13 +78,20 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
         return DefaultAccount.objects.update_or_create(user=user, defaults=account_data)
 
     def perform_additional_validation(self, data):
-        return
+        try:
+            super(DefaultAccountSerializer, self)._validate_phone_number(data['phone_number'])
+        except ValidationError as error:
+            raise error
+
+    def get_account_data(self, validated_data):
+        return validated_data.pop('account', None)
 
 
 class EmployerAccountSerializer(AbstractAccountSerializer):
     company_address = serializers.CharField(source='employer_account.company_address')
     company_name = serializers.CharField(source='employer_account.company_name')
     nip = serializers.CharField(source='employer_account.nip')
+    phone_number = serializers.CharField(source='employer_account.phone_number')
 
     class Meta:
         model = Account
@@ -98,11 +108,22 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
             'nip': {'required': True}
         }
 
+    @staticmethod
+    def __validate_nip(nip):
+        try:
+            validate_nip(nip)
+        except ValidationError as error:
+            raise serializers.ValidationError({'nip': error.message})
+
     def update_or_create_account(self, user, account_data):
         return EmployerAccount.objects.update_or_create(user=user, defaults=account_data)
 
     def perform_additional_validation(self, data):
         try:
-            validate_nip(data['nip'])
+            super(EmployerAccountSerializer, self)._validate_phone_number(data['phone_number'])
+            self.__validate_nip(data['nip'])
         except ValidationError as error:
-            raise serializers.ValidationError({'nip': error.message})
+            raise error
+
+    def get_account_data(self, validated_data):
+        return validated_data.pop('employer_account', None)

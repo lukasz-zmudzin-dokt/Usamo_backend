@@ -36,10 +36,18 @@ class AbstractRegistrationView(views.APIView):
 
 class DefaultAccountRegistrationView(AbstractRegistrationView):
     """
-    Required parameters: first_name, last_name, email,
-    username, password, phone_number, facility_name,
-    facility_address
-
+    > ## Creates a default account
+    > Required parameters:
+    >
+    > - username
+    > - email
+    > - password
+    > - first_name
+    > - last_name
+    > - phone_number
+    > - facility_name
+    > - facility_address
+    >
     """
 
     def post(self, request):
@@ -50,7 +58,19 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
 class EmployerRegistrationView(AbstractRegistrationView):
 
     """
-
+    > ## Creates an account for an employer
+    > Required parameters:
+    >
+    > - username
+    > - email
+    > - password
+    > - company_name
+    > - company_address
+    > - phone_number
+    > - last_name
+    > - first_name
+    > - nip
+    >
     """
 
     def post(self, request):
@@ -74,6 +94,7 @@ class LogoutView(views.APIView):
 
 
 class DataView(views.APIView):
+
     @permission_classes([IsAuthenticated])
     def get(self, request):
         serializer = None
