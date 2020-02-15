@@ -79,9 +79,9 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
 
 
 class EmployerAccountSerializer(AbstractAccountSerializer):
-    company_address = serializers.CharField(source='account.company_address')
-    company_name = serializers.CharField(source='account.company_name')
-    nip = serializers.CharField(source='account.nip')
+    company_address = serializers.CharField(source='employer_account.company_address')
+    company_name = serializers.CharField(source='employer_account.company_name')
+    nip = serializers.CharField(source='employer_account.nip')
 
     class Meta:
         model = Account

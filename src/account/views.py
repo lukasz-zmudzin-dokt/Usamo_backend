@@ -7,11 +7,12 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
+from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .account_status import AccountStatus
 from .serializers import DefaultAccountSerializer, EmployerAccountSerializer
 
 
-class BasicRegistrationView(views.APIView):
+class AbstractRegistrationView(views.APIView):
     permission_classes = [AllowAny]
 
     def perform_registration(self, serializer):
@@ -33,11 +34,12 @@ class BasicRegistrationView(views.APIView):
         response_data['status'] = AccountStatus(user.status).name.lower()
 
 
-class RegistrationView(BasicRegistrationView):
+class DefaultAccountRegistrationView(AbstractRegistrationView):
     """
     Required parameters: first_name, last_name, email,
     username, password, phone_number, facility_name,
     facility_address
+
     """
 
     def post(self, request):
@@ -45,7 +47,11 @@ class RegistrationView(BasicRegistrationView):
         return self.perform_registration(serializer=serializer)
 
 
-class EmployerRegistrationView(BasicRegistrationView):
+class EmployerRegistrationView(AbstractRegistrationView):
+
+    """
+
+    """
 
     def post(self, request):
         serializer = EmployerAccountSerializer(data=request.data)
@@ -70,5 +76,11 @@ class LogoutView(views.APIView):
 class DataView(views.APIView):
     @permission_classes([IsAuthenticated])
     def get(self, request):
-        serializer = DefaultAccountSerializer(instance=request.user)
-        return JsonResponse(serializer.data)
+        serializer = None
+        user_type = AccountType.STANDARD.value
+        if request.user.type == AccountType.STANDARD.value:
+            serializer = DefaultAccountSerializer(instance=request.user)
+        else:
+            serializer = EmployerAccountSerializer(instance=request.user)
+            user_type = AccountType.EMPLOYER.value
+        return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})

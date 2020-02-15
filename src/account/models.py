@@ -2,10 +2,13 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, User
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.authtoken.models import Token
 
+
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
+from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 
 
 class AccountManager(BaseUserManager):
@@ -47,7 +50,7 @@ class Account(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
     status = models.IntegerField(default=AccountStatus.WAITING_FOR_VERIFICATION.value, choices=ACCOUNT_STATUS_CHOICES)
-
+    type = models.IntegerField(default=AccountType.STANDARD.value, choices=ACCOUNT_TYPE_CHOICES)
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
@@ -64,7 +67,7 @@ class Account(AbstractBaseUser):
 
 
 class DefaultAccount(models.Model):
-    user = models.OneToOneField(Account, on_delete=models.CASCADE)
+    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='account')
     phone_number = PhoneNumberField()
     facility_name = models.CharField(max_length=60)
     facility_address = models.CharField(max_length=120)
@@ -78,7 +81,13 @@ class EmployerAccount(models.Model):
     nip = models.CharField(max_length=10)
 
 
-@receiver(post_save, sender=Account)
-def create_user_account(sender, instance, created, **kwargs):
+@receiver(post_save, sender=settings.AUTH_USER_MODEL)
+def create_user_token(sender, instance, created, **kwargs):
     if created:
         Token.objects.create(user=instance)
+
+
+@receiver(post_save, sender=EmployerAccount)
+def set_employer_account_type(sender, instance, created, **kwargs):
+    if created:
+        instance.user.type = AccountType.EMPLOYER.value
