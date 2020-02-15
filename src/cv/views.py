@@ -49,13 +49,15 @@ class GenerateView(views.APIView):
         except CV.DoesNotExist:
             return Response('CV not found', status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(cv)
-        response = Response(generate(serializer.data, request.user.first_name, request.user.last_name), status.HTTP_200_OK)
+        token = request.headers['Authorization'][6:]
+        response = Response(generate(serializer.data, token, request.user.first_name, request.user.last_name), status.HTTP_200_OK)
         return response
 
     @permission_classes([IsAuthenticated])
     def delete(self, request):
         module_dir = os.path.dirname(__file__)
-        path = os.path.join(module_dir, f'CV_{request.user.first_name}_{request.user.last_name}.pdf')
+        token = request.headers['Authorization'][6:]
+        path = os.path.join(module_dir, f'{token}', f'CV_{request.user.first_name}_{request.user.last_name}.pdf')
         if os.path.isfile(path):
             os.remove(path)
             return Response('File deleted successfully', status.HTTP_200_OK)
@@ -110,7 +112,7 @@ class PictureView(views.APIView):
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
         return Response(bi.picture.url, status.HTTP_200_OK)
         
-def generate(data, first_name, last_name):
+def generate(data, token, first_name, last_name):
     # options for second pdf
     options = {
         'page-size': 'Letter',
@@ -127,7 +129,12 @@ def generate(data, first_name, last_name):
     cv_1_path = os.path.join(module_dir, 'templates/cv1-generated.html')
     pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
     cv_2_path = os.path.join(module_dir, 'templates/cv2-generated.html')
-    pdf_2_path = f'{os.path.dirname(os.path.abspath(__file__))}/CV_{first_name}_{last_name}.pdf'
+    pdf_2_path = os.path.join(f'{os.path.dirname(os.path.abspath(__file__))}',
+                              f'{token}',
+                              f'CV_{first_name}_{last_name}.pdf')
+    if not os.path.exists(pdf_2_path):
+        os.makedirs(os.path.join(f'{os.path.dirname(os.path.abspath(__file__))}',
+                              f'{token}'))
 
     # get data and jinja
 #    with io.open(file_path, "r", encoding="utf-8") as json_file:
@@ -148,6 +155,7 @@ def generate(data, first_name, last_name):
         f.write(template.render(**data))
     if platform.system() == 'Windows':
         options['zoom'] = '0.78125'
+    print(pdf_2_path)
     pdfkit.from_file(cv_2_path, pdf_2_path, configuration=settings._get_pdfkit_config(), options=options)
     # right now it returns the second pdf
     return pdf_2_path
