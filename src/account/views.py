@@ -9,7 +9,7 @@ from rest_framework.response import Response
 
 from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .account_status import AccountStatus
-from .serializers import DefaultAccountSerializer, EmployerAccountSerializer
+from .serializers import DefaultAccountSerializer, EmployerAccountSerializer, StaffAccountSerializer
 
 
 class AbstractRegistrationView(views.APIView):
@@ -77,6 +77,12 @@ class EmployerRegistrationView(AbstractRegistrationView):
         serializer = EmployerAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
 
+class StaffRegistrationView(AbstractRegistrationView):
+
+    def post(self, request):
+        serializer = StaffAccountSerializer(data=request.data)
+        return self.perform_registration(serializer=serializer)
+
 
 class LogoutView(views.APIView):
     permission_classes = [IsAuthenticated]
@@ -101,7 +107,11 @@ class DataView(views.APIView):
         user_type = AccountType.STANDARD.value
         if request.user.type == AccountType.STANDARD.value:
             serializer = DefaultAccountSerializer(instance=request.user)
-        else:
+        elif request.user_type == AccountType.EMPLOYER.value:
             serializer = EmployerAccountSerializer(instance=request.user)
             user_type = AccountType.EMPLOYER.value
+        else:
+            serializer = StaffAccountSerializer(instance=request.user)
+            user_type = AccountType.STAFF.value
+
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})

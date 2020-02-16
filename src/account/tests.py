@@ -2,7 +2,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from .account_status import AccountStatus
 from .account_type import AccountType
-from .models import DefaultAccount, EmployerAccount
+from .models import DefaultAccount, EmployerAccount, StaffAccount, Account
 import json
 from django.test import SimpleTestCase
 from .validators import validate_nip
@@ -48,6 +48,7 @@ class RegistrationTestCase(APITestCase):
     def setUp(cls):
         cls.url = '/account/register/'
         cls.employer_url = '/account/register/employer/'
+        cls.staff_url = '/account/register/staff/'
 
     def test_registration_default_success(self):
         registration_data = self.read_test_data('default_success.json')
@@ -115,3 +116,22 @@ class RegistrationTestCase(APITestCase):
         response = self.client.post(self.employer_url, test_data, format='json')
         self.assertEquals(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
         self.assertEquals(EmployerAccount.objects.count(), 0)
+
+    def test_registration_staff_success(self):
+        registration_data = self.read_test_data('staff_success.json')
+        self.assertEquals(StaffAccount.objects.count(), 0)
+        response = self.client.post(self.staff_url, registration_data, format='json')
+
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+
+        self.assertEquals(Account.objects.count(), 1)
+        self.assertEquals(StaffAccount.objects.count(), 1)
+        account = Account.objects.get()
+        self.assertEquals(account.username, registration_data['username'])
+        self.assertEquals(account.first_name, registration_data['first_name'])
+        self.assertEquals(account.last_name, registration_data['last_name'])
+        self.assertEquals(account.email, registration_data['email'])
+        self.assertEquals(account.status, AccountStatus.VERIFIED.value)
+        self.assertEquals(account.type, AccountType.STAFF.value)
+        self.assertNotEquals(account.password, '')
+        self.assertNotEquals(account.password, registration_data['password'])

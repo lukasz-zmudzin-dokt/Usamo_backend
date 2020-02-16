@@ -5,7 +5,7 @@ import abc
 from .validators import validate_nip
 
 
-from .models import DefaultAccount, EmployerAccount, Account
+from .models import DefaultAccount, EmployerAccount, Account, StaffAccount
 
 
 class AbstractAccountSerializer(serializers.ModelSerializer):
@@ -127,3 +127,25 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
 
     def get_account_data(self, validated_data):
         return validated_data.pop('employer_account', None)
+
+
+class StaffAccountSerializer(AbstractAccountSerializer):
+
+    class Meta:
+        model = Account
+        fields = ['email', 'username', 'last_name', 'first_name', 'password']
+        extra_kwargs = {
+            'password': {'write_only': True},
+            'email': {'required': True},
+            'last_name': {'required': True},
+            'first_name': {'required': True}
+        }
+
+    def update_or_create_account(self, user, account_data):
+        return StaffAccount.objects.update_or_create(user=user, defaults=account_data)
+
+    def perform_additional_validation(self, data):
+        pass
+
+    def get_account_data(self, validated_data):
+        return validated_data.pop('staff_account', None)

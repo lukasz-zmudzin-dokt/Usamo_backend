@@ -81,6 +81,10 @@ class EmployerAccount(models.Model):
     nip = models.CharField(max_length=10)
 
 
+class StaffAccount(models.Model):
+    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
+    
+
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_token(sender, instance, created, **kwargs):
     if created:
@@ -91,3 +95,13 @@ def create_user_token(sender, instance, created, **kwargs):
 def set_employer_account_type(sender, instance, created, **kwargs):
     if created:
         instance.user.type = AccountType.EMPLOYER.value
+
+
+@receiver(post_save, sender=StaffAccount)
+def set_admin_status(sender, instance, created, **kwargs):
+    if created:
+        instance.user.is_admin = True
+        instance.user.is_staff = True
+        instance.user.type = AccountType.STAFF.value
+        instance.user.status = AccountStatus.VERIFIED.value
+
