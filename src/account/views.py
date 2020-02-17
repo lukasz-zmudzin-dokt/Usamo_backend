@@ -110,7 +110,7 @@ class DataView(views.APIView):
         user_type = AccountType.STANDARD.value
         if request.user.type == AccountType.STANDARD.value:
             serializer = DefaultAccountSerializer(instance=request.user)
-        elif request.user_type == AccountType.EMPLOYER.value:
+        elif request.user.type == AccountType.EMPLOYER.value:
             serializer = EmployerAccountSerializer(instance=request.user)
             user_type = AccountType.EMPLOYER.value
         else:
