@@ -25,13 +25,15 @@ class AbstractRegistrationView(views.APIView):
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
-    def set_response_params(self, user, response_data):
+    @staticmethod
+    def set_response_params(user, response_data):
         response_data['response_message'] = "Successfully registered a new user"
         response_data['email'] = user.email
         response_data['username'] = user.username
         token = Token.objects.get(user=user).key
         response_data['token'] = token
         response_data['status'] = AccountStatus(user.status).name.lower()
+        response_data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
 
 
 class DefaultAccountRegistrationView(AbstractRegistrationView):
@@ -76,6 +78,7 @@ class EmployerRegistrationView(AbstractRegistrationView):
     def post(self, request):
         serializer = EmployerAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
+
 
 class StaffRegistrationView(AbstractRegistrationView):
 

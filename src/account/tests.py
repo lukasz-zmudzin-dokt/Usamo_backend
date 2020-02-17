@@ -1,7 +1,7 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
 from .account_status import AccountStatus
-from .account_type import AccountType
+from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .models import DefaultAccount, EmployerAccount, StaffAccount, Account
 import json
 from django.test import SimpleTestCase
@@ -55,7 +55,7 @@ class RegistrationTestCase(APITestCase):
         self.assertEquals(DefaultAccount.objects.count(), 0)
         response = self.client.post(self.url, registration_data, format='json')
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-
+        self.assertEquals(response.__dict__['data']['type'], dict(ACCOUNT_TYPE_CHOICES)[AccountType.STANDARD.value])
         self.assertEquals(DefaultAccount.objects.count(), 1)
         account = DefaultAccount.objects.get()
         self.assertEquals(account.user.username, registration_data['username'])
@@ -89,7 +89,7 @@ class RegistrationTestCase(APITestCase):
         response = self.client.post(self.employer_url, registration_data, format='json')
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-
+        self.assertEquals(response.__dict__['data']['type'], dict(ACCOUNT_TYPE_CHOICES)[AccountType.EMPLOYER.value])
         self.assertEquals(EmployerAccount.objects.count(), 1)
         account = EmployerAccount.objects.get()
         self.assertEquals(account.user.username, registration_data['username'])
@@ -123,7 +123,7 @@ class RegistrationTestCase(APITestCase):
         response = self.client.post(self.staff_url, registration_data, format='json')
 
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
-
+        self.assertEquals(response.__dict__['data']['type'], dict(ACCOUNT_TYPE_CHOICES)[AccountType.STAFF.value])
         self.assertEquals(Account.objects.count(), 1)
         self.assertEquals(StaffAccount.objects.count(), 1)
         account = Account.objects.get()
