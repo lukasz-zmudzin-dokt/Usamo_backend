@@ -15,6 +15,8 @@ def max_value_current_year(value):
 
 class CV(models.Model):
     cv_id = models.IntegerField(null=True)
+    wants_verification = models.BooleanField(default=False)
+    is_verified = models.BooleanField(default=False)
 
 
 class BasicInfo(models.Model):
@@ -68,3 +70,12 @@ class Language(models.Model):
     cv = models.ForeignKey(CV, related_name='languages', on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=20)
     level = models.CharField(max_length=20)
+
+
+class Feedback(models.Model):
+    cv = models.OneToOneField(CV, related_name='feedback', on_delete=models.CASCADE, null=True)
+    basic_info = models.TextField()
+    schools = models.TextField()
+    experiences = models.TextField()
+    skills = models.TextField()
+    languages = models.TextField()

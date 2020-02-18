@@ -18,10 +18,10 @@ import platform
 import io
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 from cv.serializers import *
-from rest_framework import status
+from rest_framework import status, generics
 from rest_framework.response import Response
 from rest_framework import views
 
@@ -111,7 +111,15 @@ class PictureView(views.APIView):
         if not bi.picture:
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
         return Response(bi.picture.url, status.HTTP_200_OK)
-        
+
+
+class CVList(generics.ListAPIView):
+    serializer_class = CVSerializer
+    @permission_classes([IsAuthenticated, IsAdminUser])
+    def get_queryset(self):
+        return CV.objects.filter(wants_verification=True, is_verified=False)
+
+
 def generate(data, token, first_name, last_name):
     # options for second pdf
     options = {

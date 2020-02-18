@@ -39,6 +39,12 @@ class BasicInfoSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'email', 'date_of_birth', 'phone_number', 'picture']
 
 
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ['basic_info', 'schools', 'experiences', 'skills', 'languages']
+
+
 class CVSerializer(serializers.ModelSerializer):
     basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
