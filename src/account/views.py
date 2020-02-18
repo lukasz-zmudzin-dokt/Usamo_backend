@@ -1,41 +1,90 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
 from rest_framework import status
-from rest_framework.decorators import permission_classes
-from rest_framework.response import Response
 from rest_framework import views
 from rest_framework.authtoken.models import Token
-from .serializers import UserSerializer
-from .account_status import AccountStatus
+from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from django.core.exceptions import ObjectDoesNotExist
+from rest_framework.response import Response
+
+from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
+from .account_status import AccountStatus
+from .serializers import DefaultAccountSerializer, EmployerAccountSerializer, StaffAccountSerializer
 
 
-# Create your views here.
-class RegistationView(views.APIView):
-    """
-    Required parameters: first_name, last_name, email,
-    username, password, phone_number, facility_name,
-    facility_address
-    """
+class AbstractRegistrationView(views.APIView):
     permission_classes = [AllowAny]
 
-    def post(self, request):
-
-        serializer = UserSerializer(data=request.data)
+    def perform_registration(self, serializer):
         response_data = {}
-
         if serializer.is_valid():
             user = serializer.create(serializer.validated_data)
-            response_data['response_message'] = "Successfully registered a new user"
-            response_data['email'] = user.email
-            response_data['username'] = user.username
-            response_data['status'] = AccountStatus(user.account.status).name.lower()
-            token = Token.objects.get(user=user).key
-            response_data['token'] = token
+            self.set_response_params(user=user, response_data=response_data)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
         return Response(response_data, status=status.HTTP_201_CREATED)
+
+    @staticmethod
+    def set_response_params(user, response_data):
+        response_data['response_message'] = "Successfully registered a new user"
+        response_data['email'] = user.email
+        response_data['username'] = user.username
+        token = Token.objects.get(user=user).key
+        response_data['token'] = token
+        response_data['status'] = AccountStatus(user.status).name.lower()
+        response_data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
+
+
+class DefaultAccountRegistrationView(AbstractRegistrationView):
+    """
+    > ## Creates a default account
+    > Required parameters:
+    >
+    > - username
+    > - email
+    > - password
+    > - first_name
+    > - last_name
+    > - phone_number
+    > - facility_name
+    > - facility_address
+    >
+    """
+
+    def post(self, request):
+        serializer = DefaultAccountSerializer(data=request.data)
+        return self.perform_registration(serializer=serializer)
+
+
+class EmployerRegistrationView(AbstractRegistrationView):
+
+    """
+    > ## Creates an account for an employer
+    > Required parameters:
+    >
+    > - username
+    > - email
+    > - password
+    > - company_name
+    > - company_address
+    > - phone_number
+    > - last_name
+    > - first_name
+    > - nip
+    >
+    """
+
+    def post(self, request):
+        serializer = EmployerAccountSerializer(data=request.data)
+        return self.perform_registration(serializer=serializer)
+
+
+class StaffRegistrationView(AbstractRegistrationView):
+
+    def post(self, request):
+        serializer = StaffAccountSerializer(data=request.data)
+        return self.perform_registration(serializer=serializer)
 
 
 class LogoutView(views.APIView):
@@ -54,8 +103,18 @@ class LogoutView(views.APIView):
 
 
 class DataView(views.APIView):
+
     @permission_classes([IsAuthenticated])
     def get(self, request):
-        serializer = UserSerializer(instance=request.user)
-        return JsonResponse(serializer.data)
+        serializer = None
+        user_type = AccountType.STANDARD.value
+        if request.user.type == AccountType.STANDARD.value:
+            serializer = DefaultAccountSerializer(instance=request.user)
+        elif request.user.type == AccountType.EMPLOYER.value:
+            serializer = EmployerAccountSerializer(instance=request.user)
+            user_type = AccountType.EMPLOYER.value
+        else:
+            serializer = StaffAccountSerializer(instance=request.user)
+            user_type = AccountType.STAFF.value
 
+        return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})

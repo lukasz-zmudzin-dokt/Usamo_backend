@@ -7,6 +7,7 @@ from rest_framework.test import APITestCase
 from rest_framework.test import APIClient
 from django.core.files.uploadedfile import SimpleUploadedFile
 from cv import models
+from cv.models import CV
 from cv.cv_test_data import cv_test_data
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import force_authenticate
@@ -19,7 +20,7 @@ class GenerateTestCase(APITestCase):
     @classmethod
     def setUp(cls):
         cls.url = 'cv/generate/'
-        cls.user = User.objects.create_user(username='testuser', password='testuser', first_name='test', last_name='test')
+        cls.user = Account.objects.create_user(username='testuser', password='testuser', first_name='test', last_name='test', email='pan@test.com')
         cls.token = Token.objects.get_or_create(user=cls.user)
 
     def _make_request(self, data, method):
@@ -87,7 +88,7 @@ class PictureTestCase(APITestCase):
     def test_picture_success(self):
         self.client = APIClient()
         self.client.post(self.url_reg, self.user_data, format='json')
-        user = Account.objects.get().user
+        user = Account.objects.get()
         self.client.force_authenticate(user=user, token=user.auth_token)
         self.client.post(self.url_cv, self.cv_data, format='json')
         response = self.client.post(self.url, {'picture' : self.picture}, format='multipart')
@@ -103,7 +104,7 @@ class PictureTestCase(APITestCase):
     def test_picture_failure_no_cv(self):
         self.client = APIClient()
         self.client.post(self.url_reg, self.user_data, format='json')
-        user = Account.objects.get().user
+        user = Account.objects.get()
         self.client.force_authenticate(user=user, token=user.auth_token)
 
         response = self.client.post(self.url, {'picture' : self.picture}, format='multipart')
@@ -117,7 +118,7 @@ class PictureTestCase(APITestCase):
     def test_picture_failure_not_uploaded(self):
         self.client = APIClient()
         self.client.post(self.url_reg, self.user_data, format='json')
-        user = Account.objects.get().user
+        user = Account.objects.get()
         self.client.force_authenticate(user=user, token=user.auth_token)
         self.client.post(self.url_cv, self.cv_data, format='json')
         response = self.client.get(self.url)
