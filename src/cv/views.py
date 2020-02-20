@@ -1,27 +1,23 @@
-import sys
 
-from django.http import HttpResponse, JsonResponse
 import os
 
-from django.core.serializers import serialize
+from drf_yasg import openapi
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import render
 from django.utils.datastructures import MultiValueDictKeyError
-
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework.decorators import action
+from rest_framework.generics import get_object_or_404
 from usamo import settings
-
-import json
 import jinja2
 import pdfkit
-import subprocess
 import platform
 import io
-from django.views.decorators.csrf import csrf_exempt
-from rest_framework.decorators import permission_classes
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.compat import coreapi, coreschema
+from rest_framework.schemas import ManualSchema
 
 from cv.serializers import *
-from rest_framework import status, generics
+from rest_framework import status, generics, parsers, renderers
 from rest_framework.response import Response
 from rest_framework import views
 
@@ -31,21 +27,40 @@ def index(request):
 
 
 class GenerateView(views.APIView):
-    @permission_classes([IsAuthenticated])
+    serializer_class = CVSerializer
+
+    @swagger_auto_schema(
+        request_body=CVSerializer,
+        responses={
+            '201': 'CV successfully generated.',
+            '400': "Bad Request"
+        },
+        operation_description="Create or update database object for CV generation.",
+    )
     def post(self, request):
         request_data = request.data
         request_data['cv_id'] = request.user.id
-        serializer = CVSerializer(data=request_data)
+        serializer = self.serializer_class(data=request_data)
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
             return Response('CV successfully generated.', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
-    @permission_classes([IsAuthenticated])
+    @swagger_auto_schema(
+        operation_description='Generate pdf url based on existing CV data.',
+        responses={
+            '200': 'url',
+            '404': 'CV not found'
+    }
+    )
     def get(self, request):
+        if request.user.is_staff:
+            cv_id = request.data['cv_id']
+        else:
+            cv_id = request.user.id
         try:
-            cv = CV.objects.get(cv_id=request.user.id)
+            cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
             return Response('CV not found', status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(cv)
@@ -53,7 +68,13 @@ class GenerateView(views.APIView):
         response = Response(generate(serializer.data, token, request.user.first_name, request.user.last_name), status.HTTP_200_OK)
         return response
 
-    @permission_classes([IsAuthenticated])
+    @swagger_auto_schema(
+        operation_description="Deletes current user's pdf file from server if it exists",
+        responses={
+            '200': 'File deleted successfully',
+            '404': 'No such file exists'
+        }
+    )
     def delete(self, request):
         module_dir = os.path.dirname(__file__)
         token = request.headers['Authorization'][6:]
@@ -66,7 +87,13 @@ class GenerateView(views.APIView):
 
 
 class DataView(views.APIView):
-    @permission_classes([IsAuthenticated])
+    @swagger_auto_schema(
+        operation_description="Returns current user's CV data in json format",
+        responses={
+            '200': CVSerializer,
+            '404': 'CV not found'
+        }
+    )
     def get(self, request):
         try:
             cv = CV.objects.get(cv_id=request.user.id)
@@ -77,7 +104,27 @@ class DataView(views.APIView):
 
 
 class PictureView(views.APIView):
-    @permission_classes([IsAuthenticated])
+    @swagger_auto_schema(
+        operation_description="Posts picture to be used in user's CV",
+
+        manual_parameters=[
+            openapi.Parameter(
+                in_='header',
+                name='Content-Type',
+                type=openapi.TYPE_STRING,
+                default='application/x-www-form-urlencoded'
+            ),
+            openapi.Parameter(
+                name='picture',
+                in_='form-data',
+                type=openapi.TYPE_FILE
+            )],
+        responses={
+            '201': 'File added successfully.',
+            '404': 'CV not found.',
+            '406': 'Make sure the form key is "picture".'
+        }
+    )
     def post(self, request):
         user = request.user
         user_id = user.id
@@ -101,7 +148,13 @@ class PictureView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
-    @permission_classes([IsAuthenticated])
+    @swagger_auto_schema(
+        operation_description="Returns user's picture url if uploaded",
+        responses={
+            200:'url',
+            404:'CV/picture not found'
+        }
+    )
     def get(self, request):
         try:
             cv = CV.objects.get(cv_id=request.user.id)
@@ -113,11 +166,40 @@ class PictureView(views.APIView):
         return Response(bi.picture.url, status.HTTP_200_OK)
 
 
-class CVList(generics.ListAPIView):
+class UnverifiedCVList(generics.ListAPIView):
+    """
+    Returns a list of CVs whose owners want them to be
+    verified and which haven't yet been verified.
+    Requires admin privileges.
+    """
     serializer_class = CVSerializer
-    @permission_classes([IsAuthenticated, IsAdminUser])
+    permission_classes = [IsAdminUser]
     def get_queryset(self):
         return CV.objects.filter(wants_verification=True, is_verified=False)
+
+
+class AdminFeedback(generics.CreateAPIView):
+    """
+    Adds feedback from admin to an existing CV.
+    Requires admin privileges.
+    """
+    permission_classes = [IsAdminUser]
+    serializer_class = FeedbackSerializer
+
+    def post(self, request, *args, **kwargs):
+        return self.create(request, *args, **kwargs)
+
+
+class UserFeedback(generics.RetrieveAPIView):
+    """
+    Returns current user's CV feedback from admin.
+    """
+    serializer_class = FeedbackSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        fb = get_object_or_404(Feedback.objects.filter(cv_id=self.request.user.id))
+        return fb
 
 
 def generate(data, token, first_name, last_name):

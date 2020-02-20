@@ -1,8 +1,9 @@
 import datetime
+
+from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
-from phonenumber_field.modelfields import PhoneNumberField
 
 
 def current_year():
@@ -10,7 +11,14 @@ def current_year():
 
 
 def max_value_current_year(value):
-    return MaxValueValidator(current_year()+10)(value)
+    return MaxValueValidator(current_year() + 10)(value)
+
+
+def validate_cv_id(cv_id):
+    if not CV.objects.filter(cv_id=cv_id).exists():
+        raise ValidationError('%(value)s is not a cv id',
+                              params={'value': cv_id},
+                              )
 
 
 class CV(models.Model):
@@ -73,9 +81,9 @@ class Language(models.Model):
 
 
 class Feedback(models.Model):
-    cv = models.OneToOneField(CV, related_name='feedback', on_delete=models.CASCADE, null=True)
-    basic_info = models.TextField()
-    schools = models.TextField()
-    experiences = models.TextField()
-    skills = models.TextField()
-    languages = models.TextField()
+    cv_id = models.IntegerField(validators=[validate_cv_id])
+    basic_info = models.TextField(blank=True)
+    schools = models.TextField(blank=True)
+    experiences = models.TextField(blank=True)
+    skills = models.TextField(blank=True)
+    languages = models.TextField(blank=True)

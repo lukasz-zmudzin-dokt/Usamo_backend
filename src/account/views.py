@@ -1,5 +1,6 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework import views
 from rest_framework.authtoken.models import Token
@@ -51,7 +52,9 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
     > - facility_address
     >
     """
-
+    @swagger_auto_schema(
+        query_serializer=DefaultAccountSerializer
+    )
     def post(self, request):
         serializer = DefaultAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
@@ -74,14 +77,18 @@ class EmployerRegistrationView(AbstractRegistrationView):
     > - nip
     >
     """
-
+    @swagger_auto_schema(
+        query_serializer=EmployerAccountSerializer
+    )
     def post(self, request):
         serializer = EmployerAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
 
 
 class StaffRegistrationView(AbstractRegistrationView):
-
+    @swagger_auto_schema(
+        query_serializer=EmployerAccountSerializer
+    )
     def post(self, request):
         serializer = StaffAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
@@ -89,7 +96,12 @@ class StaffRegistrationView(AbstractRegistrationView):
 
 class LogoutView(views.APIView):
     permission_classes = [IsAuthenticated]
-
+    @swagger_auto_schema(
+        operation_description="Logout currently logged in user.",
+        responses={
+            status.HTTP_200_OK: 'success: Successfully deleted the old token'
+        }
+    )
     def post(self, request):
         return self.logout(request)
 
@@ -104,6 +116,13 @@ class LogoutView(views.APIView):
 
 class DataView(views.APIView):
 
+    @swagger_auto_schema(
+        operation_description="Get currently logged in user's data."
+                              "Example response is for default user.",
+
+        responses={
+            status.HTTP_200_OK: DefaultAccountSerializer}
+    )
     @permission_classes([IsAuthenticated])
     def get(self, request):
         serializer = None

@@ -42,29 +42,30 @@ class BasicInfoSerializer(serializers.ModelSerializer):
 class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
-        fields = ['basic_info', 'schools', 'experiences', 'skills', 'languages']
+        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
 
 
 class CVSerializer(serializers.ModelSerializer):
+    cv_id = serializers.HiddenField(default=0)
     basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
     experiences = ExperienceSerializer(many=True, required=False)
     skills = SkillSerializer(many=True)
     languages = LanguageSerializer(many=True)
+    is_verified = serializers.BooleanField(default=False)
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
+        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages', 'wants_verification', 'is_verified']
 
     def create(self, validated_data):
         if CV.objects.filter(cv_id=validated_data['cv_id']).exists():
             cv = self.update(CV.objects.all().get(cv_id=validated_data['cv_id']), validated_data)
         else:
             basic_info_data = validated_data.pop('basic_info')
-            cv = CV.objects.create(cv_id=validated_data['cv_id'])
+            cv = CV.objects.create(cv_id=validated_data['cv_id'], wants_verification=validated_data.pop('wants_verification'), is_verified=False)
 
             BasicInfo.objects.create(cv=cv, **basic_info_data)
-
         return self.create_lists(cv, validated_data)
 
     def update(self, cv, validated_data):
@@ -76,7 +77,10 @@ class CVSerializer(serializers.ModelSerializer):
         Experience.objects.filter(cv=cv).delete()
         Skill.objects.filter(cv=cv).delete()
         Language.objects.filter(cv=cv).delete()
-
+        print(validated_data['wants_verification'])
+        cv.wants_verification = validated_data.pop('wants_verification')
+        cv.is_verified = False
+        cv.save()
         return cv
 
     @staticmethod
