@@ -44,9 +44,16 @@ class FeedbackSerializer(serializers.ModelSerializer):
         model = Feedback
         fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
 
+    def create(self, validated_data):
+        if Feedback.objects.filter(cv_id=validated_data['cv_id']).exists():
+            fb = super().update(Feedback.objects.get(cv_id=validated_data['cv_id']), validated_data)
+        else:
+            fb = super().create(validated_data)
+        fb.save()
+        return fb
+
 
 class CVSerializer(serializers.ModelSerializer):
-    cv_id = serializers.HiddenField(default=0)
     basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
     experiences = ExperienceSerializer(many=True, required=False)
@@ -77,7 +84,6 @@ class CVSerializer(serializers.ModelSerializer):
         Experience.objects.filter(cv=cv).delete()
         Skill.objects.filter(cv=cv).delete()
         Language.objects.filter(cv=cv).delete()
-        print(validated_data['wants_verification'])
         cv.wants_verification = validated_data.pop('wants_verification')
         cv.is_verified = False
         cv.save()

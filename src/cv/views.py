@@ -20,6 +20,7 @@ from cv.serializers import *
 from rest_framework import status, generics, parsers, renderers
 from rest_framework.response import Response
 from rest_framework import views
+from rest_framework.authtoken.models import Token
 
 
 def index(request):
@@ -64,7 +65,7 @@ class GenerateView(views.APIView):
         except CV.DoesNotExist:
             return Response('CV not found', status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(cv)
-        token = request.headers['Authorization'][6:]
+        token = Token.objects.get(user=request.user)
         response = Response(generate(serializer.data, token, request.user.first_name, request.user.last_name), status.HTTP_200_OK)
         return response
 
@@ -77,7 +78,7 @@ class GenerateView(views.APIView):
     )
     def delete(self, request):
         module_dir = os.path.dirname(__file__)
-        token = request.headers['Authorization'][6:]
+        token = Token.objects.get(user=request.user)
         path = os.path.join(module_dir, f'{token}', f'CV_{request.user.first_name}_{request.user.last_name}.pdf')
         if os.path.isfile(path):
             os.remove(path)
@@ -105,7 +106,7 @@ class DataView(views.APIView):
 
 class PictureView(views.APIView):
     @swagger_auto_schema(
-        operation_description="Posts picture to be used in user's CV",
+        operation_description="Posts picture to be used in user's CV. Parameter 'cv_id' should not be posted here",
 
         manual_parameters=[
             openapi.Parameter(
@@ -174,6 +175,7 @@ class UnverifiedCVList(generics.ListAPIView):
     """
     serializer_class = CVSerializer
     permission_classes = [IsAdminUser]
+
     def get_queryset(self):
         return CV.objects.filter(wants_verification=True, is_verified=False)
 
@@ -195,9 +197,8 @@ class UserFeedback(generics.RetrieveAPIView):
     Returns current user's CV feedback from admin.
     """
     serializer_class = FeedbackSerializer
-    permission_classes = [IsAuthenticated]
 
-    def get_queryset(self):
+    def get_object(self):
         fb = get_object_or_404(Feedback.objects.filter(cv_id=self.request.user.id))
         return fb
 
@@ -245,7 +246,6 @@ def generate(data, token, first_name, last_name):
         f.write(template.render(**data))
     if platform.system() == 'Windows':
         options['zoom'] = '0.78125'
-    print(pdf_2_path)
     pdfkit.from_file(cv_2_path, pdf_2_path, configuration=settings._get_pdfkit_config(), options=options)
     # right now it returns the second pdf
     return pdf_2_path
