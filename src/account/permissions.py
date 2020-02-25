@@ -4,7 +4,7 @@ from .account_status import AccountStatus
 from .account_type import AccountType, StaffType
 
 
-class IsEmployerOrAdmin(permissions.BasePermission):
+class IsEmployerOrAllowedStaff(permissions.BasePermission):
     message = {'errors': 'User is neither an employer nor an admin'}
 
     def has_permission(self, request, view):

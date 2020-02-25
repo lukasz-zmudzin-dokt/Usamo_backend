@@ -4,13 +4,13 @@ from unittest.mock import Mock
 from ..account_status import AccountStatus
 from ..account_type import AccountType
 from ..account_type import StaffType
-from ..permissions import IsEmployerOrAdmin
+from ..permissions import IsEmployerOrAllowedStaff
 
 
 class IsEmployerOrAdminPermissionTest(unittest.TestCase):
 
     def setUp(self):
-        self.permission = IsEmployerOrAdmin()
+        self.permission = IsEmployerOrAllowedStaff()
         self.request = Mock()
         self.view = Mock()
         self.request.user = Mock()
