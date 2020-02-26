@@ -56,8 +56,12 @@ class GenerateTestCase(APITestCase):
 
         delete_request = self._make_request(None, 'delete')
         delete_response = generate_view(delete_request)
+        first = self.user.first_name
+        last = self.user.last_name
+        token = self.user.auth_token
 
         self.assertEqual(delete_response.status_code, status.HTTP_200_OK)
+        os.rmdir(os.path.join('media', 'cv_docs', f'{token}')) 
 
     def test_generate_view_invalid(self):
         generate_view = GenerateView.as_view()
@@ -95,11 +99,12 @@ class PictureTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         data = models.BasicInfo.objects.get()
-        self.assertEqual(data.picture, 'cv_pictures/CV_testname_testlastname.png')
+        token = Token.objects.get(user=user)
+        self.assertEqual(data.picture, 'cv_pics/' + f'{token}_CV_{user.id}.png')
 
         response2 = self.client.get(self.url)
-        self.assertEqual(response2.data, '/media/cv_pictures/CV_testname_testlastname.png')
-        os.remove(os.path.join('media/cv_pictures', 'CV_testname_testlastname.png')) 
+        self.assertEqual(response2.data, '/media/cv_pics/' + f'{token}_CV_{user.id}.png')
+        os.remove(os.path.join('media', 'cv_pics', f'{token}_CV_{user.id}.png')) 
 
     def test_picture_failure_no_cv(self):
         self.client = APIClient()
@@ -124,3 +129,19 @@ class PictureTestCase(APITestCase):
         response = self.client.get(self.url)
         self.assertEqual(response.data, 'Picture not found.')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_picture_on_delete(self):
+        self.client = APIClient()
+        self.client.post(self.url_reg, self.user_data, format='json')
+        user = Account.objects.get()
+        self.client.force_authenticate(user=user, token=user.auth_token)
+        self.client.post(self.url_cv, self.cv_data, format='json')
+        response1 = self.client.post(self.url, {'picture' : self.picture}, format='multipart')
+        self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
+
+        data = models.BasicInfo.objects.get()
+        token = Token.objects.get(user=user)
+        self.assertEqual(data.picture, 'cv_pics/' + f'{token}_CV_{user.id}.png')
+        response2 = self.client.delete(self.url)
+        data = models.BasicInfo.objects.get()
+        self.assertEqual(response2.status_code, status.HTTP_200_OK)
