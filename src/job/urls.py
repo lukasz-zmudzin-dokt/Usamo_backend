@@ -3,9 +3,8 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('offer-get/<int:pk>', views.JobOfferGetView.as_view(), name='offer-get'),
-    path('offer-list/', views.JobOfferListView.as_view(), name='offer-list'),
-    path('offer-create/', views.JobOfferCreateView.as_view(), name='offer-create'),
-    path('offer-edit/', views.JobOfferEditView.as_view(), name='offer-edit'),
-    path('offer-interested/<int:offer_id>', views.JobOfferInterestedUsersView.as_view(), name='offer-interested'),
+    path('job-offer/<int:offer_id>', views.JobOfferView.as_view()),
+    path('job-offer', views.JobOfferCreateView.as_view()),
+    path('job-offers', views.JobOfferListView.as_view()),
+    path('offer-interested/<int:offer_id>', views.JobOfferInterestedUsersView.as_view()),
 ]

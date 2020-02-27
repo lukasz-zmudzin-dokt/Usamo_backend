@@ -1,8 +1,5 @@
+from account.models import DefaultAccount
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from phonenumber_field.validators import validate_international_phonenumber
-from django.core.exceptions import ValidationError
-from rest_framework.relations import PrimaryKeyRelatedField
 
 from .models import *
 
@@ -15,7 +12,6 @@ class JobOfferSerializer(serializers.ModelSerializer):
 
 
 class JobOfferEditSerializer(serializers.Serializer):
-    offer_id = serializers.IntegerField(required=True)
     offer_name = serializers.CharField(max_length=50, required=False)
     company_name = serializers.CharField(max_length=70, required=False)
     company_address = serializers.CharField(max_length=200, required=False)
@@ -47,3 +43,13 @@ class JobOfferFiltersSerializer(serializers.Serializer):
         instance.voivodeship = validated_data.get('voivodeship', instance.voivodeship)
         instance.min_expiration_date = validated_data.get('min_expiration_date', instance.min_expiration_date)
         return instance
+
+
+class InterestedUserSerializer(serializers.ModelSerializer):
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+    email = serializers.CharField(source='user.email')
+
+    class Meta:
+        model = DefaultAccount
+        fields = ['id', 'first_name', 'last_name', 'email']

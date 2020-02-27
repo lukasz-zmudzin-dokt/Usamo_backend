@@ -1,6 +1,8 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from account.models import DefaultAccount, EmployerAccount
+
 
 class JobOffer(models.Model):
     offer_name = models.CharField(max_length=50)
@@ -10,7 +12,8 @@ class JobOffer(models.Model):
     expiration_date = models.DateField()
     description = models.CharField(max_length=1000)
     removed = models.BooleanField(editable=False, default=False)
-    interested_users = models.ManyToManyField(User)
+    interested_users = models.ManyToManyField(DefaultAccount)
+    employer = models.ForeignKey(EmployerAccount, on_delete=models.SET_NULL, null=True, default=None)
 
     def __str__(self):
         return self.offer_name
@@ -18,14 +21,12 @@ class JobOffer(models.Model):
 
 class JobOfferEdit:
     def __init__(self,
-                 offer_id,
                  offer_name=None,
                  company_name=None,
                  company_address=None,
                  voivodeship=None,
                  expiration_date=None,
                  description=None):
-        self.offer_id = offer_id
         self.offer_name = offer_name
         self.company_name = company_name
         self.company_address = company_address
@@ -34,7 +35,7 @@ class JobOfferEdit:
         self.description = description
 
     def update_dict(self):
-        return {k: v for (k, v) in self.__dict__.items() if v is not None and k != "offer_id"}
+        return {k: v for (k, v) in self.__dict__.items() if v is not None}
 
 
 class JobOfferFilters:
