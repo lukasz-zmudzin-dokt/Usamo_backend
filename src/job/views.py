@@ -220,7 +220,7 @@ class JobOfferInterestedUsersView(views.APIView):
         '403': 'No user or user is not employer',
         '404': "Bad request",
     },
-    operation_description="Returns offers list with filters"
+    operation_description="Returns offers list with filters for current employer"
 ))
 class EmployerJobOffersView(generics.ListAPIView):
     permission_classes = [IsAuthenticated & IsEmployer]
