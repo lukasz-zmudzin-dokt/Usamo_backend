@@ -23,6 +23,7 @@ class JobOfferCreateView(views.APIView):
         responses={
             '200': 'OK',
             '401': 'No authorization token',
+            '403': 'No user or user is not employer',
             '400': 'Bad request'
         },
         operation_description="Create job offer.",
@@ -53,7 +54,7 @@ class JobOfferView(views.APIView):
             '200': 'OK',
             '400': 'Bad request',
             '401': 'No authorization token',
-            '403': 'Offer not belongs to employer',
+            '403': 'No user or user is not employer or offer not belongs to employer',
             '404': "Offer not found",
         },
         operation_description="Edit job offer.",
@@ -110,7 +111,7 @@ class JobOfferView(views.APIView):
         responses={
             '200': 'Offer deleted',
             '401': 'No authorization token',
-            '403': 'Offer not belongs to employer',
+            '403': 'No user or user is not employer or offer not belongs to employer',
             '404': "Offer not found"
         },
         operation_description="Set offer status to removed",
@@ -137,7 +138,6 @@ class JobOfferView(views.APIView):
     query_serializer=JobOfferFiltersSerializer,
     responses={
         '200': 'List of offers',
-        '401': 'No authorization token',
         '404': "Bad request",
     },
     operation_description="Returns offers list with filters"
@@ -155,7 +155,6 @@ class JobOfferListView(generics.ListAPIView):
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
-
 class JobOfferInterestedUsersView(views.APIView):
 
     @swagger_auto_schema(
@@ -165,6 +164,7 @@ class JobOfferInterestedUsersView(views.APIView):
         responses={
             '200': 'OK',
             '401': 'No authorization token',
+            '403': 'No user or user is not default user',
             '404': "Offer not found",
         },
         operation_description="Create or update database object for CV generation.",
@@ -190,7 +190,7 @@ class JobOfferInterestedUsersView(views.APIView):
         responses={
             '200': 'Interested users',
             '401': 'No authorization token',
-            '403': 'Offer not belongs to employer',
+            '403': 'No user or user is not employer or offer not belongs to employer',
             '404': "Offer not found",
         },
         operation_description="Create or update database object for CV generation.",
@@ -208,5 +208,33 @@ class JobOfferInterestedUsersView(views.APIView):
                     return Response("Offer not belongs to employer", status=status.HTTP_403_FORBIDDEN)
             except ObjectDoesNotExist:
                 return Response("Offer not found", status.HTTP_404_NOT_FOUND)
+        except ObjectDoesNotExist:
+            return Response("No user or user is not employer", status=status.HTTP_403_FORBIDDEN)
+
+
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    query_serializer=JobOfferFiltersSerializer,
+    responses={
+        '200': 'List of offers',
+        '401': 'No authorization token',
+        '403': 'No user or user is not employer',
+        '404': "Bad request",
+    },
+    operation_description="Returns offers list with filters"
+))
+class EmployerJobOffersView(generics.ListAPIView):
+    permission_classes = [IsAuthenticated & IsEmployer]
+    serializer_class = JobOfferSerializer
+
+    def get_queryset(self):
+        serializer = JobOfferFiltersSerializer(data=self.request.data)
+        try:
+            employer = EmployerAccount.objects.get(user_id=self.request.user.id)
+            if serializer.is_valid():
+                job_offer_filters = serializer.create(serializer.validated_data)
+                valid_filters = job_offer_filters.get_filters()
+                return JobOffer.objects.filter(removed=False, employer_id=employer.id, **valid_filters)
+            else:
+                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             return Response("No user or user is not employer", status=status.HTTP_403_FORBIDDEN)
