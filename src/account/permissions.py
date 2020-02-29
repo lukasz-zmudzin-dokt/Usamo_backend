@@ -1,28 +1,71 @@
+from abc import abstractmethod
+
 from rest_framework import permissions
 
 from .account_status import AccountStatus
 from .account_type import AccountType, StaffType
 
 
-class IsEmployerOrAllowedStaff(permissions.BasePermission):
-    message = {'errors': 'User is neither an employer nor an admin'}
+class AbstractIsUserOrAllowedStaffPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
         return user and user.status == AccountStatus.VERIFIED.value \
-               and (self.__is_user_allowed_staff(user) or self.__is_user_employer(user))
+               and (self.__is_allowed_staff(user) or self.__is_user_allowed(user))
+
+    def __is_allowed_staff(self, user) -> bool:
+        staff_type = self._get_allowed_staff_type().value
+        return user.type == AccountType.STAFF.value and user.groups.filter(name=staff_type).exists()
+
+    def __is_user_allowed(self, user) -> bool:
+        return user.type == (self._get_user_type()).value
+
+    @abstractmethod
+    def _get_allowed_staff_type(self):
+        return
+
+    @abstractmethod
+    def _get_user_type(self):
+        return
+
+
+class IsEmployerOrAllowedStaff(AbstractIsUserOrAllowedStaffPermission):
+    message = {'errors': 'User is neither an employer nor staff'}
+
+    def _get_allowed_staff_type(self):
+        return StaffType.STAFF_JOBS
+
+    def _get_user_type(self):
+        return AccountType.EMPLOYER
 
     def has_object_permission(self, request, view, obj):
-        user = request.user
-        if self.__is_user_employer(user):
-        ## TODO: check if the employer has created this job offer
+        if request.user.type == AccountType.EMPLOYER:
+            # TODO: check if employer has this job offer
             return False
         return True
 
-    @staticmethod
-    def __is_user_allowed_staff(user) -> bool:
-        return user.type == AccountType.STAFF.value and user.groups.filter(name=StaffType.STAFF_JOBS.value).exists()
 
-    @staticmethod
-    def __is_user_employer(user) -> bool:
-        return user.type == AccountType.EMPLOYER.value
+class AbstractCanStaffVerifyPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        allowed_type = self._get_staff_type().value
+        user = request.user
+        return user and user.type == AccountType.STAFF.value \
+               and user.status == AccountStatus.VERIFIED.value \
+               and user.groups.filter(name=allowed_type).exists()
+
+    @abstractmethod
+    def _get_staff_type(self) -> StaffType:
+        pass
+
+
+class CanStaffVerifyCV(AbstractCanStaffVerifyPermission):
+
+    def _get_staff_type(self):
+        return StaffType.STAFF_CV
+
+
+class CanStaffVerifyUsers(AbstractCanStaffVerifyPermission):
+
+    def _get_staff_type(self):
+        return StaffType.STAFF_VERIFICATION
