@@ -8,6 +8,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from usamo import settings
+from .models import CV
 import jinja2
 import pdfkit
 import platform
@@ -77,9 +78,8 @@ class GenerateView(views.APIView):
         }
     )
     def delete(self, request):
-        module_dir = os.path.dirname(__file__)
         token = Token.objects.get(user=request.user)
-        path = os.path.join(module_dir, f'{token}', f'CV_{request.user.first_name}_{request.user.last_name}.pdf')
+        path = os.path.join(settings.MEDIA_ROOT, 'cv_docs', f'{token}', f'CV_{request.user.first_name}_{request.user.last_name}.pdf')
         if os.path.isfile(path):
             os.remove(path)
             return Response('File deleted successfully', status.HTTP_200_OK)
@@ -135,10 +135,11 @@ class PictureView(views.APIView):
             return Response('CV not found.', status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(instance=cv)
         data = serializer.data
+        token = Token.objects.get(user=request.user)
         try:
             pict = request.FILES['picture']
             ext = pict.name.split('.')[-1]
-            pict.name = f'CV_{user.first_name}_{user.last_name}.' + ext
+            pict.name = f'{token}_' + f'CV_{user.id}.' + ext
             data['basic_info']['picture'] = pict
         except MultiValueDictKeyError:
             Response('Make sure the form key is "picture".', status.HTTP_406_NOT_ACCEPTABLE)
@@ -166,6 +167,25 @@ class PictureView(views.APIView):
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
         return Response(bi.picture.url, status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Deletes cv picture from the database",
+        responses={
+            200:'Picture deleted successfully.',
+            404:'CV/picture not found.'
+        }
+    )
+    def delete(self, request):
+        try:
+            cv = CV.objects.get(cv_id=request.user.id)
+        except CV.DoesNotExist:
+            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
+        bi = BasicInfo.objects.get(cv=cv)
+        if not bi.picture:
+            return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
+        path = os.path.join(settings.BASE_DIR, bi.picture.path)
+        os.remove(path)
+        bi.picture.delete(save=True)
+        return Response('Picture deleted successfully.', status.HTTP_200_OK)
 
 class UnverifiedCVList(generics.ListAPIView):
     """
@@ -220,27 +240,17 @@ def generate(data, token, first_name, last_name):
     cv_1_path = os.path.join(module_dir, 'templates/cv1-generated.html')
     pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
     cv_2_path = os.path.join(module_dir, 'templates/cv2-generated.html')
-    pdf_2_path = os.path.join(f'{os.path.dirname(os.path.abspath(__file__))}',
-                              f'{token}',
-                              f'CV_{first_name}_{last_name}.pdf')
+    pdf_2_path = os.path.join(settings.MEDIA_ROOT, 'cv_docs', f'{token}',
+        f'CV_{first_name}_{last_name}.pdf')
     if not os.path.exists(pdf_2_path):
-        os.makedirs(os.path.join(f'{os.path.dirname(os.path.abspath(__file__))}',
-                              f'{token}'))
+        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'cv_docs', f'{token}'))
 
     # get data and jinja
-#    with io.open(file_path, "r", encoding="utf-8") as json_file:
-#        data = json.load(json_file)
     env = jinja2.environment.Environment(
         loader=jinja2.FileSystemLoader(template_path)
     )
-#    template = env.get_template('template.tpl')
 
-    # generate first html and pdf
-#    with io.open(cv_1_path, "w", encoding="utf-8") as f:
-#        f.write(template.render(**data))
-#    pdfkit.from_file(cv_1_path, pdf_1_path)
-
-    # generate second html and pdf
+    # generate html and pdf
     template = env.get_template('template2.tpl')
     with io.open(cv_2_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
@@ -249,5 +259,3 @@ def generate(data, token, first_name, last_name):
     pdfkit.from_file(cv_2_path, pdf_2_path, configuration=settings._get_pdfkit_config(), options=options)
     # right now it returns the second pdf
     return pdf_2_path
-    # return HttpResponse("CVs generated!")
-    # return render(request, 'cv2-generated.html')
