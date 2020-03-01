@@ -223,6 +223,20 @@ class UserFeedback(generics.RetrieveAPIView):
         return fb
 
 
+class UserCVStatus(views.APIView):
+    @swagger_auto_schema(
+        operation_description="Returns current user's cv verification status",
+        responses={
+            200: 'is_verified: true/false',
+            404: 'detail: not found'
+        }
+    )
+    def get(self, request):
+        cv = get_object_or_404(CV.objects.filter(cv_id=request.user.id))
+        response = {"is_verified": cv.is_verified}
+        return JsonResponse(response, safe=False)
+
+
 def generate(data, token, first_name, last_name):
     # options for second pdf
     options = {
