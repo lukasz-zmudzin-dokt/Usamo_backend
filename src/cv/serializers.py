@@ -60,17 +60,23 @@ class CVSerializer(serializers.ModelSerializer):
     skills = SkillSerializer(many=True)
     languages = LanguageSerializer(many=True)
     is_verified = serializers.BooleanField(default=False)
+    document = serializers.FileField(required=False)
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages', 'wants_verification', 'is_verified']
+        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages', 'wants_verification', 'is_verified', 'document']
 
     def create(self, validated_data):
         if CV.objects.filter(cv_id=validated_data['cv_id']).exists():
             cv = self.update(CV.objects.all().get(cv_id=validated_data['cv_id']), validated_data)
         else:
             basic_info_data = validated_data.pop('basic_info')
-            cv = CV.objects.create(cv_id=validated_data['cv_id'], wants_verification=validated_data.pop('wants_verification'), is_verified=False)
+            try:
+                doc = validated_data.pop('document')
+            except KeyError:
+                doc = None
+
+            cv = CV.objects.create(cv_id=validated_data['cv_id'], wants_verification=validated_data.pop('wants_verification'), is_verified=False, document = doc)
 
             BasicInfo.objects.create(cv=cv, **basic_info_data)
         return self.create_lists(cv, validated_data)
