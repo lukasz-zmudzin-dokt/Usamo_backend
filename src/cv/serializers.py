@@ -42,7 +42,7 @@ class BasicInfoSerializer(serializers.ModelSerializer):
 class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
-        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
+        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages', 'additional_info']
 
     def create(self, validated_data):
         if Feedback.objects.filter(cv_id=validated_data['cv_id']).exists():
