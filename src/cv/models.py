@@ -87,4 +87,4 @@ class Feedback(models.Model):
     experiences = models.TextField(blank=True)
     skills = models.TextField(blank=True)
     languages = models.TextField(blank=True)
-    additional_info = models.TextField(blank=True, default=None)
+    additional_info = models.TextField(blank=True, default=None, null=True)

@@ -49,6 +49,9 @@ class FeedbackSerializer(serializers.ModelSerializer):
             fb = super().update(Feedback.objects.get(cv_id=validated_data['cv_id']), validated_data)
         else:
             fb = super().create(validated_data)
+        cv = CV.objects.get(cv_id=validated_data['cv_id'])
+        cv.is_verified = True
+        cv.save()
         fb.save()
         return fb
 

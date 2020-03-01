@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='feedback',
             name='additional_info',
-            field=models.TextField(blank=True, default=None),
+            field=models.TextField(blank=True, default=None, null=True),
         ),
     ]
