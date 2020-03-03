@@ -8,11 +8,18 @@ from rest_framework import generics
 from rest_framework import status
 from rest_framework import views
 from rest_framework.decorators import permission_classes
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 
 from .models import JobOffer
 from .serializers import JobOfferSerializer, JobOfferEditSerializer, JobOfferFiltersSerializer, InterestedUserSerializer
+
+
+class OffersPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 # Create your views here.
@@ -28,7 +35,7 @@ class JobOfferCreateView(views.APIView):
         },
         operation_description="Create job offer.",
     )
-    @permission_classes([IsAuthenticated & IsEmployer])
+    @permission_classes([IsAuthenticated])
     def post(self, request):
         try:
             employer = EmployerAccount.objects.get(user_id=request.user.id)
@@ -37,7 +44,7 @@ class JobOfferCreateView(views.APIView):
                 instance = serializer.create(serializer.validated_data)
                 instance.employer_id = employer.id
                 instance.save()
-                return Response(status=status.HTTP_200_OK)
+                return Response(instance.id, status=status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
@@ -54,28 +61,22 @@ class JobOfferView(views.APIView):
             '200': 'OK',
             '400': 'Bad request',
             '401': 'No authorization token',
-            '403': 'No user or user is not employer or offer not belongs to employer',
             '404': "Offer not found",
         },
         operation_description="Edit job offer.",
     )
-    @permission_classes([IsAuthenticated & (IsEmployer | IsAdminUser)])
+    @permission_classes([IsAuthenticated])
     def post(self, request, offer_id):
         serializer = JobOfferEditSerializer(data=request.data)
         if serializer.is_valid():
             job_offer_edit = serializer.create(serializer.validated_data)
             try:
                 instance = JobOffer.objects.get(pk=offer_id)
-                is_admin = request.user.is_admin
-                is_employer = EmployerAccount.objects.filter(id=instance.employer_id, user_id=request.user.id).exists()
-                if is_admin or is_employer:
-                    fields_to_update = job_offer_edit.update_dict()
-                    for field, value in fields_to_update.items():
-                        setattr(instance, field, value)
-                    instance.save()
-                    return Response(status=status.HTTP_200_OK)
-                else:
-                    return Response("Offer not belongs to employer", status=status.HTTP_403_FORBIDDEN)
+                fields_to_update = job_offer_edit.update_dict()
+                for field, value in fields_to_update.items():
+                    setattr(instance, field, value)
+                instance.save()
+                return Response("Offer edited successfully", status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
                 return Response("Offer not found", status.HTTP_404_NOT_FOUND)
         else:
@@ -109,23 +110,17 @@ class JobOfferView(views.APIView):
         responses={
             '200': 'Offer deleted',
             '401': 'No authorization token',
-            '403': 'No user or user is not employer or offer not belongs to employer',
             '404': "Offer not found"
         },
         operation_description="Set offer status to removed",
     )
-    @permission_classes([IsAuthenticated & IsEmployer])
+    @permission_classes([IsAuthenticated])
     def delete(self, request, offer_id):
         try:
             instance = JobOffer.objects.get(pk=offer_id)
-            is_admin = request.user.is_admin
-            is_employer = EmployerAccount.objects.filter(id=instance.employer_id, user_id=request.user.id).exists()
-            if is_admin or is_employer:
-                instance.removed = True
-                instance.save()
-                return Response(status=status.HTTP_200_OK)
-            else:
-                return Response("Offer not belongs to employer", status=status.HTTP_403_FORBIDDEN)
+            instance.removed = True
+            instance.save()
+            return Response("Offer removed successfully", status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response("Offer not found", status.HTTP_404_NOT_FOUND)
 
@@ -140,6 +135,7 @@ class JobOfferView(views.APIView):
 ))
 class JobOfferListView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
+    pagination_class = OffersPagination
 
     def get_queryset(self):
         serializer = JobOfferFiltersSerializer(data=self.request.data)
@@ -165,7 +161,7 @@ class JobOfferInterestedUsersView(views.APIView):
         },
         operation_description="Create or update database object for CV generation.",
     )
-    @permission_classes([IsAuthenticated & IsDefaultUser])
+    @permission_classes([IsAuthenticated])
     def post(self, request, offer_id):
         try:
             user = DefaultAccount.objects.get(user_id=request.user.id)
@@ -173,7 +169,7 @@ class JobOfferInterestedUsersView(views.APIView):
                 instance = JobOffer.objects.get(pk=offer_id)
                 instance.interested_users.add(user)
                 instance.save()
-                return Response(status=status.HTTP_200_OK)
+                return Response("Added to insterested users", status=status.HTTP_200_OK)
             except ObjectDoesNotExist:
                 return Response("Offer not found", status.HTTP_404_NOT_FOUND)
         except ObjectDoesNotExist:
@@ -191,16 +187,12 @@ class JobOfferInterestedUsersView(views.APIView):
         },
         operation_description="Create or update database object for CV generation.",
     )
-    @permission_classes([IsAuthenticated & IsEmployer])
+    @permission_classes([IsAuthenticated])
     def get(self, request, offer_id):
         try:
             instance = JobOffer.objects.get(pk=offer_id)
-            is_employer = EmployerAccount.objects.filter(id=instance.employer_id, user_id=request.user.id).exists()
-            if is_employer:
-                serializer = InterestedUserSerializer(instance.interested_users, many=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response("Offer not belongs to employer", status=status.HTTP_403_FORBIDDEN)
+            serializer = InterestedUserSerializer(instance.interested_users, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return Response("Offer not found", status.HTTP_404_NOT_FOUND)
 
@@ -216,8 +208,9 @@ class JobOfferInterestedUsersView(views.APIView):
     operation_description="Returns offers list with filters for current employer"
 ))
 class EmployerJobOffersView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated & IsEmployer]
+    permission_classes = [IsAuthenticated]
     serializer_class = JobOfferSerializer
+    pagination_class = OffersPagination
 
     def get_queryset(self):
         serializer = JobOfferFiltersSerializer(data=self.request.data)

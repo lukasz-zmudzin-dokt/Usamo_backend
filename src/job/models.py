@@ -1,6 +1,7 @@
 from django.contrib.auth.models import User
 from django.db import models
 
+from .enums import Voivodeships
 from account.models import DefaultAccount, EmployerAccount
 
 
@@ -8,7 +9,7 @@ class JobOffer(models.Model):
     offer_name = models.CharField(max_length=50)
     company_name = models.CharField(max_length=70)
     company_address = models.CharField(max_length=200)
-    voivodeship = models.CharField(max_length=30)
+    voivodeship = models.CharField(max_length=30, choices=Voivodeships.choices)
     expiration_date = models.DateField()
     description = models.CharField(max_length=1000)
     removed = models.BooleanField(editable=False, default=False)

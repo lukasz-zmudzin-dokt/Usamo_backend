@@ -1,3 +1,5 @@
+from datetime import date
+
 from account.models import DefaultAccount
 from rest_framework import serializers
 
@@ -5,9 +7,17 @@ from .models import *
 
 
 class JobOfferSerializer(serializers.ModelSerializer):
+    voivodeship = serializers.ChoiceField(choices=Voivodeships.choices)
+
+    def validate_expiration_date(self, value):
+        today = date.today()
+        if value < today:
+            raise serializers.ValidationError("Date is in past")
+        return value
+
     class Meta:
         model = JobOffer
-        fields = ['offer_name', 'company_name', 'company_address', 'voivodeship', 'expiration_date',
+        fields = ['id', 'offer_name', 'company_name', 'company_address', 'voivodeship', 'expiration_date',
                   'description']
 
 
