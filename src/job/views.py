@@ -2,7 +2,7 @@ from account.models import EmployerAccount, DefaultAccount
 from account.permissions import IsEmployer, IsDefaultUser
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
-from drf_yasg.openapi import Parameter, IN_PATH
+from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
 from rest_framework import status
@@ -126,6 +126,10 @@ class JobOfferView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    manual_parameters=[
+        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
+        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
+    ],
     query_serializer=JobOfferFiltersSerializer,
     responses={
         '200': 'List of offers',
@@ -199,6 +203,10 @@ class JobOfferInterestedUsersView(views.APIView):
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     query_serializer=JobOfferFiltersSerializer,
+    manual_parameters=[
+        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
+        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
+    ],
     responses={
         '200': 'List of offers',
         '401': 'No authorization token',
