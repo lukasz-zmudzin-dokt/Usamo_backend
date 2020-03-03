@@ -7,11 +7,6 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from usamo import settings
 from .models import CV
-from .utilities import * 
-import jinja2
-import pdfkit
-import platform
-import io
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.compat import coreapi, coreschema
 from rest_framework.schemas import ManualSchema
@@ -41,12 +36,9 @@ class GenerateView(views.APIView):
         request_data = request.data
         request_data['cv_id'] = request.user.id
         serializer = self.serializer_class(data=request_data)
+
         if serializer.is_valid():
-            pdf_path = generate(request_data)
-            pdf = io.open(pdf_path, "r")
-            request_data['document'] = pdf
-            cv = serializer.create(request_data)
-            os.remove(pdf_path)
+            cv = serializer.create(serializer.validated_data)
             return Response('CV successfully generated.', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
@@ -182,9 +174,12 @@ class PictureView(views.APIView):
         bi = BasicInfo.objects.get(cv=cv)
         if not bi.picture:
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
-        path = os.path.join(settings.BASE_DIR, bi.picture.path)
-        os.remove(path)
         bi.picture.delete(save=True)
+        cv_serializer = CVSerializer(instance=cv)
+        bi_serializer = BasicInfoSerializer(instance=bi)
+        cv_serializer.data['basic_info'] = bi_serializer.data
+        cv_serializer.create(cv_serializer.data)
+        
         return Response('Picture deleted successfully.', status.HTTP_200_OK)
 
 class UnverifiedCVList(generics.ListAPIView):
@@ -221,34 +216,3 @@ class UserFeedback(generics.RetrieveAPIView):
     def get_object(self):
         fb = get_object_or_404(Feedback.objects.filter(cv_id=self.request.user.id))
         return fb
-
-
-def generate(data):
-    # options for the pdf
-    options = {
-        'page-size': 'Letter',
-        'margin-top': '0in',
-        'margin-right': '0in',
-        'margin-bottom': '0in',
-        'margin-left': '0in'
-    }
-
-    # get paths
-    module_dir = os.path.dirname(__file__)  
-    template_path = os.path.join(module_dir, 'templates/cv2-generated.html')
-    pdf_path = create_unique_filename('cv_docs', 'pdf')
-
-    # get data and jinja
-    env = jinja2.environment.Environment(
-        loader=jinja2.FileSystemLoader(template_path)
-    )
-
-    # generate html and pdf
-    template = env.get_template('template2.tpl')
-    with io.open(template_path, "w", encoding="utf-8") as f:
-        f.write(template.render(**data))
-    if platform.system() == 'Windows':
-        options['zoom'] = '0.78125'
-    pdfkit.from_file(template_path, pdf_path, configuration=settings._get_pdfkit_config(), options=options)
-    # right now it returns the pdf
-    return pdf_path

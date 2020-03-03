@@ -93,6 +93,34 @@ class Feedback(models.Model):
     languages = models.TextField(blank=True)
 
 
+@receiver(post_delete, sender=BasicInfo)
+def delete_picture(sender, instance, **kwargs):
+    """
+    Deletes picture from filesystem
+    when corresponding `BasicInfo` object is deleted.
+    """
+    if instance.picture:
+        if os.path.isfile(instance.picture.path):
+            os.remove(instance.picture.path)
+
+@receiver(pre_save, sender=BasicInfo)
+def delete_previous_picture_if_it_exists(sender, instance, **kwargs):
+    """
+    Deletes old cv picture from filesystem
+    when corresponding `BasicInfo` object is updated.
+    """
+    if not instance.pk:
+        return False
+
+    try:
+        old_file = BasicInfo.objects.get(pk=instance.pk).picture
+    except BasicInfo.DoesNotExist:
+        return False
+
+    if old_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)
+    
 @receiver(post_delete, sender=CV)
 def delete_cv_file(sender, instance, **kwargs):
     """
@@ -102,13 +130,6 @@ def delete_cv_file(sender, instance, **kwargs):
     if instance.document:
         if os.path.isfile(instance.document.path):
             os.remove(instance.document.path)
-
-    basic_info = BasicInfo.objects.get(cv = instance)
-
-    if basic_info.picture:
-        if os.path.isfile(basic_info.picture.path):
-            os.remove(basic_info.picture.path)
-    
 
 @receiver(pre_save, sender=CV)
 def delete_previous_cv_file_if_it_exists(sender, instance, **kwargs):
@@ -124,7 +145,6 @@ def delete_previous_cv_file_if_it_exists(sender, instance, **kwargs):
     except CV.DoesNotExist:
         return False
 
-    new_file = instance.document
-    if not old_file == new_file:
+    if old_file:
         if os.path.isfile(old_file.path):
             os.remove(old_file.path)
