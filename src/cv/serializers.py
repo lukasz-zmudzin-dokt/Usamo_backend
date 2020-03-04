@@ -3,9 +3,9 @@ from django.contrib.auth.models import User
 from phonenumber_field.validators import validate_international_phonenumber
 from django.core.exceptions import ValidationError
 from rest_framework.relations import PrimaryKeyRelatedField
-
+from django.core.files.base import ContentFile
+from .utilities import * 
 from .models import *
-
 
 class SchoolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -69,23 +69,30 @@ class CVSerializer(serializers.ModelSerializer):
         if CV.objects.filter(cv_id=validated_data['cv_id']).exists():
             cv = self.update(CV.objects.all().get(cv_id=validated_data['cv_id']), validated_data)
         else:
+            pdf = generate(validated_data)
+            django_file = ContentFile(pdf)
+            django_file.name = create_unique_filename('cv_docs', 'pdf')
+            cv = CV.objects.create(cv_id=validated_data['cv_id'], wants_verification=validated_data.pop('wants_verification'), is_verified=False, document = django_file)
             basic_info_data = validated_data.pop('basic_info')
-            cv = CV.objects.create(cv_id=validated_data['cv_id'], wants_verification=validated_data.pop('wants_verification'), is_verified=False)
-
             BasicInfo.objects.create(cv=cv, **basic_info_data)
         return self.create_lists(cv, validated_data)
 
     def update(self, cv, validated_data):
-        basic_info_data = validated_data.pop('basic_info')
+        basic_info_data = validated_data.get('basic_info')
         serializer = BasicInfoSerializer()
         serializer.update(cv.basic_info, basic_info_data)
-
         School.objects.filter(cv=cv).delete()
         Experience.objects.filter(cv=cv).delete()
         Skill.objects.filter(cv=cv).delete()
         Language.objects.filter(cv=cv).delete()
         cv.wants_verification = validated_data.pop('wants_verification')
         cv.is_verified = False
+
+        validated_data['basic_info']['picture'] = cv.basic_info.picture
+        pdf = generate(validated_data)
+        django_file = ContentFile(pdf)
+        django_file.name = create_unique_filename('cv_docs', 'pdf')
+        cv.document = django_file
         cv.save()
         return cv
 
