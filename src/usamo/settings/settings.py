@@ -14,6 +14,8 @@ import os
 import dj_database_url
 import subprocess
 import sys
+import pdfkit
+import platform
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -45,6 +47,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'cv.apps.CvConfig',
     'account.apps.AccountConfig',
+    'drf_yasg',
 ]
 
 MIDDLEWARE = [
@@ -105,6 +108,14 @@ DATABASES = {
 db_from_env = dj_database_url.config(conn_max_age=600)
 DATABASES['default'].update(db_from_env)
 
+def _get_pdfkit_config():
+     if platform.system() == 'Windows':
+         return pdfkit.configuration(wkhtmltopdf=os.environ.get('WKHTMLTOPDF_BINARY', 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'))
+     else:
+         os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
+         WKHTMLTOPDF_CMD = subprocess.Popen(['which', os.environ.get('WKHTMLTOPDF_BINARY', 'wkhtmltopdf')], stdout=subprocess.PIPE).communicate()[0].strip()
+         return pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_CMD)
+
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
 
@@ -139,6 +150,8 @@ CORS_ALLOW_HEADERS = (
     'x-requested-with',
 )
 
+AUTH_USER_MODEL = 'account.Account'
+
 LANGUAGE_CODE = 'en-us'
 
 TIME_ZONE = 'UTC'
@@ -158,6 +171,26 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
-
-MEDIA_ROOT = os.path.join(BASE_DIR,'media')
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'api_key': {
+            'type': 'apiKey',
+            'in': 'header',
+            'name': 'Authorization'
+        }
+    },
+    'SHOW_REQUEST_HEADERS': True,
+    'LOGIN_URL': 'rest_framework:login',
+    'LOGOUT_URL': 'rest_framework:logout',
+    'USE_SESSION_AUTH': False,
+    'DOC_EXPANSION': 'list',
+    'APIS_SORTER': 'alpha',
+    'JSON_EDITOR': True,
+    'api_version': '0.1',
+    'SUPPORTED_SUBMIT_METHODS': [
+        'get',
+        'post',
+    ],
+}
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'

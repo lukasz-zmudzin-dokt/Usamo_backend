@@ -1,8 +1,37 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <link rel="stylesheet" href="css/styles2.css">
-        <link href="https://fonts.googleapis.com/css?family=Montserrat:200,400,600,800&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css?family=Montserrat:200,400,600,800&display=swap&subset=latin-ext" rel="stylesheet"> 
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+        <script type="text/javascript">
+            var autoSizeText;
+            autoSizeText = function() {
+              var el, elements, _i, _len, _results;
+              elements = $('.resize');
+              console.log(elements);
+              if (elements.length < 0) {
+                return;
+              }
+              _results = [];
+              for (_i = 0, _len = elements.length; _i < _len; _i++) {
+                el = elements[_i];
+                _results.push((function(el) {
+                  var resizeText, _results1;
+                  resizeText = function() {
+                    var elNewFontSize;
+                    elNewFontSize = (parseInt($(el).css('font-size').slice(0, -2)) - 1) + 'px';
+                    return $(el).css('font-size', elNewFontSize);
+                  };
+                  _results1 = [];
+                  while (el.scrollHeight > el.offsetHeight) {
+                    _results1.push(resizeText());
+                  }
+                  return _results1;
+                })(el));
+              }
+              return _results;
+            };
+        </script>
         <style>
             * {
               margin: 0;
@@ -19,11 +48,11 @@
             header {
               background-color: lightblue;
               color: white;
-              padding: 30px;
+              padding: 7%;
               margin-bottom: 70px;
               padding-right: 10%;
               padding-left: 10%;
-              padding-top: 10%;
+              padding-top: 7%;
             }
 
             h2 {
@@ -34,14 +63,15 @@
               margin-bottom: 0.5rem;
             }
 
+            #info {
+                display: flow-root;
+            }
+
             #name {
               font-size: 4rem;
               text-align: left;
-              width: 60%;
-              display: inline-block;
-            }
-
-            #contact {
+              max-height: 120px;
+              width: 600px;
               display: inline-block;
             }
 
@@ -60,6 +90,13 @@
               margin: 0;
             }
 
+            .picture {
+                width: 164px;
+                height: 211px;
+                display: inline-block;
+                float: right;
+            }
+
             .item {
               padding-bottom: 10px;
             }
@@ -71,13 +108,18 @@
             }
         </style>
     </head>
-    <body>
+    <body onload="autoSizeText()"">
         <header>
-            <h1 id="name">{{basic_info.first_name}}</br>{{basic_info.last_name}}</h1>
-            <div id="contact">
-                <p><b>Data urodzenia: </b></br>ur. {{basic_info.date_of_birth}}</p>
-                <p><b>Telefon: </b></br>{{basic_info.phone_number}}</p>
-                <p><b>E-mail: </b></br>{{basic_info.email}}</p>
+            <div>
+                {% if basic_info.picture %}<img class="picture" src="{{"../.." + basic_info.picture.url}}"/>{% endif %}
+            </div>
+            <div id="info">
+                <h1 id="name" class="resize">{{basic_info.first_name}} {{basic_info.last_name}}</h1>
+                <div id="contact">
+                    <p><b>Data urodzenia: </b></br>ur. {{basic_info.date_of_birth}}</p>
+                    <p><b>Telefon: </b></br>{{basic_info.phone_number}}</p>
+                    <p><b>E-mail: </b></br>{{basic_info.email}}</p>
+                </div>
             </div>
         </header>
 
@@ -92,7 +134,7 @@
             {% endfor %}
         </div>
 
-        <div class="container" id="experiences">
+        {% if experiences %}<div class="container" id="experiences">
             <h2>Doświadczenie</h2>
             {% for item in experiences %}
             <div class="item">
@@ -101,7 +143,7 @@
                 <p>{{item.description}}</p>
             </div>
             {% endfor %}
-        </div>
+        </div> {% endif %}
 
         <div class="container" id="skills">
             <h2>Umiejętności</h2>
