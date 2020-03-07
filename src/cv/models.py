@@ -26,7 +26,7 @@ def validate_cv_id(cv_id):
 
 class CV(models.Model):
     cv_id = models.IntegerField(null=True)
-    wants_verification = models.BooleanField(default=False)
+    wants_verification = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
     document = models.FileField(upload_to='cv_docs/%Y/%m/%d/')
 
@@ -91,6 +91,7 @@ class Feedback(models.Model):
     experiences = models.TextField(blank=True)
     skills = models.TextField(blank=True)
     languages = models.TextField(blank=True)
+    additional_info = models.TextField(blank=True, default=None, null=True)
 
 
 @receiver(post_delete, sender=BasicInfo)
