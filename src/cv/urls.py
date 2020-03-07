@@ -14,5 +14,4 @@ urlpatterns = [
     path('admin/list/', views.UnverifiedCVList.as_view(), name='list'),
     path('admin/feedback/', views.AdminFeedback.as_view(), name='feedback'),
     path('status/', views.UserCVStatus.as_view(), name='status'),
-    url(r'^(?P<path>.*)$', serve, {'document_root': 'cv'})
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

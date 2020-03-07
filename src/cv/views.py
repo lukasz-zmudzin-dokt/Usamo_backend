@@ -1,6 +1,4 @@
-
 import os
-
 from drf_yasg import openapi
 from django.http import HttpResponse, JsonResponse
 from django.utils.datastructures import MultiValueDictKeyError
@@ -9,14 +7,9 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from usamo import settings
 from .models import CV
-import jinja2
-import pdfkit
-import platform
-import io
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.compat import coreapi, coreschema
 from rest_framework.schemas import ManualSchema
-
 from cv.serializers import *
 from rest_framework import status, generics, parsers, renderers
 from rest_framework.response import Response
@@ -43,6 +36,7 @@ class GenerateView(views.APIView):
         request_data = request.data
         request_data['cv_id'] = request.user.id
         serializer = self.serializer_class(data=request_data)
+
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
             return Response('CV successfully generated.', status.HTTP_201_CREATED)
@@ -65,26 +59,25 @@ class GenerateView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
             return Response('CV not found', status.HTTP_404_NOT_FOUND)
-        serializer = CVSerializer(cv)
-        token = Token.objects.get(user=request.user)
-        response = Response(generate(serializer.data, token, request.user.first_name, request.user.last_name), status.HTTP_200_OK)
-        return response
+
+        return Response(cv.document.url, status.HTTP_200_OK)
+
 
     @swagger_auto_schema(
-        operation_description="Deletes current user's pdf file from server if it exists",
+        operation_description="Deletes current user's cv from database if it exists",
         responses={
-            '200': 'File deleted successfully',
-            '404': 'No such file exists'
+            '200': 'CV deleted successfully',
+            '404': 'CV not found'
         }
     )
     def delete(self, request):
-        token = Token.objects.get(user=request.user)
-        path = os.path.join(settings.MEDIA_ROOT, 'cv_docs', f'{token}', f'CV_{request.user.first_name}_{request.user.last_name}.pdf')
-        if os.path.isfile(path):
-            os.remove(path)
-            return Response('File deleted successfully', status.HTTP_200_OK)
-        else:
-            return Response('No such file exists', status.HTTP_404_NOT_FOUND)
+        cv_id = request.user.id
+        try:
+            CV.objects.filter(cv_id=cv_id).delete()
+        except CV.DoesNotExist:
+            return Response('CV not found', status.HTTP_404_NOT_FOUND)
+
+        return Response('CV deleted successfully', status.HTTP_200_OK)
 
 
 class DataView(views.APIView):
@@ -121,7 +114,7 @@ class PictureView(views.APIView):
                 type=openapi.TYPE_FILE
             )],
         responses={
-            '201': 'File added successfully.',
+            '201': 'Picture added successfully.',
             '404': 'CV not found.',
             '406': 'Make sure the form key is "picture".'
         }
@@ -135,18 +128,17 @@ class PictureView(views.APIView):
             return Response('CV not found.', status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(instance=cv)
         data = serializer.data
-        token = Token.objects.get(user=request.user)
         try:
             pict = request.FILES['picture']
             ext = pict.name.split('.')[-1]
-            pict.name = f'{token}_' + f'CV_{user.id}.' + ext
+            pict.name = create_unique_filename('cv_pics', ext)
             data['basic_info']['picture'] = pict
         except MultiValueDictKeyError:
             Response('Make sure the form key is "picture".', status.HTTP_406_NOT_ACCEPTABLE)
         serializer = CVSerializer(data=data)
         if serializer.is_valid():
             serializer.create(serializer.validated_data)
-            return Response('File added successfully.', status.HTTP_201_CREATED)
+            return Response('Picture added successfully.', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
@@ -182,9 +174,12 @@ class PictureView(views.APIView):
         bi = BasicInfo.objects.get(cv=cv)
         if not bi.picture:
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
-        path = os.path.join(settings.BASE_DIR, bi.picture.path)
-        os.remove(path)
         bi.picture.delete(save=True)
+        cv_serializer = CVSerializer(instance=cv)
+        bi_serializer = BasicInfoSerializer(instance=bi)
+        cv_serializer.data['basic_info'] = bi_serializer.data
+        cv_serializer.create(cv_serializer.data)
+
         return Response('Picture deleted successfully.', status.HTTP_200_OK)
 
 class UnverifiedCVList(generics.ListAPIView):
@@ -235,41 +230,3 @@ class UserCVStatus(views.APIView):
         cv = get_object_or_404(CV.objects.filter(cv_id=request.user.id))
         response = {"is_verified": cv.is_verified}
         return JsonResponse(response, safe=False)
-
-
-def generate(data, token, first_name, last_name):
-    # options for second pdf
-    options = {
-        'page-size': 'Letter',
-        'margin-top': '0in',
-        'margin-right': '0in',
-        'margin-bottom': '0in',
-        'margin-left': '0in'
-    }
-
-    # get paths
-    module_dir = os.path.dirname(__file__)  # get current directory
-    file_path = os.path.join(module_dir, 'data_sample.json')
-    template_path = os.path.join(module_dir, 'templates/')
-    cv_1_path = os.path.join(module_dir, 'templates/cv1-generated.html')
-    pdf_1_path = os.path.join(module_dir, 'cv1.pdf')
-    cv_2_path = os.path.join(module_dir, 'templates/cv2-generated.html')
-    pdf_2_path = os.path.join(settings.MEDIA_ROOT, 'cv_docs', f'{token}',
-        f'CV_{first_name}_{last_name}.pdf')
-    if not os.path.exists(pdf_2_path):
-        os.makedirs(os.path.join(settings.MEDIA_ROOT, 'cv_docs', f'{token}'))
-
-    # get data and jinja
-    env = jinja2.environment.Environment(
-        loader=jinja2.FileSystemLoader(template_path)
-    )
-
-    # generate html and pdf
-    template = env.get_template('template2.tpl')
-    with io.open(cv_2_path, "w", encoding="utf-8") as f:
-        f.write(template.render(**data))
-    if platform.system() == 'Windows':
-        options['zoom'] = '0.78125'
-    pdfkit.from_file(cv_2_path, pdf_2_path, configuration=settings._get_pdfkit_config(), options=options)
-    # right now it returns the second pdf
-    return pdf_2_path

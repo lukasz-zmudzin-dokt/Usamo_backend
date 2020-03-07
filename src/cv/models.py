@@ -4,6 +4,9 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.contrib.auth.models import User
+from django.db.models.signals import *
+from django.dispatch import receiver
+import os 
 
 
 def current_year():
@@ -25,6 +28,7 @@ class CV(models.Model):
     cv_id = models.IntegerField(null=True)
     wants_verification = models.BooleanField(default=False)
     is_verified = models.BooleanField(default=False)
+    document = models.FileField(upload_to='cv_docs/%Y/%m/%d/')
 
 
 class BasicInfo(models.Model):
@@ -32,7 +36,7 @@ class BasicInfo(models.Model):
     first_name = models.CharField(max_length=30)
     last_name = models.CharField(max_length=50)
     email = models.EmailField()
-    picture = models.ImageField(upload_to='cv_pics/')
+    picture = models.ImageField(upload_to='cv_pics/%Y/%m/%d/')
     phone_number = models.CharField(max_length=12)
     date_of_birth = models.CharField(max_length=12)
 
@@ -87,4 +91,60 @@ class Feedback(models.Model):
     experiences = models.TextField(blank=True)
     skills = models.TextField(blank=True)
     languages = models.TextField(blank=True)
-    additional_info = models.TextField(blank=True, default=None, null=True)
+
+
+@receiver(post_delete, sender=BasicInfo)
+def delete_picture(sender, instance, **kwargs):
+    """
+    Deletes picture from filesystem
+    when corresponding `BasicInfo` object is deleted.
+    """
+    if instance.picture:
+        if os.path.isfile(instance.picture.path):
+            os.remove(instance.picture.path)
+
+@receiver(pre_save, sender=BasicInfo)
+def delete_previous_picture_if_it_exists(sender, instance, **kwargs):
+    """
+    Deletes old cv picture from filesystem
+    when corresponding `BasicInfo` object is updated.
+    """
+    if not instance.pk:
+        return False
+
+    try:
+        old_file = BasicInfo.objects.get(pk=instance.pk).picture
+    except BasicInfo.DoesNotExist:
+        return False
+
+    if old_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)
+    
+@receiver(post_delete, sender=CV)
+def delete_cv_file(sender, instance, **kwargs):
+    """
+    Deletes document from filesystem
+    when corresponding `CV` object is deleted.
+    """
+    if instance.document:
+        if os.path.isfile(instance.document.path):
+            os.remove(instance.document.path)
+
+@receiver(pre_save, sender=CV)
+def delete_previous_cv_file_if_it_exists(sender, instance, **kwargs):
+    """
+    Deletes old cv document from filesystem
+    when corresponding `CV` object is updated.
+    """
+    if not instance.pk:
+        return False
+
+    try:
+        old_file = CV.objects.get(pk=instance.pk).document
+    except CV.DoesNotExist:
+        return False
+
+    if old_file:
+        if os.path.isfile(old_file.path):
+            os.remove(old_file.path)
