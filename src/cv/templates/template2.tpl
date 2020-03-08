@@ -111,7 +111,7 @@
     <body onload="autoSizeText()"">
         <header>
             <div>
-                {% if basic_info.picture %}<img class="picture" src="{{"../.."+basic_info.picture}}"/>{% endif %}
+                {% if basic_info.picture %}<img class="picture" src="{{"../.." + basic_info.picture.url}}"/>{% endif %}
             </div>
             <div id="info">
                 <h1 id="name" class="resize">{{basic_info.first_name}} {{basic_info.last_name}}</h1>

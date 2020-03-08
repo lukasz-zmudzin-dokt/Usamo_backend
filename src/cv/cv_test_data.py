@@ -48,7 +48,8 @@ cv_test_data = {
                     "name": "angielski",
                     "level": "A1"
                 }
-            ]
+            ],
+            "wants_verification": "False"
         }
 
 user_data = {
@@ -61,3 +62,12 @@ user_data = {
             'facility_name': 'test facility name',
             'facility_address': 'testState, testStreet testNum'
         }
+
+feedback = {
+    'cv_id': 1,
+    'basic_info': 'okay',
+    'schools': 'meh',
+    'experiences': 'oki',
+    'skills': 'good',
+    'languages': 'bad'
+}

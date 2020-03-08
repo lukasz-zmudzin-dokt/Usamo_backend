@@ -1,10 +1,14 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpRequest
+from drf_yasg.openapi import Schema
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status
 from rest_framework import views
 from rest_framework.authtoken.models import Token
-from rest_framework.decorators import permission_classes
+from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.decorators import permission_classes, api_view, renderer_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 
 from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
@@ -36,6 +40,20 @@ class AbstractRegistrationView(views.APIView):
         response_data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
 
 
+def sample_registration_response(account_type):
+    response = Schema(properties={
+        'response_message': Schema(type='string', default='Successfully registered a new user'),
+        'email': Schema(type='string', format='email', default='example@domain.com'),
+        'username': Schema(type='string', default='sample_user'),
+        'token': Schema(type='string', default='8f67f4a7e4c79f720ea82e6008f2f6e8a9661af7'),
+        'status': Schema(type='string', default='Waiting for verification'),
+        'type': Schema(type='string', default=account_type)
+    },
+        type='object'
+    )
+    return response
+
+
 class DefaultAccountRegistrationView(AbstractRegistrationView):
     """
     > ## Creates a default account
@@ -51,7 +69,13 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
     > - facility_address
     >
     """
-
+    @swagger_auto_schema(
+        query_serializer=DefaultAccountSerializer,
+        responses={
+            201: sample_registration_response('Standard'),
+            406: 'Not acceptable'
+        }
+    )
     def post(self, request):
         serializer = DefaultAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
@@ -74,14 +98,26 @@ class EmployerRegistrationView(AbstractRegistrationView):
     > - nip
     >
     """
-
+    @swagger_auto_schema(
+        query_serializer=EmployerAccountSerializer,
+        responses={
+            201: sample_registration_response('Employer'),
+            406: 'Not acceptable'
+        }
+    )
     def post(self, request):
         serializer = EmployerAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
 
 
 class StaffRegistrationView(AbstractRegistrationView):
-
+    @swagger_auto_schema(
+        query_serializer=StaffAccountSerializer,
+        responses={
+            201: sample_registration_response('Staff'),
+            406: 'Not acceptable'
+        }
+    )
     def post(self, request):
         serializer = StaffAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
@@ -89,7 +125,12 @@ class StaffRegistrationView(AbstractRegistrationView):
 
 class LogoutView(views.APIView):
     permission_classes = [IsAuthenticated]
-
+    @swagger_auto_schema(
+        operation_description="Logout currently logged in user.",
+        responses={
+            status.HTTP_200_OK: 'success: Successfully deleted the old token'
+        }
+    )
     def post(self, request):
         return self.logout(request)
 
@@ -101,9 +142,28 @@ class LogoutView(views.APIView):
 
         return Response({'success': 'Successfully deleted the old token'}, status.HTTP_200_OK)
 
+class LoginView(ObtainAuthToken):
+    
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data,
+                                           context={'request': request})
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        token, created = Token.objects.get_or_create(user=user)
+        return Response({
+            'token': token.key,
+            'type': dict(ACCOUNT_TYPE_CHOICES)[user.type]
+        })
 
 class DataView(views.APIView):
 
+    @swagger_auto_schema(
+        operation_description="Get currently logged in user's data."
+                              "Example response is for default user.",
+
+        responses={
+            status.HTTP_200_OK: DefaultAccountSerializer}
+    )
     @permission_classes([IsAuthenticated])
     def get(self, request):
         serializer = None
