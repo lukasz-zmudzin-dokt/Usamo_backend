@@ -11,13 +11,13 @@ class AbstractIsUserOrAllowedStaffPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
         return user and user.status == AccountStatus.VERIFIED.value \
-               and (self.__is_allowed_staff(user) or self.__is_user_allowed(user))
+               and (self._is_allowed_staff(user) or self._is_user_allowed(user))
 
-    def __is_allowed_staff(self, user) -> bool:
+    def _is_allowed_staff(self, user) -> bool:
         staff_type = self._get_allowed_staff_type().value
         return user.type == AccountType.STAFF.value and user.groups.filter(name=staff_type).exists()
 
-    def __is_user_allowed(self, user) -> bool:
+    def _is_user_allowed(self, user) -> bool:
         return user.type == (self._get_user_type()).value
 
     @abstractmethod
@@ -39,10 +39,9 @@ class IsEmployerOrAllowedStaff(AbstractIsUserOrAllowedStaffPermission):
         return AccountType.EMPLOYER
 
     def has_object_permission(self, request, view, obj):
-        if request.user.type == AccountType.EMPLOYER:
-            # TODO: check if employer has this job offer
-            return False
-        return True
+        if request.user.type == AccountType.EMPLOYER.value:
+            return obj.employer.id == request.user.id if hasattr(obj, 'employer') else False
+        return super()._is_allowed_staff(request.user)
 
 
 class AbstractCanStaffVerifyPermission(permissions.BasePermission):
