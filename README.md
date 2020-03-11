@@ -33,3 +33,18 @@ lub
 Aby to zrobić, należy użyć polecenia: *python manage.py loaddata test_accounts.json*
 
 Polecenie *loaddata /nazwa_pliku_json/* powoduje przeszukanie folderów fixtures w każdej z apek i wczytanie danych z pliku o podanej nazwie. Aby wczytać wszystkie pliki, wystarczy użyć operatora \*: \*.json
+
+## Zmienne środowiskowe i settings
+
+Przeniesony został plik settings.py z katalogu głównego modułu usamo do podkatalogu "settings". Wiąże się to ze zmianą zmiennej środowiskowej tak jak to zostało opisane poniżej. W przypadku braku tej zmiennej ustawiana jest domyślna wartość "usamo.settings.settings"
+
+Główne envy do ustawienia:
+
+- SECRET_KEY: sekret aplikacji
+- DJANGO_SETTINGS_MODULE: domyślny powinien być "usamo.settings.settings", jeśli macie lokalnie ustawioną zmienną środowiskową na inną wartość, aplikacja się nie uruchomi
+
+Dodatkowe, obecnie tylko dla ustawień "test" i "prod" - czyli dla dockera i heroku:
+- POSTGRES_DB: nazwa bazy
+- POSTGRES_USER: nazwa użytkownika postgresa
+- POSTGRES_PASSWORD: hasło użytkownika postgresa
+dla dev używamy domyślnych ustawnień bazy, takich jakie są podane w usamo.settings.settings.py
