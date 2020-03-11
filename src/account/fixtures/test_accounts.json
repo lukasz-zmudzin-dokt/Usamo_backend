@@ -1,0 +1,116 @@
+[
+{
+  "model": "account.account",
+  "pk": 1,
+  "fields": {
+    "password": "pbkdf2_sha256$150000$hXwB45xUWo8B$M/o5GSZWCpUEOH9fHrdEXxUUA80j+Cq859XwAjNiDBk=",
+    "email": "standard1@standard1.com",
+    "username": "standard1",
+    "first_name": "standard1",
+    "last_name": "standard1",
+    "date_joined": "2020-03-08T15:22:38.629Z",
+    "last_login": "2020-03-08T15:22:38.901Z",
+    "is_active": true,
+    "is_admin": false,
+    "is_staff": false,
+    "is_superuser": false,
+    "status": 2,
+    "type": 1
+  }
+},
+{
+  "model": "account.account",
+  "pk": 2,
+  "fields": {
+    "password": "pbkdf2_sha256$150000$knJ3141jtXEf$o3ha/3NVB8CkNLqdfO7IR9ZBXoFcNcyn9Jtqi4ia3NM=",
+    "email": "standard2@standard2.com",
+    "username": "standard2",
+    "first_name": "standard2",
+    "last_name": "standard2",
+    "date_joined": "2020-03-08T15:22:43.378Z",
+    "last_login": "2020-03-08T15:22:43.644Z",
+    "is_active": true,
+    "is_admin": false,
+    "is_staff": false,
+    "is_superuser": false,
+    "status": 2,
+    "type": 1
+  }
+},
+{
+  "model": "account.account",
+  "pk": 3,
+  "fields": {
+    "password": "pbkdf2_sha256$150000$CJfS0e4m1Y36$Af5wQJrYbhuKyNljkPKHNKmt81B2wgPaF5F1TKmf6M4=",
+    "email": "staff1@staff1.com",
+    "username": "staff1",
+    "first_name": "staff1",
+    "last_name": "staff1",
+    "date_joined": "2020-03-08T15:22:47.722Z",
+    "last_login": "2020-03-08T15:22:47.988Z",
+    "is_active": true,
+    "is_admin": true,
+    "is_staff": true,
+    "is_superuser": false,
+    "status": 1,
+    "type": 2
+  }
+},
+{
+  "model": "account.account",
+  "pk": 4,
+  "fields": {
+    "password": "pbkdf2_sha256$150000$rXVwIHlwwGjB$tyNVKGMWbnjcU5lh3kN/Ttk0LkLB7RddT38i2zCGqSQ=",
+    "email": "employer1@employer1.com",
+    "username": "employer1",
+    "first_name": "employer1",
+    "last_name": "employer1",
+    "date_joined": "2020-03-08T15:22:52.431Z",
+    "last_login": "2020-03-08T15:22:52.760Z",
+    "is_active": true,
+    "is_admin": false,
+    "is_staff": false,
+    "is_superuser": false,
+    "status": 2,
+    "type": 3
+  }
+},
+{
+  "model": "account.defaultaccount",
+  "pk": 1,
+  "fields": {
+    "user": 1,
+    "phone_number": "+48123456789",
+    "facility_name": "standard1",
+    "facility_address": "standard1"
+  }
+},
+{
+  "model": "account.defaultaccount",
+  "pk": 2,
+  "fields": {
+    "user": 2,
+    "phone_number": "+48123456788",
+    "facility_name": "standard2",
+    "facility_address": "standard2"
+  }
+},
+{
+  "model": "account.employeraccount",
+  "pk": 1,
+  "fields": {
+    "user": 4,
+    "phone_number": "+48123456787",
+    "company_name": "employer1",
+    "company_address": "employer1",
+    "nip": "1234563218"
+  }
+},
+{
+  "model": "account.staffaccount",
+  "pk": 1,
+  "fields": {
+    "user": 3
+  }
+}
+]

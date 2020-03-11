@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'whitenoise.runserver_nostatic',
     'corsheaders',
+    'job.apps.JobConfig',
     'cv.apps.CvConfig',
     'account.apps.AccountConfig',
     'drf_yasg',

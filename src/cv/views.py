@@ -59,9 +59,9 @@ class GenerateView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
             return Response('CV not found', status.HTTP_404_NOT_FOUND)
-        
+
         return Response(cv.document.url, status.HTTP_200_OK)
-        
+
 
     @swagger_auto_schema(
         operation_description="Deletes current user's cv from database if it exists",
@@ -78,7 +78,7 @@ class GenerateView(views.APIView):
             return Response('CV not found', status.HTTP_404_NOT_FOUND)
 
         return Response('CV deleted successfully', status.HTTP_200_OK)
-        
+
 
 class DataView(views.APIView):
     @swagger_auto_schema(
@@ -179,7 +179,7 @@ class PictureView(views.APIView):
         bi_serializer = BasicInfoSerializer(instance=bi)
         cv_serializer.data['basic_info'] = bi_serializer.data
         cv_serializer.create(cv_serializer.data)
-        
+
         return Response('Picture deleted successfully.', status.HTTP_200_OK)
 
 class UnverifiedCVList(generics.ListAPIView):
@@ -216,3 +216,17 @@ class UserFeedback(generics.RetrieveAPIView):
     def get_object(self):
         fb = get_object_or_404(Feedback.objects.filter(cv_id=self.request.user.id))
         return fb
+
+
+class UserCVStatus(views.APIView):
+    @swagger_auto_schema(
+        operation_description="Returns current user's cv verification status",
+        responses={
+            200: 'is_verified: true/false',
+            404: 'detail: not found'
+        }
+    )
+    def get(self, request):
+        cv = get_object_or_404(CV.objects.filter(cv_id=request.user.id))
+        response = {"is_verified": cv.is_verified}
+        return JsonResponse(response, safe=False)

@@ -13,8 +13,7 @@ services:
     environment:
       - DJANGO_SETTINGS_MODULE=usamo.settings.test.test_settings
     build: ./src
-    command: python manage.py migrate
-    command: python manage.py runserver 0.0.0.0:8000
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
       - ./src:/code
     ports:
