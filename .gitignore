@@ -2,6 +2,10 @@
 __pycache__/
 db.sqlite3
 media/
+
+.idea
+
+**/*.env
 # others
 .vscode/
 .DS_Store
