@@ -1,11 +1,11 @@
 from rest_framework import status
 from rest_framework.test import APITestCase
-from .account_status import AccountStatus
-from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
-from .models import DefaultAccount, EmployerAccount, StaffAccount, Account
+from account.account_status import AccountStatus
+from account.account_type import AccountType, ACCOUNT_TYPE_CHOICES
+from account.models import DefaultAccount, EmployerAccount, StaffAccount, Account
 import json
 from django.test import SimpleTestCase
-from .validators import validate_nip
+from account.validators import validate_nip
 from django.core.exceptions import ValidationError
 
 

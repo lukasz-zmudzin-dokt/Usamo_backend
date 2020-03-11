@@ -13,7 +13,7 @@ from cv.cv_test_data import cv_test_data
 from rest_framework.test import APIRequestFactory
 from rest_framework.test import force_authenticate
 from django.db import models
-from .views import DataView, GenerateView
+from cv.views import DataView, GenerateView
 from cv.cv_test_data import user_data
 import os
 
