@@ -3,7 +3,7 @@ from abc import abstractmethod
 from rest_framework import permissions
 
 from .account_status import AccountStatus
-from .account_type import AccountType, StaffType
+from .account_type import AccountType, StaffGroupType
 
 
 class AbstractIsUserOrAllowedStaffPermission(permissions.BasePermission):
@@ -33,7 +33,7 @@ class IsEmployerOrAllowedStaff(AbstractIsUserOrAllowedStaffPermission):
     message = {'errors': 'User is neither an employer nor staff'}
 
     def _get_allowed_staff_type(self):
-        return StaffType.STAFF_JOBS
+        return StaffGroupType.STAFF_JOBS
 
     def _get_user_type(self):
         return AccountType.EMPLOYER
@@ -54,17 +54,17 @@ class AbstractCanStaffVerifyPermission(permissions.BasePermission):
                and user.groups.filter(name=allowed_type).exists()
 
     @abstractmethod
-    def _get_staff_type(self) -> StaffType:
+    def _get_staff_type(self) -> StaffGroupType:
         pass
 
 
 class CanStaffVerifyCV(AbstractCanStaffVerifyPermission):
 
     def _get_staff_type(self):
-        return StaffType.STAFF_CV
+        return StaffGroupType.STAFF_CV
 
 
 class CanStaffVerifyUsers(AbstractCanStaffVerifyPermission):
 
     def _get_staff_type(self):
-        return StaffType.STAFF_VERIFICATION
+        return StaffGroupType.STAFF_VERIFICATION

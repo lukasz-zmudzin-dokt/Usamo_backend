@@ -4,7 +4,7 @@ from rest_framework import serializers
 import abc
 from .validators import validate_nip
 from django.contrib.auth.models import Group
-from .account_type import StaffType
+from .account_type import StaffGroupType
 
 
 from .models import DefaultAccount, EmployerAccount, Account, StaffAccount
@@ -143,7 +143,7 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
 
 
 class StaffAccountSerializer(AbstractAccountSerializer):
-    group_type = serializers.ChoiceField(choices={i: i for i in StaffType.get_all_types()})
+    group_type = serializers.ChoiceField(choices={i: i for i in StaffGroupType.get_all_types()})
 
     class Meta:
         model = Account

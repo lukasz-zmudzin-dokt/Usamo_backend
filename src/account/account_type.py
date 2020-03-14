@@ -12,12 +12,12 @@ ACCOUNT_TYPE_CHOICES = [
 ]
 
 
-class StaffType(Enum):
+class StaffGroupType(Enum):
     STAFF_VERIFICATION = 'staff_verification'
     STAFF_CV = 'staff_cv'
     STAFF_JOBS = 'staff_jobs'
 
     @staticmethod
     def get_all_types():
-        return [StaffType.STAFF_VERIFICATION.value, StaffType.STAFF_CV.value, StaffType.STAFF_JOBS.value]
+        return [StaffGroupType.STAFF_VERIFICATION.value, StaffGroupType.STAFF_CV.value, StaffGroupType.STAFF_JOBS.value]
 

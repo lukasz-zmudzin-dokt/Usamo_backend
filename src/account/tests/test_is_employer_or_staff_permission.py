@@ -3,7 +3,7 @@ from unittest.mock import Mock
 
 from ..account_status import AccountStatus
 from ..account_type import AccountType
-from ..account_type import StaffType
+from ..account_type import StaffGroupType
 from ..permissions import IsEmployerOrAllowedStaff
 
 
@@ -21,14 +21,14 @@ class IsEmployerOrAdminPermissionTest(unittest.TestCase):
 
     def test_user_is_verified_allowed_staff(self):
         groups = Mock()
-        groups.filter(name=StaffType.STAFF_JOBS.value).exists.return_value = True
+        groups.filter(name=StaffGroupType.STAFF_JOBS.value).exists.return_value = True
         self.request.user.configure_mock(type=AccountType.STAFF.value, status=AccountStatus.VERIFIED.value,
                                          groups=groups)
         self.assertTrue(self.permission.has_permission(self.request, self.view))
 
     def test_user_is_verified_not_allowed_staff(self):
         groups = Mock()
-        groups.filter(name=StaffType.STAFF_JOBS.value).exists.return_value = False
+        groups.filter(name=StaffGroupType.STAFF_JOBS.value).exists.return_value = False
         self.request.user.configure_mock(type=AccountType.STAFF.value, status=AccountStatus.VERIFIED.value,
                                          groups=groups)
         self.assertFalse(self.permission.has_permission(self.request, self.view))
@@ -74,7 +74,7 @@ class IsEmployerOrAdminPermissionTest(unittest.TestCase):
         employer = Mock()
         offer.configure_mock(employer=employer)
         groups = Mock()
-        groups.filter(name=StaffType.STAFF_JOBS.value).exists.return_value = True
+        groups.filter(name=StaffGroupType.STAFF_JOBS.value).exists.return_value = True
         self.request.user.configure_mock(type=AccountType.STAFF.value, status=AccountStatus.VERIFIED.value,
                                          groups=groups)
         self.assertTrue(self.permission.has_object_permission(self.request, self.view, offer))
@@ -84,7 +84,7 @@ class IsEmployerOrAdminPermissionTest(unittest.TestCase):
         employer = Mock()
         offer.configure_mock(employer=employer)
         groups = Mock()
-        groups.filter(name=StaffType.STAFF_JOBS.value).exists.return_value = False
+        groups.filter(name=StaffGroupType.STAFF_JOBS.value).exists.return_value = False
         self.request.user.configure_mock(type=AccountType.STAFF.value, status=AccountStatus.VERIFIED.value,
                                          groups=groups)
         self.assertFalse(self.permission.has_object_permission(self.request, self.view, offer))

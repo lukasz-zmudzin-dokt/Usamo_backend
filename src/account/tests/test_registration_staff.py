@@ -1,7 +1,7 @@
 from rest_framework import status
 from ..account_status import AccountStatus
 from ..account_type import AccountType, ACCOUNT_TYPE_CHOICES
-from ..account_type import StaffType
+from ..account_type import StaffGroupType
 from ..models import StaffAccount, Account
 from .test_registration import RegistrationTestCase
 
@@ -31,13 +31,13 @@ class StaffRegistrationTestCase(RegistrationTestCase):
         self.assertNotEquals(account.password, registration_data['password'])
 
     def test_registration_staff_jobs_success(self):
-        self.__test_success('staff_jobs_success.json', StaffType.STAFF_JOBS)
+        self.__test_success('staff_jobs_success.json', StaffGroupType.STAFF_JOBS)
 
     def test_registration_staff_cv_success(self):
-        self.__test_success('staff_cv_success.json', StaffType.STAFF_CV)
+        self.__test_success('staff_cv_success.json', StaffGroupType.STAFF_CV)
 
     def test_registration_staff_verification_success(self):
-        self.__test_success('staff_verification_success.json', StaffType.STAFF_VERIFICATION)
+        self.__test_success('staff_verification_success.json', StaffGroupType.STAFF_VERIFICATION)
 
     def test_registration_staff_no_group_provided(self):
         registration_data = self.read_test_data('staff_no_group_provided.json')
