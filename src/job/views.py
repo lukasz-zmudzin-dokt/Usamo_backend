@@ -156,7 +156,7 @@ class JobOfferView(views.APIView):
             Parameter('offer_id', IN_PATH, type='integer')
         ],
         responses={
-            '200': sample_offer_response(),
+            '200': JobOfferSerializer,
             '401': 'No authorization token',
             '404': sample_error_response('Offer not found'),
         },
@@ -212,14 +212,19 @@ class JobOfferListView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
 
+    filter_serializer = None
+
     def get_queryset(self):
-        serializer = JobOfferFiltersSerializer(data=self.request.data)
-        if serializer.is_valid():
-            job_offer_filters = serializer.create(serializer.validated_data)
-            valid_filters = job_offer_filters.get_filters()
-            return JobOffer.objects.filter(removed=False, **valid_filters)
+        job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
+        valid_filters = job_offer_filters.get_filters()
+        return JobOffer.objects.filter(removed=False, **valid_filters)
+
+    def get(self, request):
+        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.data)
+        if self.filter_serializer.is_valid():
+            return super().get(request)
         else:
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+            return Response(self.filter_serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class JobOfferInterestedUsersView(views.APIView):
@@ -230,6 +235,7 @@ class JobOfferInterestedUsersView(views.APIView):
         ],
         responses={
             '200': sample_message_response("Added to interested users"),
+            '400': sample_error_response("User already added"),
             '401': 'No authorization token',
             '403': sample_error_response('No user or user is not default user'),
             '404': sample_error_response("Offer not found"),
@@ -242,6 +248,8 @@ class JobOfferInterestedUsersView(views.APIView):
             user = DefaultAccount.objects.get(user_id=request.user.id)
             try:
                 instance = JobOffer.objects.get(pk=offer_id)
+                if instance.interested_users.filter(id=user.id).exists():
+                    return ErrorResponse("User already added", status.HTTP_400_BAD_REQUEST)
                 instance.interested_users.add(user)
                 instance.save()
                 return MessageResponse("Added to interested users")
@@ -250,17 +258,15 @@ class JobOfferInterestedUsersView(views.APIView):
         except ObjectDoesNotExist:
             return ErrorResponse("No user or user is not default user", status.HTTP_403_FORBIDDEN)
 
+
+class EmployerJobOfferInterestedUsersView(views.APIView):
+
     @swagger_auto_schema(
         manual_parameters=[
             Parameter('offer_id', IN_PATH, type='integer')
         ],
         responses={
-            '200': Schema(type='object', parameters={
-                'id': Schema(type='integer', default=1),
-                'first_name': Schema(type='string', default='Imie'),
-                'last_name': Schema(type='integer', default='Nazwisko'),
-                'email': Schema(type='integer', default='email')
-            }),
+            '200': InterestedUserSerializer,
             '401': 'No authorization token',
             '404': sample_error_response("Offer not found"),
         },
@@ -295,16 +301,22 @@ class EmployerJobOffersView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
 
+    filter_serializer = None
+    employer = None
+
     def get_queryset(self):
-        serializer = JobOfferFiltersSerializer(data=self.request.data)
+        job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
+        valid_filters = job_offer_filters.get_filters()
+        return JobOffer.objects.filter(removed=False, employer_id=self.employer.id, **valid_filters)
+
+    def get(self, request):
+        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.data)
         try:
-            employer = EmployerAccount.objects.get(user_id=self.request.user.id)
-            if serializer.is_valid():
-                job_offer_filters = serializer.create(serializer.validated_data)
-                valid_filters = job_offer_filters.get_filters()
-                return JobOffer.objects.filter(removed=False, employer_id=employer.id, **valid_filters)
+            self.employer = EmployerAccount.objects.get(user_id=self.request.user.id)
+            if self.filter_serializer.is_valid():
+                return super().get(request)
             else:
-                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+                return Response(self.filter_serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             return ErrorResponse("No user or user is not employer", status.HTTP_403_FORBIDDEN)
 
