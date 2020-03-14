@@ -3,6 +3,8 @@ from phonenumber_field.validators import validate_international_phonenumber
 from rest_framework import serializers
 import abc
 from .validators import validate_nip
+from django.contrib.auth.models import Group
+from .account_type import StaffGroupType
 
 
 from .models import DefaultAccount, EmployerAccount, Account, StaffAccount
@@ -19,6 +21,7 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
             raise error
 
         user = super(AbstractAccountSerializer, self).create(validated_data)
+        self.post_user_created(user, validated_data)
         account, wasCreated = self.update_or_create_account(user, account_data)
         user.set_password(password)
         user.save()
@@ -47,6 +50,10 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
 
     @abc.abstractmethod
     def get_account_data(self, validated_data):
+        return
+
+    @abc.abstractmethod
+    def post_user_created(self, user, data):
         return
 
 
@@ -85,6 +92,9 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
 
     def get_account_data(self, validated_data):
         return validated_data.pop('account', None)
+
+    def post_user_created(self, user, data):
+        pass
 
 
 class EmployerAccountSerializer(AbstractAccountSerializer):
@@ -128,17 +138,22 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
     def get_account_data(self, validated_data):
         return validated_data.pop('employer_account', None)
 
+    def post_user_created(self, user, data):
+        pass
+
 
 class StaffAccountSerializer(AbstractAccountSerializer):
+    group_type = serializers.ChoiceField(choices={i: i for i in StaffGroupType.get_all_types()})
 
     class Meta:
         model = Account
-        fields = ['email', 'username', 'last_name', 'first_name', 'password']
+        fields = ['email', 'username', 'last_name', 'first_name', 'password', 'group_type']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
             'last_name': {'required': True},
-            'first_name': {'required': True}
+            'first_name': {'required': True},
+            'group_type': {'required': True}
         }
 
     def update_or_create_account(self, user, account_data):
@@ -149,3 +164,16 @@ class StaffAccountSerializer(AbstractAccountSerializer):
 
     def get_account_data(self, validated_data):
         return validated_data.pop('staff_account', None)
+
+    @staticmethod
+    def __add_to_group(user, group_type):
+        group, created = Group.objects.get_or_create(name=group_type)
+        user.groups.add(group)
+
+    def post_user_created(self, user, data):
+        self.__add_to_group(user, self.group_type)
+
+    def validate(self, attrs):
+        self.group_type = attrs['group_type']
+        attrs.pop('group_type', None)
+        return attrs

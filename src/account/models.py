@@ -5,6 +5,7 @@ from django.dispatch import receiver
 from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.authtoken.models import Token
+from django.contrib.auth.models import Group, PermissionsMixin
 
 
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
@@ -38,7 +39,7 @@ class AccountManager(BaseUserManager):
         return user
 
 
-class Account(AbstractBaseUser):
+class Account(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(verbose_name='email', max_length=60, unique=True)
     username = models.CharField(max_length=30, unique=True)
     first_name = models.CharField(max_length=30, verbose_name='first_name')
@@ -104,4 +105,5 @@ def set_admin_status(sender, instance, created, **kwargs):
         instance.user.is_staff = True
         instance.user.type = AccountType.STAFF.value
         instance.user.status = AccountStatus.VERIFIED.value
+
 

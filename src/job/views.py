@@ -1,5 +1,4 @@
 from account.models import EmployerAccount, DefaultAccount
-from account.permissions import IsEmployer, IsDefaultUser
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema
