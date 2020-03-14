@@ -40,7 +40,7 @@ class IsEmployerOrAllowedStaff(AbstractIsUserOrAllowedStaffPermission):
 
     def has_object_permission(self, request, view, obj):
         if request.user.type == AccountType.EMPLOYER.value:
-            return obj.employer.id == request.user.id if hasattr(obj, 'employer') else False
+            return obj.employer.user_id == request.user.id if hasattr(obj, 'employer') else False
         return super()._is_allowed_staff(request.user)
 
 

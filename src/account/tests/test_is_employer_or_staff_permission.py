@@ -58,7 +58,7 @@ class IsEmployerOrAdminPermissionTest(unittest.TestCase):
     def test_an_offer_belongs_to_the_employer(self):
         offer = Mock()
         self.request.user.configure_mock(type=AccountType.EMPLOYER.value, status=AccountStatus.VERIFIED.value)
-        offer.configure_mock(employer=self.request.user)
+        offer.employer.configure_mock(user_id=self.request.user.id)
         self.assertTrue(self.permission.has_object_permission(self.request, self.view, offer))
 
     def test_an_offer_does_not_belong_to_the_employer(self):
