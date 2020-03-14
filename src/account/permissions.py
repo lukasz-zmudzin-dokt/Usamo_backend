@@ -14,8 +14,8 @@ class AbstractIsUserOrAllowedStaffPermission(permissions.BasePermission):
                and (self._is_allowed_staff(user) or self._is_user_allowed(user))
 
     def _is_allowed_staff(self, user) -> bool:
-        staff_type = self._get_allowed_staff_type().value
-        return user.type == AccountType.STAFF.value and user.groups.filter(name=staff_type).exists()
+        staff_group_type = self._get_allowed_staff_type().value
+        return user.type == AccountType.STAFF.value and user.groups.filter(name=staff_group_type).exists()
 
     def _is_user_allowed(self, user) -> bool:
         return user.type == (self._get_user_type()).value
