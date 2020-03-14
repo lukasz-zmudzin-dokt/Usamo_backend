@@ -18,3 +18,7 @@ class Voivodeships:
         ('zachodniopomorskie', 'zachodniopomorskie')
     )
 
+    def getKeys(self):
+        return [key for key, display_name in self.choices]
+
+
