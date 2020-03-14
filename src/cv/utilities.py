@@ -1,5 +1,5 @@
 from django.utils.crypto import get_random_string
-from usamo import settings
+from usamo.settings import settings
 import os
 import random
 import datetime
