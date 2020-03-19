@@ -38,3 +38,5 @@ uritemplate>=3.0.0
 packaging
 drf-yasg==1.17.1
 git+git://github.com/johnfraney/wkhtmltopdf-pack.git
+django-rest-passwordreset==1.1.0
+sendgrid>=6.2.0
