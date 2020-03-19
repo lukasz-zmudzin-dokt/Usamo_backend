@@ -16,7 +16,7 @@ Wyłączanie: Ctrl+c lub bardziej elegancko w drugiej konsoli docker-compose dow
 
 ## Defaultowe dane w bazie
 
-Folder fixtures w apce account na repo zawiera dane, którymi można wypełnić db np po jej resecie. Dostępnych jest 4 użytkowników: 2 konta typu standard, jedno staff (czyli admin) i jedno employer. Schemat logowania na przykładzie:
+Folder fixtures w apce account na repo zawiera dane, którymi można wypełnić db np po jej resecie. Dostępnych jest 6 użytkowników: 2 konta typu standard, 3 staff (jedno dla każdej grupy uprawnień: weryfikacja użytkowników, zarządzanie cv, zarządzanie ofertami pracy) i jedno employer. Schemat logowania na przykładzie:
 
 {
    "username": "standard2",
