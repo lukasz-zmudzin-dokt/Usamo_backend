@@ -1,6 +1,6 @@
 from django.dispatch import receiver
 from django_rest_passwordreset.signals import reset_password_token_created
-from src.account.utils import send_mail_via_sendgrid
+from .utils import send_mail_via_sendgrid
 from sendgrid.helpers.mail import Mail, PlainTextContent
 
 
