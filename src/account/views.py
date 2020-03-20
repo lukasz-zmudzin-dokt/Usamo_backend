@@ -125,6 +125,7 @@ class StaffRegistrationView(AbstractRegistrationView):
 
 class LogoutView(views.APIView):
     permission_classes = [IsAuthenticated]
+
     @swagger_auto_schema(
         operation_description="Logout currently logged in user.",
         responses={
@@ -142,18 +143,28 @@ class LogoutView(views.APIView):
 
         return Response({'success': 'Successfully deleted the old token'}, status.HTTP_200_OK)
 
+
 class LoginView(ObtainAuthToken):
-    
+
+    @swagger_auto_schema(
+        operation_description="Obtain auth token by specifying username and password",
+        responses={
+            status.HTTP_201_CREATED: 'Generated token and user type',
+            status.HTTP_406_NOT_ACCEPTABLE: 'Serializer errors/ Unable to login with given credentials'}
+    )
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
-        serializer.is_valid(raise_exception=True)
-        user = serializer.validated_data['user']
-        token, created = Token.objects.get_or_create(user=user)
-        return Response({
-            'token': token.key,
-            'type': dict(ACCOUNT_TYPE_CHOICES)[user.type]
-        })
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            token, created = Token.objects.get_or_create(user=user)
+            return Response({
+                'token': token.key,
+                'type': dict(ACCOUNT_TYPE_CHOICES)[user.type]
+            }, status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+
 
 class DataView(views.APIView):
 
