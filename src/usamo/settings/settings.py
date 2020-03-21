@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'cv.apps.CvConfig',
     'account.apps.AccountConfig',
     'drf_yasg',
+    'django_rest_passwordreset',
 ]
 
 MIDDLEWARE = [
