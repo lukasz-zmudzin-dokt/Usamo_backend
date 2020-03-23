@@ -4,7 +4,7 @@ from rest_framework import serializers
 import abc
 from .validators import validate_nip
 from django.contrib.auth.models import Group
-from .account_type import StaffGroupType
+from .account_type import StaffGroupType, ACCOUNT_TYPE_CHOICES
 
 
 from .models import DefaultAccount, EmployerAccount, Account, StaffAccount
@@ -38,7 +38,8 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         try:
             validate_international_phonenumber(phone_number)
         except ValidationError:
-            raise serializers.ValidationError({'phone_number': 'Phone number is invalid'})
+            raise serializers.ValidationError(
+                {'phone_number': 'Phone number is invalid'})
 
     @abc.abstractmethod
     def update_or_create_account(self, user, account_data):
@@ -55,6 +56,18 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
     @abc.abstractmethod
     def post_user_created(self, user, data):
         return
+
+
+class AccountOnListSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(source='get_type_display')
+    status = serializers.CharField(source='get_status_display')
+    date_joined = serializers.DateTimeField(format='%d/%m/%Y %X')
+    last_login = serializers.DateTimeField(format='%d/%m/%Y %X')
+
+    class Meta:
+        model = Account
+        fields = ['id', 'username', 'type',
+                  'date_joined', 'last_login', 'status']
 
 
 class DefaultAccountSerializer(AbstractAccountSerializer):
@@ -86,7 +99,8 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
 
     def perform_additional_validation(self, data):
         try:
-            super(DefaultAccountSerializer, self)._validate_phone_number(data['phone_number'])
+            super(DefaultAccountSerializer, self)._validate_phone_number(
+                data['phone_number'])
         except ValidationError as error:
             raise error
 
@@ -98,10 +112,13 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
 
 
 class EmployerAccountSerializer(AbstractAccountSerializer):
-    company_address = serializers.CharField(source='employer_account.company_address')
-    company_name = serializers.CharField(source='employer_account.company_name')
+    company_address = serializers.CharField(
+        source='employer_account.company_address')
+    company_name = serializers.CharField(
+        source='employer_account.company_name')
     nip = serializers.CharField(source='employer_account.nip')
-    phone_number = serializers.CharField(source='employer_account.phone_number')
+    phone_number = serializers.CharField(
+        source='employer_account.phone_number')
 
     class Meta:
         model = Account
@@ -130,7 +147,8 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
 
     def perform_additional_validation(self, data):
         try:
-            super(EmployerAccountSerializer, self)._validate_phone_number(data['phone_number'])
+            super(EmployerAccountSerializer, self)._validate_phone_number(
+                data['phone_number'])
             self.__validate_nip(data['nip'])
         except ValidationError as error:
             raise error
@@ -143,11 +161,13 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
 
 
 class StaffAccountSerializer(AbstractAccountSerializer):
-    group_type = serializers.ChoiceField(choices={i: i for i in StaffGroupType.get_all_types()})
+    group_type = serializers.ChoiceField(
+        choices={i: i for i in StaffGroupType.get_all_types()})
 
     class Meta:
         model = Account
-        fields = ['email', 'username', 'last_name', 'first_name', 'password', 'group_type']
+        fields = ['email', 'username', 'last_name',
+                  'first_name', 'password', 'group_type']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},

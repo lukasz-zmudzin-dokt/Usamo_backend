@@ -7,13 +7,15 @@ from rest_framework import views
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import permission_classes, api_view, renderer_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
+from rest_framework.generics import ListAPIView
 
 from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .account_status import AccountStatus
-from .serializers import DefaultAccountSerializer, EmployerAccountSerializer, StaffAccountSerializer
+from .serializers import DefaultAccountSerializer, EmployerAccountSerializer, StaffAccountSerializer, AccountOnListSerializer
+from .models import Account
 
 
 class AbstractRegistrationView(views.APIView):
@@ -189,3 +191,9 @@ class DataView(views.APIView):
             user_type = AccountType.STAFF.value
 
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})
+
+
+class UserListView(ListAPIView):
+    queryset = Account.objects.all()
+    serializer_class = AccountOnListSerializer
+    permission_classes = [IsAdminUser]
