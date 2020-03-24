@@ -9,7 +9,7 @@ from django.contrib.auth.models import Group, PermissionsMixin
 
 
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
-from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
+from .account_type import *
 
 
 class AccountManager(BaseUserManager):
@@ -44,14 +44,17 @@ class Account(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=30, unique=True)
     first_name = models.CharField(max_length=30, verbose_name='first_name')
     last_name = models.CharField(max_length=30, verbose_name='last_name')
-    date_joined = models.DateTimeField(verbose_name='date_joined', auto_now_add=True)
+    date_joined = models.DateTimeField(
+        verbose_name='date_joined', auto_now_add=True)
     last_login = models.DateTimeField(verbose_name='last_login', auto_now=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    status = models.IntegerField(default=AccountStatus.WAITING_FOR_VERIFICATION.value, choices=ACCOUNT_STATUS_CHOICES)
-    type = models.IntegerField(default=AccountType.STANDARD.value, choices=ACCOUNT_TYPE_CHOICES)
+    status = models.IntegerField(
+        default=AccountStatus.WAITING_FOR_VERIFICATION.value, choices=ACCOUNT_STATUS_CHOICES)
+    type = models.IntegerField(
+        default=AccountType.STANDARD.value, choices=ACCOUNT_TYPE_CHOICES)
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
@@ -68,14 +71,16 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
 
 class DefaultAccount(models.Model):
-    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='account')
+    user = models.OneToOneField(
+        Account, on_delete=models.CASCADE, related_name='account')
     phone_number = PhoneNumberField()
     facility_name = models.CharField(max_length=60)
     facility_address = models.CharField(max_length=120)
 
 
 class EmployerAccount(models.Model):
-    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='employer_account')
+    user = models.OneToOneField(
+        Account, on_delete=models.CASCADE, related_name='employer_account')
     phone_number = PhoneNumberField()
     company_name = models.CharField(max_length=60)
     company_address = models.CharField(max_length=120)
@@ -83,8 +88,11 @@ class EmployerAccount(models.Model):
 
 
 class StaffAccount(models.Model):
-    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
-    
+    user = models.OneToOneField(
+        Account, on_delete=models.CASCADE, related_name='staff_account')
+    group_type = models.CharField(
+        max_length=60, default=StaffGroupType.STAFF_VERIFICATION, choices=STAFF_GROUP_CHOICES)
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_token(sender, instance, created, **kwargs):
@@ -105,5 +113,3 @@ def set_admin_status(sender, instance, created, **kwargs):
         instance.user.is_staff = True
         instance.user.type = AccountType.STAFF.value
         instance.user.status = AccountStatus.VERIFIED.value
-
-

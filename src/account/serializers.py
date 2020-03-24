@@ -161,8 +161,8 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
 
 
 class StaffAccountSerializer(AbstractAccountSerializer):
-    group_type = serializers.ChoiceField(
-        choices={i: i for i in StaffGroupType.get_all_types()})
+    group_type = serializers.CharField(
+        source='staff_account.group_type')
 
     class Meta:
         model = Account

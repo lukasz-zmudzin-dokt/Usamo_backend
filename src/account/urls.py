@@ -10,7 +10,9 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('login/', LoginView.as_view(), name='login'),
     path('data/', DataView.as_view(), name='data'),
-    path('admin/list/', UserListView.as_view(), name='user_list'),
+    path('admin/user_list/', AdminUserListView.as_view(), name='user_list'),
+    path('admin/user_list/<int:pk>/',
+         AdminUserDataView.as_view(), name='user_data'),
     url(r'^password_reset/',
         include('django_rest_passwordreset.urls', namespace='password_reset')),
 ]

@@ -190,21 +190,24 @@
     "model": "account.staffaccount",
     "pk": 1,
     "fields": {
-      "user": 3
+      "user": 3,
+      "group_type": "staff_verification"
     }
   },
   {
     "model": "account.staffaccount",
     "pk": 2,
     "fields": {
-      "user": 5
+      "user": 5,
+      "group_type": "staff_jobs"
     }
   },
   {
     "model": "account.staffaccount",
     "pk": 3,
     "fields": {
-      "user": 6
+      "user": 6,
+      "group_type": "staff_cv"
     }
   }
 ]

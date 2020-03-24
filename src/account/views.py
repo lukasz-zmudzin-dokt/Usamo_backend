@@ -10,11 +10,11 @@ from rest_framework.decorators import permission_classes, api_view, renderer_cla
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, RetrieveAPIView
 
 from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .account_status import AccountStatus
-from .serializers import DefaultAccountSerializer, EmployerAccountSerializer, StaffAccountSerializer, AccountOnListSerializer
+from .serializers import *
 from .models import Account
 
 
@@ -193,7 +193,23 @@ class DataView(views.APIView):
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})
 
 
-class UserListView(ListAPIView):
+class AdminUserListView(ListAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountOnListSerializer
     permission_classes = [IsAdminUser]
+
+
+class AdminUserDataView(RetrieveAPIView):
+    queryset = Account.objects.all()
+    permission_classes = [IsAdminUser]
+
+    def get_serializer_class(self):
+        pk = self.kwargs['pk']
+        account = Account.objects.get(pk=pk)
+
+        if account.type == AccountType.EMPLOYER.value:
+            return EmployerAccountSerializer
+        if account.type == AccountType.STAFF.value:
+            return StaffAccountSerializer
+
+        return DefaultAccountSerializer
