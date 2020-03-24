@@ -199,6 +199,20 @@ class AdminUserListView(ListAPIView):
     permission_classes = [IsAdminUser]
 
 
+class AdminUserListViewFilteredByStatus(ListAPIView):
+    serializer_class = AccountOnListSerializer
+    permission_classes = [IsAdminUser]
+
+    def get_queryset(self):
+        queryset = Account.objects.all()
+        status = self.kwargs['status']
+        available_statuses = set(item.value for item in AccountStatus)
+        if status in available_statuses:
+            return queryset.filter(status=status)
+
+        return queryset
+
+
 class AdminUserDataView(RetrieveAPIView):
     queryset = Account.objects.all()
     permission_classes = [IsAdminUser]
