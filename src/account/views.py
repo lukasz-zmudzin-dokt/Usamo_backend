@@ -17,6 +17,7 @@ from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .account_status import AccountStatus
 from .serializers import *
 from .models import Account
+from .filters import *
 
 
 class AbstractRegistrationView(views.APIView):
@@ -122,6 +123,7 @@ class StaffRegistrationView(AbstractRegistrationView):
         }
     )
     def post(self, request):
+        print(request.data)
         serializer = StaffAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
 
@@ -199,7 +201,7 @@ class AdminUserListView(ListAPIView):
     serializer_class = AccountOnListSerializer
     permission_classes = [IsAdminUser]
     filter_backends = (filters.DjangoFilterBackend,)
-    filterset_fields = ('status', 'type')
+    filterset_class = UserListFilter
 
 
 class AdminUserDataView(RetrieveAPIView):

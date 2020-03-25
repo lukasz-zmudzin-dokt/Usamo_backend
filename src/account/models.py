@@ -90,8 +90,8 @@ class EmployerAccount(models.Model):
 class StaffAccount(models.Model):
     user = models.OneToOneField(
         Account, on_delete=models.CASCADE, related_name='staff_account')
-    group_type = models.CharField(
-        max_length=60, default=StaffGroupType.STAFF_VERIFICATION, choices=STAFF_GROUP_CHOICES)
+    group_type = models.CharField(max_length=60,
+                                  default=StaffGroupType.STAFF_VERIFICATION.value, choices=STAFF_GROUP_CHOICES)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

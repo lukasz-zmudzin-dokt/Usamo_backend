@@ -66,7 +66,7 @@ class AccountOnListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ['id', 'username', 'type',
+        fields = ['id', 'username', 'email', 'type',
                   'date_joined', 'last_login', 'status']
 
 
@@ -194,6 +194,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
         self.__add_to_group(user, self.group_type)
 
     def validate(self, attrs):
-        self.group_type = attrs['group_type']
-        attrs.pop('group_type', None)
+        print(attrs)
+        self.group_type = attrs['staff_account']['group_type']
+        attrs.pop('staff_account', None)
         return attrs
