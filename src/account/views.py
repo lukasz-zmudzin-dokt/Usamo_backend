@@ -11,6 +11,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from django_filters import rest_framework as filters
 
 from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .account_status import AccountStatus
@@ -197,20 +198,8 @@ class AdminUserListView(ListAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountOnListSerializer
     permission_classes = [IsAdminUser]
-
-
-class AdminUserListViewFilteredByStatus(ListAPIView):
-    serializer_class = AccountOnListSerializer
-    permission_classes = [IsAdminUser]
-
-    def get_queryset(self):
-        queryset = Account.objects.all()
-        status = self.kwargs['status']
-        available_statuses = set(item.value for item in AccountStatus)
-        if status in available_statuses:
-            return queryset.filter(status=status)
-
-        return queryset
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_fields = ('status', 'type')
 
 
 class AdminUserDataView(RetrieveAPIView):
