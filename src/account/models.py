@@ -6,8 +6,7 @@ from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import Group, PermissionsMixin
-import datetime
-from django.utils.timezone import utc
+from datetime import datetime
 
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
 from .account_type import *
@@ -47,7 +46,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=30, verbose_name='last_name')
     date_joined = models.DateTimeField(
         verbose_name='date_joined', auto_now_add=True)
-    last_login = models.DateTimeField(verbose_name='last_login', auto_now=True)
+    last_login = models.DateTimeField(verbose_name='last_login', null=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -99,8 +98,7 @@ class StaffAccount(models.Model):
 def create_user_token(sender, instance, created, **kwargs):
     if created:
         Token.objects.create(user=instance)
-        instance.last_login = datetime.datetime.utcnow().replace(tzinfo=utc)
-        instance.save()
+        instance.last_login = datetime.now()
 
 
 @receiver(post_save, sender=EmployerAccount)

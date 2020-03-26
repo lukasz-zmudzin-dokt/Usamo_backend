@@ -208,6 +208,7 @@ class AdminDefaultAccountsListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [IsAdminUser]
     filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = DefaultAccountListFilter
 
     def get_queryset(self):
         return Account.objects.filter(type=AccountType.STANDARD.value)
@@ -217,6 +218,7 @@ class AdminEmployerListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [IsAdminUser]
     filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = EmployerListFilter
 
     def get_queryset(self):
         return Account.objects.filter(type=AccountType.EMPLOYER.value)
@@ -226,6 +228,7 @@ class AdminStaffListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [IsAdminUser]
     filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = StaffListFilter
 
     def get_queryset(self):
         return Account.objects.filter(type=AccountType.STAFF.value)
