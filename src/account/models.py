@@ -6,7 +6,8 @@ from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import Group, PermissionsMixin
-
+import datetime
+from django.utils.timezone import utc
 
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
 from .account_type import *
@@ -98,6 +99,8 @@ class StaffAccount(models.Model):
 def create_user_token(sender, instance, created, **kwargs):
     if created:
         Token.objects.create(user=instance)
+        instance.last_login = datetime.datetime.utcnow().replace(tzinfo=utc)
+        instance.save()
 
 
 @receiver(post_save, sender=EmployerAccount)

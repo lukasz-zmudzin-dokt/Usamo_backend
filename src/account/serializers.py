@@ -58,18 +58,6 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         return
 
 
-class AccountOnListSerializer(serializers.ModelSerializer):
-    type = serializers.CharField(source='get_type_display')
-    status = serializers.CharField(source='get_status_display')
-    date_joined = serializers.DateTimeField(format='%d/%m/%Y %X')
-    last_login = serializers.DateTimeField(format='%d/%m/%Y %X')
-
-    class Meta:
-        model = Account
-        fields = ['id', 'username', 'email', 'type',
-                  'date_joined', 'last_login', 'status']
-
-
 class DefaultAccountSerializer(AbstractAccountSerializer):
     facility_address = serializers.CharField(source='account.facility_address')
     facility_name = serializers.CharField(source='account.facility_name')
@@ -198,3 +186,39 @@ class StaffAccountSerializer(AbstractAccountSerializer):
         self.group_type = attrs['staff_account']['group_type']
         attrs.pop('staff_account', None)
         return attrs
+
+
+class AccountListSerializer(serializers.ModelSerializer):
+    type = serializers.CharField(source='get_type_display')
+    status = serializers.CharField(source='get_status_display')
+    date_joined = serializers.DateTimeField(format='%d/%m/%Y %X')
+    last_login = serializers.DateTimeField(format='%d/%m/%Y %X')
+
+    class Meta:
+        model = Account
+        fields = ['id', 'username', 'email', 'type',
+                  'date_joined', 'last_login', 'status']
+
+
+class EmployerDetailSerializer(EmployerAccountSerializer, AccountListSerializer):
+
+    class Meta:
+        model = Account
+        fields = ['id', 'username', 'email', 'first_name', 'last_name',
+                  'phone_number', 'company_name', 'company_address', 'nip', 'date_joined', 'last_login', 'status']
+
+
+class StaffDetailSerializer(StaffAccountSerializer, AccountListSerializer):
+
+    class Meta:
+        model = Account
+        fields = ['id', 'username', 'email', 'first_name',  'last_name', 'group_type',
+                  'date_joined', 'last_login']
+
+
+class DefaultAccountDetailSerializer(DefaultAccountSerializer, AccountListSerializer):
+
+    class Meta:
+        model = Account
+        fields = ['id', 'username', 'email', 'first_name',  'last_name',
+                  'phone_number', 'facility_name', 'facility_address', 'date_joined', 'last_login', 'status']

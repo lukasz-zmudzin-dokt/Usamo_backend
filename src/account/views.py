@@ -16,7 +16,7 @@ from django_filters import rest_framework as filters
 from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .account_status import AccountStatus
 from .serializers import *
-from .models import Account
+from .models import *
 from .filters import *
 
 
@@ -196,15 +196,42 @@ class DataView(views.APIView):
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})
 
 
-class AdminUserListView(ListAPIView):
+class AdminAllAccountsListView(ListAPIView):
     queryset = Account.objects.all()
-    serializer_class = AccountOnListSerializer
+    serializer_class = AccountListSerializer
     permission_classes = [IsAdminUser]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserListFilter
 
 
-class AdminUserDataView(RetrieveAPIView):
+class AdminDefaultAccountsListView(ListAPIView):
+    serializer_class = AccountListSerializer
+    permission_classes = [IsAdminUser]
+    filter_backends = (filters.DjangoFilterBackend,)
+
+    def get_queryset(self):
+        return Account.objects.filter(type=AccountType.STANDARD.value)
+
+
+class AdminEmployerListView(ListAPIView):
+    serializer_class = AccountListSerializer
+    permission_classes = [IsAdminUser]
+    filter_backends = (filters.DjangoFilterBackend,)
+
+    def get_queryset(self):
+        return Account.objects.filter(type=AccountType.EMPLOYER.value)
+
+
+class AdminStaffListView(ListAPIView):
+    serializer_class = AccountListSerializer
+    permission_classes = [IsAdminUser]
+    filter_backends = (filters.DjangoFilterBackend,)
+
+    def get_queryset(self):
+        return Account.objects.filter(type=AccountType.STAFF.value)
+
+
+class AdminUserDetailView(RetrieveAPIView):
     queryset = Account.objects.all()
     permission_classes = [IsAdminUser]
 
@@ -213,8 +240,8 @@ class AdminUserDataView(RetrieveAPIView):
         account = Account.objects.get(pk=pk)
 
         if account.type == AccountType.EMPLOYER.value:
-            return EmployerAccountSerializer
+            return EmployerDetailSerializer
         if account.type == AccountType.STAFF.value:
-            return StaffAccountSerializer
+            return StaffDetailSerializer
 
-        return DefaultAccountSerializer
+        return DefaultAccountDetailSerializer
