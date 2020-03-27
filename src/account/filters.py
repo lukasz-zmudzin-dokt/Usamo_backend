@@ -12,11 +12,13 @@ class UserListFilter(filters.FilterSet):
 
     class Meta:
         model = Account
-        fields = ['status', 'type', 'username',
+        fields = ['id', 'status', 'type', 'username',
                   'email', 'date_joined', 'last_login']
 
 
 class AbstractTypeListFilter(filters.FilterSet):
+    id = filters.UUIDFilter(
+        field_name='id', lookup_expr='icontains')
     username = filters.CharFilter(
         field_name='username', lookup_expr='icontains')
     email = filters.CharFilter(
@@ -43,7 +45,7 @@ class DefaultAccountListFilter(AbstractTypeListFilter):
 
     class Meta:
         model = Account
-        fields = ['status', 'username', 'first_name', 'last_name', 'email',
+        fields = ['id', 'status', 'username', 'first_name', 'last_name', 'email',
                   'phone_number', 'facility_name', 'facility_address', 'date_joined', 'last_login']
 
 
@@ -58,7 +60,7 @@ class EmployerListFilter(AbstractTypeListFilter):
 
     class Meta:
         model = Account
-        fields = ['status', 'username', 'first_name', 'last_name', 'email', 'phone_number',
+        fields = ['id', 'status', 'username', 'first_name', 'last_name', 'email', 'phone_number',
                   'company_name', 'company_address', 'nip', 'date_joined', 'last_login']
 
 
@@ -68,5 +70,5 @@ class StaffListFilter(AbstractTypeListFilter):
 
     class Meta:
         model = Account
-        fields = ['username', 'first_name', 'last_name', 'group_type',
+        fields = ['id', 'username', 'first_name', 'last_name', 'group_type',
                   'email', 'date_joined', 'last_login']

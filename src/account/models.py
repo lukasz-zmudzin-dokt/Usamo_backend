@@ -10,6 +10,7 @@ from datetime import datetime
 
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
 from .account_type import *
+import uuid
 
 
 class AccountManager(BaseUserManager):
@@ -40,6 +41,7 @@ class AccountManager(BaseUserManager):
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     email = models.EmailField(verbose_name='email', max_length=60, unique=True)
     username = models.CharField(max_length=30, unique=True)
     first_name = models.CharField(max_length=30, verbose_name='first_name')

@@ -273,7 +273,7 @@ class AdminUserDetailView(RetrieveAPIView):
     permission_classes = [IsAdminUser]
 
     def get_serializer_class(self):
-        pk = self.kwargs['pk']
+        pk = self.kwargs['id']
         account = Account.objects.get(pk=pk)
 
         if account.type == AccountType.EMPLOYER.value:

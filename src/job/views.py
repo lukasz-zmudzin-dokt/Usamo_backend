@@ -46,7 +46,8 @@ def sample_message_response(message):
 
 class OfferIdResponse(Response):
     def __init__(self, offer_id):
-        super().__init__(data={"offer_id": offer_id}, status=status.HTTP_200_OK)
+        super().__init__(data={"offer_id": offer_id},
+                         status=status.HTTP_200_OK)
 
 
 def sample_offerid_response():
@@ -79,7 +80,7 @@ def sample_paginated_offers_response():
         'next': Schema(type='string', default='"http://localhost:8000/job/job-offers/?page=2"'),
         'previous': Schema(type='string', default='null'),
         'results': Schema(type='array', items=sample_offer_response())
-        },
+    },
     )
 
 
@@ -149,7 +150,6 @@ class JobOfferView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-
     @swagger_auto_schema(
         manual_parameters=[
             Parameter('offer_id', IN_PATH, type='integer')
@@ -197,8 +197,10 @@ class JobOfferView(views.APIView):
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     manual_parameters=[
-        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
-        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
+        Parameter('page', IN_QUERY, description='Numer strony',
+                  type='integer', required=False),
+        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100',
+                  type='integer', required=False)
     ],
     query_serializer=JobOfferFiltersSerializer,
     responses={
@@ -214,12 +216,14 @@ class JobOfferListView(generics.ListAPIView):
     filter_serializer = None
 
     def get_queryset(self):
-        job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
+        job_offer_filters = self.filter_serializer.create(
+            self.filter_serializer.validated_data)
         valid_filters = job_offer_filters.get_filters()
         return JobOffer.objects.filter(removed=False, **valid_filters)
 
     def get(self, request):
-        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.data)
+        self.filter_serializer = JobOfferFiltersSerializer(
+            data=self.request.data)
         if self.filter_serializer.is_valid():
             return super().get(request)
         else:
@@ -275,7 +279,8 @@ class EmployerJobOfferInterestedUsersView(views.APIView):
     def get(self, request, offer_id):
         try:
             instance = JobOffer.objects.get(pk=offer_id)
-            serializer = InterestedUserSerializer(instance.interested_users, many=True)
+            serializer = InterestedUserSerializer(
+                instance.interested_users, many=True)
             return Response(serializer.data, status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
@@ -284,8 +289,10 @@ class EmployerJobOfferInterestedUsersView(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     query_serializer=JobOfferFiltersSerializer,
     manual_parameters=[
-        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
-        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
+        Parameter('page', IN_QUERY, description='Numer strony',
+                  type='integer', required=False),
+        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100',
+                  type='integer', required=False)
     ],
     responses={
         '200': sample_paginated_offers_response(),
@@ -304,14 +311,17 @@ class EmployerJobOffersView(generics.ListAPIView):
     employer = None
 
     def get_queryset(self):
-        job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
+        job_offer_filters = self.filter_serializer.create(
+            self.filter_serializer.validated_data)
         valid_filters = job_offer_filters.get_filters()
         return JobOffer.objects.filter(removed=False, employer_id=self.employer.id, **valid_filters)
 
     def get(self, request):
-        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.data)
+        self.filter_serializer = JobOfferFiltersSerializer(
+            data=self.request.data)
         try:
-            self.employer = EmployerAccount.objects.get(user_id=self.request.user.id)
+            self.employer = EmployerAccount.objects.get(
+                user_id=self.request.user.id)
             if self.filter_serializer.is_valid():
                 return super().get(request)
             else:
@@ -335,4 +345,3 @@ class VoivodeshipsEnumView(views.APIView):
     def get(self, request):
         response = {"voivodeships": Voivodeships().getKeys()}
         return Response(response, status=status.HTTP_200_OK)
-

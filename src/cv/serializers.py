@@ -4,8 +4,9 @@ from phonenumber_field.validators import validate_international_phonenumber
 from django.core.exceptions import ValidationError
 from rest_framework.relations import PrimaryKeyRelatedField
 from django.core.files.base import ContentFile
-from .utilities import * 
+from .utilities import *
 from .models import *
+
 
 class SchoolSerializer(serializers.ModelSerializer):
     class Meta:
@@ -36,17 +37,20 @@ class BasicInfoSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BasicInfo
-        fields = ['first_name', 'last_name', 'email', 'date_of_birth', 'phone_number', 'picture']
+        fields = ['first_name', 'last_name', 'email',
+                  'date_of_birth', 'phone_number', 'picture']
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
     class Meta:
         model = Feedback
-        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages', 'additional_info']
+        fields = ['cv_id', 'basic_info', 'schools', 'experiences',
+                  'skills', 'languages', 'additional_info']
 
     def create(self, validated_data):
         if Feedback.objects.filter(cv_id=validated_data['cv_id']).exists():
-            fb = super().update(Feedback.objects.get(cv_id=validated_data['cv_id']), validated_data)
+            fb = super().update(Feedback.objects.get(
+                cv_id=validated_data['cv_id']), validated_data)
         else:
             fb = super().create(validated_data)
         cv = CV.objects.get(cv_id=validated_data['cv_id'])
@@ -66,16 +70,19 @@ class CVSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills', 'languages', 'wants_verification', 'is_verified']
+        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills',
+                  'languages', 'wants_verification', 'is_verified']
 
     def create(self, validated_data):
         if CV.objects.filter(cv_id=validated_data['cv_id']).exists():
-            cv = self.update(CV.objects.all().get(cv_id=validated_data['cv_id']), validated_data)
+            cv = self.update(CV.objects.all().get(
+                cv_id=validated_data['cv_id']), validated_data)
         else:
             pdf = generate(validated_data)
             django_file = ContentFile(pdf)
             django_file.name = create_unique_filename('cv_docs', 'pdf')
-            cv = CV.objects.create(cv_id=validated_data['cv_id'], wants_verification=True, is_verified=False, document = django_file)
+            cv = CV.objects.create(
+                cv_id=validated_data['cv_id'], wants_verification=True, is_verified=False, document=django_file)
             basic_info_data = validated_data.pop('basic_info')
             BasicInfo.objects.create(cv=cv, **basic_info_data)
         return self.create_lists(cv, validated_data)
