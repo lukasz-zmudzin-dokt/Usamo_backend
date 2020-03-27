@@ -196,6 +196,40 @@ class DataView(views.APIView):
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})
 
 
+class AdminUserAdmissionView(views.APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, *args, **kwargs):
+        user_id = kwargs.get('pk', None)
+        if user_id is not None:
+            try:
+                user = Account.objects.get(pk=user_id)
+            except Account.DoesNotExist:
+                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
+            user.status = AccountStatus.VERIFIED.value
+            user.save()
+            return Response('User successfully verified.', status.HTTP_200_OK)
+
+        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
+
+
+class AdminUserRejectionView(views.APIView):
+    permission_classes = [IsAdminUser]
+
+    def get(self, request, *args, **kwargs):
+        user_id = kwargs.get('pk', None)
+        if user_id is not None:
+            try:
+                user = Account.objects.get(pk=user_id)
+            except Account.DoesNotExist:
+                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
+            user.status = AccountStatus.NOT_VERIFIED.value
+            user.save()
+            return Response('User status successfully set to not verified.', status.HTTP_200_OK)
+
+        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
+
+
 class AdminAllAccountsListView(ListAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountListSerializer
