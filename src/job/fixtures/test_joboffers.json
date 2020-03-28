@@ -1,115 +1,35 @@
 [
-  {
-    "model": "cv.cv",
-    "pk": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-    "fields": {
-      "user": "cfc436e1-f773-4f60-b5fc-aee39042c4be",
-      "wants_verification": true,
-      "is_verified": true,
-      "document": "cv_docs/2020/03/28/Oiu76z2ZiOcmkQEnlmWsDzQgQi4MuDNqkp96gKjBSFU4.pdf"
+    {
+        "model": "job.joboffer",
+        "pk": "c333a01b-920d-454a-a8b4-ab1dccc37890",
+        "fields": {
+            "offer_name": "offer2",
+            "company_name": "company2",
+            "company_address": "adress2",
+            "voivodeship": "lubelskie",
+            "expiration_date": "2020-05-28",
+            "description": "description",
+            "removed": false,
+            "employer": 1,
+            "interested_users": []
+        }
+    },
+    {
+        "model": "job.joboffer",
+        "pk": "fe3ee8bf-730d-47a6-96e6-b8accc080a82",
+        "fields": {
+            "offer_name": "offer1",
+            "company_name": "company1",
+            "company_address": "adress1",
+            "voivodeship": "mazowieckie",
+            "expiration_date": "2020-05-28",
+            "description": "description",
+            "removed": false,
+            "employer": 1,
+            "interested_users": [
+                "4718f0c8-ed63-4bbf-9b5e-0c1715689f03",
+                "cfc436e1-f773-4f60-b5fc-aee39042c4be"
+            ]
+        }
     }
-  },
-  {
-    "model": "cv.basicinfo",
-    "pk": 1,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "first_name": "Jan",
-      "last_name": "Kowalski",
-      "email": "jan.kowalski@gmail.com",
-      "picture": "",
-      "phone_number": "123213789",
-      "date_of_birth": "02-04-2005"
-    }
-  },
-  {
-    "model": "cv.school",
-    "pk": 1,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "name": "CCCIII LO w Wadowicach",
-      "year_start": 2015,
-      "year_end": 2018,
-      "additional_info": "profil mat-fiz"
-    }
-  },
-  {
-    "model": "cv.school",
-    "pk": 2,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "name": "Politechnika Warszawska",
-      "year_start": 2019,
-      "year_end": null,
-      "additional_info": "Informatyka Niestosowna"
-    }
-  },
-  {
-    "model": "cv.experience",
-    "pk": 1,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "title": "Tygodnik NIE",
-      "description": "Admin fanpeja na fb",
-      "year_start": 2019,
-      "year_end": null
-    }
-  },
-  {
-    "model": "cv.experience",
-    "pk": 2,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "title": "MON",
-      "description": "Awesome Summer Internship of Fun",
-      "year_start": 2018,
-      "year_end": null
-    }
-  },
-  {
-    "model": "cv.skill",
-    "pk": 1,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "description": "Gotowanie"
-    }
-  },
-  {
-    "model": "cv.skill",
-    "pk": 2,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "description": "Balet"
-    }
-  },
-  {
-    "model": "cv.language",
-    "pk": 1,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "name": "polski",
-      "level": "ojczysty"
-    }
-  },
-  {
-    "model": "cv.language",
-    "pk": 2,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "name": "angielski",
-      "level": "A1"
-    }
-  },
-  {
-    "model": "cv.feedback",
-    "pk": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-    "fields": {
-      "basic_info": "uwaga",
-      "schools": "uwaga",
-      "experiences": "uwaga",
-      "skills": "uwaga",
-      "languages": "uwaga",
-      "additional_info": "uwaga"
-    }
-  }
 ]
