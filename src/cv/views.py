@@ -35,7 +35,8 @@ class CVGeneratorView(views.APIView):
     )
     def post(self, request):
         request_data = request.data
-        request_data['cv_id'] = uuid.uuid4
+        request_data['cv_id'] = uuid.uuid4()
+        request_data['user'] = request.user.id
         serializer = self.serializer_class(data=request_data)
 
         if serializer.is_valid():
@@ -63,6 +64,9 @@ class CVView(views.APIView):
 
         return Response(cv.document.url, status.HTTP_200_OK)
 
+
+class CVDeletionView(views.APIView):
+
     @swagger_auto_schema(
         operation_description="Deletes cv from database if it exists",
         responses={
@@ -70,7 +74,7 @@ class CVView(views.APIView):
             '404': 'CV not found'
         }
     )
-    def delete(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         cv_id = kwargs['cv_id']
         try:
             CV.objects.filter(cv_id=cv_id).delete()
@@ -98,9 +102,9 @@ class CVDataView(views.APIView):
         return JsonResponse(serializer.data)
 
 
-class PictureView(views.APIView):
+class PicturePostView(views.APIView):
     @swagger_auto_schema(
-        operation_description="Posts picture to be used in CV. Parameter 'cv_id' should be appended to the url",
+        operation_description="Posts picture to be used in CV. 'cv_id' is required in json",
 
         manual_parameters=[
             openapi.Parameter(
@@ -116,12 +120,16 @@ class PictureView(views.APIView):
             )],
         responses={
             '201': 'Picture added successfully.',
-            '404': 'CV not found.',
+            '404': 'CV not found. / cv_id is required',
             '406': 'Make sure the form key is "picture".'
         }
     )
-    def post(self, request, *args, **kwargs):
-        cv_id = kwargs['cv_id']
+    def post(self, request):
+        try:
+            cv_id = request.data['cv_id']
+        except KeyError:
+            response_data['cv_id'] = "This field is required."
+            return Response(response_data, status.HTTP_406_NOT_ACCEPTABLE)
         try:
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
@@ -143,6 +151,9 @@ class PictureView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
+
+class PictureGetView(views.APIView):
+
     @swagger_auto_schema(
         operation_description="Returns picture url if it was uploaded",
         responses={
@@ -161,6 +172,8 @@ class PictureView(views.APIView):
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
         return Response(bi.picture.url, status.HTTP_200_OK)
 
+
+class PictureDeleteView(views.APIView):
     @swagger_auto_schema(
         operation_description="Deletes cv picture from the database",
         responses={
@@ -168,7 +181,7 @@ class PictureView(views.APIView):
             404: 'CV/picture not found.'
         }
     )
-    def delete(self, request, *args, **kwargs):
+    def get(self, request, *args, **kwargs):
         cv_id = kwargs['cv_id']
         try:
             cv = CV.objects.get(cv_id=cv_id)
@@ -199,7 +212,7 @@ class AdminUnverifiedCVList(generics.ListAPIView):
         return CV.objects.filter(wants_verification=True, is_verified=False)
 
 
-class AdminFeedback(generics.CreateAPIView):
+class AdminFeedback(views.APIView):
     """
     Adds feedback from admin to an existing CV.
     Requires admin privileges.
@@ -207,8 +220,15 @@ class AdminFeedback(generics.CreateAPIView):
     permission_classes = [IsAdminUser]
     serializer_class = FeedbackSerializer
 
-    def post(self, request, *args, **kwargs):
-        return self.create(request, *args, **kwargs)
+    def post(self, request):
+        request_data = request.data
+        serializer = self.serializer_class(data=request_data)
+
+        if serializer.is_valid():
+            cv = serializer.create(serializer.validated_data)
+            return Response('Feedback successfully created.', status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
 
 class CVFeedback(generics.RetrieveAPIView):
@@ -238,6 +258,7 @@ class CVStatus(views.APIView):
 
 
 class AdminCVListView(generics.ListAPIView):
+    queryset = CV.objects.all()
     serializer_class = CVSerializer
     permission_classes = [IsAdminUser]
 

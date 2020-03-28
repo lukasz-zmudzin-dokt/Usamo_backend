@@ -94,9 +94,8 @@ class Language(models.Model):
 
 
 class Feedback(models.Model):
-    # nie mozna po prostu dac tutaj cv jako foreign key?
     cv_id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False, validators=[validate_cv_id])
+        primary_key=True, validators=[validate_cv_id])
     basic_info = models.TextField(blank=True)
     schools = models.TextField(blank=True)
     experiences = models.TextField(blank=True)

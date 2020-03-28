@@ -42,6 +42,8 @@ class BasicInfoSerializer(serializers.ModelSerializer):
 
 
 class FeedbackSerializer(serializers.ModelSerializer):
+    cv_id = serializers.UUIDField()
+
     class Meta:
         model = Feedback
         fields = ['cv_id', 'basic_info', 'schools', 'experiences',
@@ -61,6 +63,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 
 class CVSerializer(serializers.ModelSerializer):
+    cv_id = serializers.UUIDField()
     basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
     experiences = ExperienceSerializer(many=True, required=False)
@@ -70,7 +73,7 @@ class CVSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'basic_info', 'schools', 'experiences', 'skills',
+        fields = ['cv_id', 'user', 'basic_info', 'schools', 'experiences', 'skills',
                   'languages', 'wants_verification', 'is_verified']
 
     def create(self, validated_data):
@@ -82,7 +85,7 @@ class CVSerializer(serializers.ModelSerializer):
             django_file = ContentFile(pdf)
             django_file.name = create_unique_filename('cv_docs', 'pdf')
             cv = CV.objects.create(
-                cv_id=validated_data['cv_id'], wants_verification=True, is_verified=False, document=django_file)
+                cv_id=validated_data['cv_id'], user=validated_data['user'], wants_verification=True, is_verified=False, document=django_file)
             basic_info_data = validated_data.pop('basic_info')
             BasicInfo.objects.create(cv=cv, **basic_info_data)
         return self.create_lists(cv, validated_data)
