@@ -65,9 +65,6 @@ class JobOfferFiltersSerializer(serializers.Serializer):
 
 
 class InterestedUserSerializer(serializers.ModelSerializer):
-    first_name = serializers.CharField(source='default_account.first_name')
-    last_name = serializers.CharField(source='default_account.last_name')
-    email = serializers.CharField(source='default_account.email')
 
     class Meta:
         model = Account

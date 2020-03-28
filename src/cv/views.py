@@ -74,8 +74,7 @@ class CVDeletionView(views.APIView):
             '404': 'CV not found'
         }
     )
-    def get(self, request, *args, **kwargs):
-        cv_id = kwargs['cv_id']
+    def post(self, request, cv_id):
         try:
             CV.objects.filter(cv_id=cv_id).delete()
         except CV.DoesNotExist:
@@ -181,8 +180,7 @@ class PictureDeleteView(views.APIView):
             404: 'CV/picture not found.'
         }
     )
-    def get(self, request, *args, **kwargs):
-        cv_id = kwargs['cv_id']
+    def post(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:

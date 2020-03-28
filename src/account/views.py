@@ -199,8 +199,7 @@ class DataView(views.APIView):
 class AdminUserAdmissionView(views.APIView):
     permission_classes = [IsAdminUser]
 
-    def get(self, request, *args, **kwargs):
-        user_id = kwargs.get('id', None)
+    def post(self, request, user_id):
         if user_id is not None:
             try:
                 user = Account.objects.get(pk=user_id)
@@ -210,14 +209,13 @@ class AdminUserAdmissionView(views.APIView):
             user.save()
             return Response('User successfully verified.', status.HTTP_200_OK)
 
-        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
+        return Response('User id was not specified.', status.HTTP_406_NOT_ACCEPTABLE)
 
 
 class AdminUserRejectionView(views.APIView):
     permission_classes = [IsAdminUser]
 
-    def get(self, request, *args, **kwargs):
-        user_id = kwargs.get('id', None)
+    def post(self, request, user_id):
         if user_id is not None:
             try:
                 user = Account.objects.get(pk=user_id)
@@ -227,7 +225,7 @@ class AdminUserRejectionView(views.APIView):
             user.save()
             return Response('User status successfully set to not verified.', status.HTTP_200_OK)
 
-        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
+        return Response('User id was not specified.', status.HTTP_406_NOT_ACCEPTABLE)
 
 
 class AdminAllAccountsListView(ListAPIView):
@@ -273,7 +271,7 @@ class AdminUserDetailView(RetrieveAPIView):
     permission_classes = [IsAdminUser]
 
     def get_serializer_class(self):
-        pk = self.kwargs['id']
+        pk = self.kwargs['pk']
         account = Account.objects.get(pk=pk)
 
         if account.type == AccountType.EMPLOYER.value:

@@ -7,7 +7,6 @@ from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import Group, PermissionsMixin
 from datetime import datetime
-
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
 from .account_type import *
 import uuid
@@ -47,7 +46,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     first_name = models.CharField(max_length=30, verbose_name='first_name')
     last_name = models.CharField(max_length=30, verbose_name='last_name')
     date_joined = models.DateTimeField(
-        verbose_name='date_joined', auto_now_add=True)
+        verbose_name='date_joined', null=True)
     last_login = models.DateTimeField(verbose_name='last_login', null=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -101,6 +100,14 @@ def create_user_token(sender, instance, created, **kwargs):
     if created:
         Token.objects.create(user=instance)
         instance.last_login = datetime.now()
+        instance.date_joined = datetime.now()
+
+
+@receiver(post_save, sender=Token)
+def update_last_login(sender, instance, created, **kwargs):
+    if created:
+        instance.user.last_login = datetime.now()
+        instance.user.save()
 
 
 @receiver(post_save, sender=EmployerAccount)

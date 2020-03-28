@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.db import models
 
 from .enums import Voivodeships
-from account.models import DefaultAccount, EmployerAccount
+from account.models import Account, EmployerAccount
 
 
 class JobOffer(models.Model):
@@ -16,8 +16,9 @@ class JobOffer(models.Model):
     expiration_date = models.DateField()
     description = models.CharField(max_length=1000)
     removed = models.BooleanField(editable=False, default=False)
-    interested_users = models.ManyToManyField(DefaultAccount)
-    employer = models.ForeignKey(EmployerAccount, on_delete=models.SET_NULL, null=True, default=None)
+    interested_users = models.ManyToManyField(Account)
+    employer = models.ForeignKey(
+        EmployerAccount, on_delete=models.SET_NULL, null=True, default=None)
 
     def __str__(self):
         return self.offer_name
