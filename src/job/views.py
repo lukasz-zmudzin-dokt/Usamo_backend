@@ -97,9 +97,9 @@ class JobOfferCreateView(views.APIView):
         query_serializer=JobOfferSerializer,
         responses={
             '200': sample_offerid_response(),
+            '400': 'Serializer errors',
             '401': sample_error_response('No authorization token'),
-            '403': sample_error_response('No user or user is not employer'),
-            '406': 'Serializer errors'
+            '403': sample_error_response('No user or user is not employer')
         },
         operation_description="Create job offer.",
     )
@@ -114,7 +114,7 @@ class JobOfferCreateView(views.APIView):
                 instance.save()
                 return OfferIdResponse(instance.id)
             else:
-                return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             return ErrorResponse("No user or user is not employer", status.HTTP_403_FORBIDDEN)
 
@@ -127,9 +127,9 @@ class JobOfferView(views.APIView):
         ],
         responses={
             '200': sample_message_response("Offer edited successfully"),
+            '400': 'Serializer errors',
             '401': 'No authorization token',
-            '404': sample_error_response('Offer not found'),
-            '406': 'Serializer errors',
+            '404': sample_error_response('Offer not found')
         },
         operation_description="Edit job offer.",
     )
@@ -148,7 +148,7 @@ class JobOfferView(views.APIView):
             except ObjectDoesNotExist:
                 return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
         else:
-            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -176,9 +176,10 @@ class JobOfferView(views.APIView):
         ],
         responses={
             '200': sample_message_response('Offer deleted'),
+            '400': sample_error_response('Offer already removed'),
             '401': 'No authorization token',
             '404': sample_error_response('Offer not found'),
-            '406': sample_error_response('Offer already removed')
+
         },
         operation_description="Set offer status to removed",
     )
@@ -187,7 +188,7 @@ class JobOfferView(views.APIView):
         try:
             instance = JobOffer.objects.get(pk=offer_id)
             if instance.removed:
-                return ErrorResponse("Offer already removed", status.HTTP_406_NOT_ACCEPTABLE)
+                return ErrorResponse("Offer already removed", status.HTTP_400_BAD_REQUEST)
             instance.removed = True
             instance.save()
             return MessageResponse("Offer removed successfully")
@@ -238,10 +239,10 @@ class JobOfferInterestedUsersView(views.APIView):
         ],
         responses={
             '200': sample_message_response("Added to interested users"),
+            '400': sample_error_response("User already added"),
             '401': 'No authorization token',
             '403': sample_error_response('No user or user is not default user'),
-            '404': sample_error_response("Offer not found"),
-            '406': sample_error_response("User already added"),
+            '404': sample_error_response("Offer not found")
         },
         operation_description="Adding user to offer interested users.",
     )
@@ -252,7 +253,7 @@ class JobOfferInterestedUsersView(views.APIView):
             try:
                 instance = JobOffer.objects.get(pk=offer_id)
                 if instance.interested_users.filter(id=user.id).exists():
-                    return ErrorResponse("User already added", status.HTTP_406_NOT_ACCEPTABLE)
+                    return ErrorResponse("User already added", status.HTTP_400_BAD_REQUEST)
                 instance.interested_users.add(user)
                 instance.save()
                 return MessageResponse("Added to interested users")
@@ -296,9 +297,9 @@ class EmployerJobOfferInterestedUsersView(views.APIView):
     ],
     responses={
         '200': sample_paginated_offers_response(),
+        '400': "Serializer errors",
         '401': 'No authorization token',
-        '403': sample_error_response('No user or user is not employer'),
-        '406': "Serializer errors",
+        '403': sample_error_response('No user or user is not employer')
     },
     operation_description="Returns offers list with filters for current employer"
 ))
@@ -325,7 +326,7 @@ class EmployerJobOffersView(generics.ListAPIView):
             if self.filter_serializer.is_valid():
                 return super().get(request)
             else:
-                return Response(self.filter_serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+                return Response(self.filter_serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             return ErrorResponse("No user or user is not employer", status.HTTP_403_FORBIDDEN)
 
