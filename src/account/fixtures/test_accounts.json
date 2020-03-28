@@ -25,36 +25,15 @@
   },
   {
     "model": "account.account",
-    "pk": 1,
+    "pk": "4718f0c8-ed63-4bbf-9b5e-0c1715689f03",
     "fields": {
-      "password": "pbkdf2_sha256$150000$MmUtOP2kXEBA$7GEldTVldIN6a59Vh3yvMOU0O8hfPVjIvCZlVs1u3fg=",
-      "email": "standard1@standard1.com",
-      "username": "standard1",
-      "first_name": "standard1",
-      "last_name": "standard1",
-      "date_joined": "2020-03-19T19:00:59.369Z",
-      "last_login": "2020-03-19T19:00:59.517Z",
-      "is_active": true,
-      "is_admin": false,
-      "is_staff": false,
-      "is_superuser": false,
-      "status": 2,
-      "type": 1,
-      "groups": [],
-      "user_permissions": []
-    }
-  },
-  {
-    "model": "account.account",
-    "pk": 2,
-    "fields": {
-      "password": "pbkdf2_sha256$150000$ytEcHnFHrdsh$HzLob/MOvwkpTAKJZVT9fdkwGZ4uD9ChII4Z5xVC1mU=",
+      "password": "pbkdf2_sha256$150000$QT1E3BcFrozv$/lqPsfKL9IF1dqtNp5MkI3WwbEgaMGPdfgwCTxpP8OY=",
       "email": "standard2@standard2.com",
       "username": "standard2",
       "first_name": "standard2",
       "last_name": "standard2",
-      "date_joined": "2020-03-19T19:01:02.840Z",
-      "last_login": "2020-03-19T19:01:02.990Z",
+      "date_joined": "2020-03-28T19:31:03.069Z",
+      "last_login": "2020-03-28T19:31:03.069Z",
       "is_active": true,
       "is_admin": false,
       "is_staff": false,
@@ -67,38 +46,15 @@
   },
   {
     "model": "account.account",
-    "pk": 3,
+    "pk": "4fbd7caa-a8af-497c-87ac-0cdbd0f0ad9f",
     "fields": {
-      "password": "pbkdf2_sha256$150000$Dg7rYej31vEx$OwhkS+pBTe4OdoIswbNdNrfOC2i7X7u5seOM7u2+v+Q=",
-      "email": "staff1@staff1.com",
-      "username": "staff1",
-      "first_name": "staff1",
-      "last_name": "staff1",
-      "date_joined": "2020-03-19T19:01:05.965Z",
-      "last_login": "2020-03-19T19:01:06.121Z",
-      "is_active": true,
-      "is_admin": true,
-      "is_staff": true,
-      "is_superuser": false,
-      "status": 1,
-      "type": 2,
-      "groups": [
-        1
-      ],
-      "user_permissions": []
-    }
-  },
-  {
-    "model": "account.account",
-    "pk": 4,
-    "fields": {
-      "password": "pbkdf2_sha256$150000$quv9CFum2pDO$VHa3UxUMSIa4TJbqmYbRqEDwtje6IdWlkqC5tumtWmI=",
+      "password": "pbkdf2_sha256$150000$fzZ9VdcEcXK8$QAKqYPkV49eAst7Zeh9cgbZZQ1NFLZFCaB36/p+TRtI=",
       "email": "employer1@employer1.com",
       "username": "employer1",
       "first_name": "employer1",
       "last_name": "employer1",
-      "date_joined": "2020-03-19T19:01:16.852Z",
-      "last_login": "2020-03-19T19:01:17.007Z",
+      "date_joined": "2020-03-28T19:31:40.698Z",
+      "last_login": "2020-03-28T19:31:40.698Z",
       "is_active": true,
       "is_admin": false,
       "is_staff": false,
@@ -111,15 +67,15 @@
   },
   {
     "model": "account.account",
-    "pk": 5,
+    "pk": "ada935e0-d0de-47ac-a5a2-47907536ab59",
     "fields": {
-      "password": "pbkdf2_sha256$150000$WjQ9jZRcW7X2$msrOj1+WYkFtL1E13wrS/f+jN95pxkejcTdlvbUWz4A=",
+      "password": "pbkdf2_sha256$150000$44jSwUoZ1Xgb$BpvsqETvLtAFp+bMLduOUrowioVhMf/5iw8aUqtLwK8=",
       "email": "staff2@staff2.com",
       "username": "staff2",
       "first_name": "staff2",
       "last_name": "staff2",
-      "date_joined": "2020-03-19T19:01:21.257Z",
-      "last_login": "2020-03-19T19:01:21.420Z",
+      "date_joined": "2020-03-28T19:31:48.780Z",
+      "last_login": "2020-03-28T19:31:48.780Z",
       "is_active": true,
       "is_admin": true,
       "is_staff": true,
@@ -134,15 +90,59 @@
   },
   {
     "model": "account.account",
-    "pk": 6,
+    "pk": "cfc436e1-f773-4f60-b5fc-aee39042c4be",
     "fields": {
-      "password": "pbkdf2_sha256$150000$ii61XVTAX3GH$0zmQtqiRn+poO8w1LOPiiuvN9lTrVNYytfi7JN8N/74=",
+      "password": "pbkdf2_sha256$150000$jVQgw98js0aI$yLJQnzzqju3sLwL2t9TMN3oGH8E6s/+OF352VM6pdkY=",
+      "email": "standard1@standard1.com",
+      "username": "standard1",
+      "first_name": "standard1",
+      "last_name": "standard1",
+      "date_joined": "2020-03-28T19:30:59.441Z",
+      "last_login": "2020-03-28T19:30:59.441Z",
+      "is_active": true,
+      "is_admin": false,
+      "is_staff": false,
+      "is_superuser": false,
+      "status": 2,
+      "type": 1,
+      "groups": [],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "account.account",
+    "pk": "ea97b27d-7852-4fdf-a6a0-b6f0c33d46c4",
+    "fields": {
+      "password": "pbkdf2_sha256$150000$OJrU8SX4LtxF$dInVEV4vUTxq1K8CoDTmibfWvySip1X1NsvsH3K47P8=",
+      "email": "staff1@staff1.com",
+      "username": "staff1",
+      "first_name": "staff1",
+      "last_name": "staff1",
+      "date_joined": "2020-03-28T19:31:36.126Z",
+      "last_login": "2020-03-28T19:31:36.126Z",
+      "is_active": true,
+      "is_admin": true,
+      "is_staff": true,
+      "is_superuser": false,
+      "status": 1,
+      "type": 2,
+      "groups": [
+        1
+      ],
+      "user_permissions": []
+    }
+  },
+  {
+    "model": "account.account",
+    "pk": "f9d565b0-c311-44f2-844d-6fe79733840d",
+    "fields": {
+      "password": "pbkdf2_sha256$150000$G65UZe72Ftu4$PfLpOnVHjNiIx0nZ4NShWONx58q3YTEsthItsu1E9CQ=",
       "email": "staff3@staff3.com",
       "username": "staff3",
       "first_name": "staff3",
       "last_name": "staff3",
-      "date_joined": "2020-03-19T19:01:24.847Z",
-      "last_login": "2020-03-19T19:01:24.998Z",
+      "date_joined": "2020-03-28T19:31:54.903Z",
+      "last_login": "2020-03-28T19:31:54.903Z",
       "is_active": true,
       "is_admin": true,
       "is_staff": true,
@@ -159,7 +159,7 @@
     "model": "account.defaultaccount",
     "pk": 1,
     "fields": {
-      "user": 1,
+      "user": "cfc436e1-f773-4f60-b5fc-aee39042c4be",
       "phone_number": "+48123456789",
       "facility_name": "standard1",
       "facility_address": "standard1"
@@ -169,7 +169,7 @@
     "model": "account.defaultaccount",
     "pk": 2,
     "fields": {
-      "user": 2,
+      "user": "4718f0c8-ed63-4bbf-9b5e-0c1715689f03",
       "phone_number": "+48123456788",
       "facility_name": "standard2",
       "facility_address": "standard2"
@@ -179,7 +179,7 @@
     "model": "account.employeraccount",
     "pk": 1,
     "fields": {
-      "user": 4,
+      "user": "4fbd7caa-a8af-497c-87ac-0cdbd0f0ad9f",
       "phone_number": "+48123456787",
       "company_name": "employer1",
       "company_address": "employer1",
@@ -190,7 +190,7 @@
     "model": "account.staffaccount",
     "pk": 1,
     "fields": {
-      "user": 3,
+      "user": "ea97b27d-7852-4fdf-a6a0-b6f0c33d46c4",
       "group_type": "staff_verification"
     }
   },
@@ -198,16 +198,16 @@
     "model": "account.staffaccount",
     "pk": 2,
     "fields": {
-      "user": 5,
-      "group_type": "staff_jobs"
+      "user": "ada935e0-d0de-47ac-a5a2-47907536ab59",
+      "group_type": "staff_verification"
     }
   },
   {
     "model": "account.staffaccount",
     "pk": 3,
     "fields": {
-      "user": 6,
-      "group_type": "staff_cv"
+      "user": "f9d565b0-c311-44f2-844d-6fe79733840d",
+      "group_type": "staff_verification"
     }
   }
 ]
