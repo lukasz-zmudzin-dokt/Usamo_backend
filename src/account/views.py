@@ -200,7 +200,7 @@ class AdminUserAdmissionView(views.APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
-        user_id = kwargs.get('pk', None)
+        user_id = kwargs.get('id', None)
         if user_id is not None:
             try:
                 user = Account.objects.get(pk=user_id)
@@ -217,7 +217,7 @@ class AdminUserRejectionView(views.APIView):
     permission_classes = [IsAdminUser]
 
     def get(self, request, *args, **kwargs):
-        user_id = kwargs.get('pk', None)
+        user_id = kwargs.get('id', None)
         if user_id is not None:
             try:
                 user = Account.objects.get(pk=user_id)
