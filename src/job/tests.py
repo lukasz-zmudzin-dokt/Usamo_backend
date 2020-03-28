@@ -337,7 +337,7 @@ class EmployerJobOfferInterestedUsersListTestCase(APITestCase):
         cls.default_user = create_default(cls.user)
         cls.offer = JobOffer.objects.create(
             **create_test_offer_data(), employer=cls.employer)
-        cls.offer.interested_users.add(cls.default_user)
+        cls.offer.interested_users.add(cls.user)
 
     def test_employer_offer_insterested_users_list_success(self):
         self.client.force_authenticate(
@@ -345,7 +345,7 @@ class EmployerJobOfferInterestedUsersListTestCase(APITestCase):
         response = self.client.get(self.url(self.offer.id))
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data), 1)
-        self.assertEquals(response.data[0]['id'], self.default_user.id)
+        self.assertEquals(response.data[0]['id'], str(self.user.id))
 
     def test_employer_offer_insterested_users_bad_offer(self):
         self.client.force_authenticate(
