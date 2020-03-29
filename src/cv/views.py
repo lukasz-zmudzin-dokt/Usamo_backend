@@ -33,7 +33,10 @@ class CVView(views.APIView):
         },
         operation_description="Create or update database object for CV generation.",
     )
-    def post(self, request):
+    def post(self, request, **kwargs):
+        cv_id = kwargs.get('cv_id', None)
+        if cv_id is not None:
+            return Response('Unexpected argument: cv_id', status.HTTP_400_BAD_REQUEST)
         request_data = request.data
         request_data['cv_id'] = uuid.uuid4()
         request_data['user'] = request.user.id
