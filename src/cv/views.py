@@ -22,7 +22,7 @@ def index(request):
     return HttpResponse("Hello, world. You're at the CV generator.")
 
 
-class CVGeneratorView(views.APIView):
+class CVView(views.APIView):
     serializer_class = CVSerializer
 
     @swagger_auto_schema(
@@ -41,12 +41,10 @@ class CVGeneratorView(views.APIView):
 
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
-            return Response('CV successfully generated.', status.HTTP_201_CREATED)
+            response = {"cv_id" : cv.pk}
+            return Response(response, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
-
-
-class CVView(views.APIView):
 
     @swagger_auto_schema(
         operation_description='Generate pdf url based on existing CV data.',
@@ -64,9 +62,6 @@ class CVView(views.APIView):
 
         return Response(cv.document.url, status.HTTP_200_OK)
 
-
-class CVDeletionView(views.APIView):
-
     @swagger_auto_schema(
         operation_description="Deletes cv from database if it exists",
         responses={
@@ -74,7 +69,7 @@ class CVDeletionView(views.APIView):
             '404': 'CV not found'
         }
     )
-    def post(self, request, cv_id):
+    def delete(self, request, cv_id):
         try:
             CV.objects.filter(cv_id=cv_id).delete()
         except CV.DoesNotExist:
