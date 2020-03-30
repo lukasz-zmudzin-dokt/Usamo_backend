@@ -8,9 +8,13 @@ class BlogPostTag(models.Model):
     name = models.CharField(max_length=60)
 
 
+class BlogPostCategory(models.Model):
+    name = models.CharField(max_length=60)
+
+
 class BlogPost(models.Model):
     author = models.ForeignKey(StaffAccount, null=True, on_delete=models.SET_NULL)
-    category = models.CharField(max_length=60)
+    category = models.ForeignKey(BlogPostCategory, on_delete=models.CASCADE)
     tags = models.ManyToManyField(BlogPostTag, blank=True)
     content = models.FileField(upload_to=create_blog_content_file_path)
     date_created = models.DateTimeField(auto_now_add=True)
