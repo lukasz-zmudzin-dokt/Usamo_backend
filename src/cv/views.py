@@ -29,7 +29,7 @@ class CVView(views.APIView):
         request_body=CVSerializer,
         responses={
             '201': 'CV successfully generated.',
-            '400': "Bad Request"
+            '400': 'Unexpected argument: cv_id'
         },
         operation_description="Create or update database object for CV generation.",
     )
@@ -53,32 +53,34 @@ class CVView(views.APIView):
         operation_description='Generate pdf url based on existing CV data.',
         responses={
             '200': 'url',
-            '404': 'CV not found'
+            '404': "CV not found. Make sure cv_id was specified in the url."
         }
     )
-    def get(self, request, *args, **kwargs):
-        cv_id = kwargs['cv_id']
+    def get(self, request, **kwargs):
+        cv_id = kwargs.get('cv_id', None)
         try:
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
-            return Response('CV not found', status.HTTP_404_NOT_FOUND)
+            return Response("CV not found. Make sure cv_id was specified in the url.", status.HTTP_404_NOT_FOUND)
 
         return Response(cv.document.url, status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Deletes cv from database if it exists",
         responses={
-            '200': 'CV deleted successfully',
-            '404': 'CV not found'
+            '200': 'CV deleted successfully.',
+            '404': "CV not found. Make sure cv_id was specified in the url."
         }
     )
-    def delete(self, request, cv_id):
+    def delete(self, request, **kwargs):
+        cv_id = kwargs.get('cv_id', None)
         try:
-            CV.objects.filter(cv_id=cv_id).delete()
+            cv = CV.objects.get(cv_id=cv_id)
+            cv.delete()
         except CV.DoesNotExist:
-            return Response('CV not found', status.HTTP_404_NOT_FOUND)
+            return Response("CV not found. Make sure cv_id was specified in the url.", status.HTTP_404_NOT_FOUND)
 
-        return Response('CV deleted successfully', status.HTTP_200_OK)
+        return Response('CV deleted successfully.', status.HTTP_200_OK)
 
 
 class CVDataView(views.APIView):
@@ -86,22 +88,22 @@ class CVDataView(views.APIView):
         operation_description="Returns CV data in json format",
         responses={
             '200': CVSerializer,
-            '404': 'CV not found'
+            '404': "CV not found."
         }
     )
-    def get(self, request, *args, **kwargs):
-        cv_id = kwargs['cv_id']
+    def get(self, request, **kwargs):
+        cv_id = kwargs.get('cv_id', None)
         try:
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
-            return Response('CV not found', status.HTTP_404_NOT_FOUND)
+            return Response("CV not found.", status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(instance=cv)
-        return JsonResponse(serializer.data)
+        return Response(serializer.data, status.HTTP_200_OK)
 
 
-class PicturePostView(views.APIView):
+class CVPictureView(views.APIView):
     @swagger_auto_schema(
-        operation_description="Posts picture to be used in CV. 'cv_id' is required in json",
+        operation_description="Posts picture to be used in CV.",
 
         manual_parameters=[
             openapi.Parameter(
@@ -117,20 +119,17 @@ class PicturePostView(views.APIView):
             )],
         responses={
             '201': 'Picture added successfully.',
-            '404': 'CV not found. / cv_id is required',
-            '406': 'Make sure the form key is "picture".'
+            '400': 'Make sure the form key is "picture". / serializer errors ',
+            '404': 'CV not found.'
         }
     )
-    def post(self, request):
-        try:
-            cv_id = request.data['cv_id']
-        except KeyError:
-            response_data['cv_id'] = "This field is required."
-            return Response(response_data, status.HTTP_406_NOT_ACCEPTABLE)
+    def post(self, request, **kwargs):
+        cv_id = kwargs.get('cv_id', None)
         try:
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
             return Response('CV not found.', status.HTTP_404_NOT_FOUND)
+
         serializer = CVSerializer(instance=cv)
         data = serializer.data
         try:
@@ -139,17 +138,14 @@ class PicturePostView(views.APIView):
             pict.name = create_unique_filename('cv_pics', ext)
             data['basic_info']['picture'] = pict
         except MultiValueDictKeyError:
-            Response('Make sure the form key is "picture".',
-                     status.HTTP_406_NOT_ACCEPTABLE)
+            Response('Make sure the form key is "picture".', status.HTTP_400_BAD_REQUEST)
         serializer = CVSerializer(data=data)
         if serializer.is_valid():
             serializer.create(serializer.validated_data)
             return Response('Picture added successfully.', status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-
-class PictureGetView(views.APIView):
 
     @swagger_auto_schema(
         operation_description="Returns picture url if it was uploaded",
@@ -158,8 +154,8 @@ class PictureGetView(views.APIView):
             404: 'CV/picture not found'
         }
     )
-    def get(self, request, *args, **kwargs):
-        cv_id = kwargs['cv_id']
+    def get(self, request, **kwargs):
+        cv_id = kwargs.get('cv_id', None)
         try:
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
@@ -170,7 +166,6 @@ class PictureGetView(views.APIView):
         return Response(bi.picture.url, status.HTTP_200_OK)
 
 
-class PictureDeleteView(views.APIView):
     @swagger_auto_schema(
         operation_description="Deletes cv picture from the database",
         responses={
@@ -178,7 +173,8 @@ class PictureDeleteView(views.APIView):
             404: 'CV/picture not found.'
         }
     )
-    def post(self, request, cv_id):
+    def delete(self, request, **kwargs):
+        cv_id = kwargs.get('cv_id', None)
         try:
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
@@ -196,11 +192,7 @@ class PictureDeleteView(views.APIView):
 
 
 class AdminUnverifiedCVList(generics.ListAPIView):
-    """
-    Returns a list of CVs whose owners want them to be
-    verified and which haven't yet been verified.
-    Requires admin privileges.
-    """
+
     serializer_class = CVSerializer
     permission_classes = [IsAdminUser]
 
@@ -224,7 +216,7 @@ class AdminFeedback(views.APIView):
             cv = serializer.create(serializer.validated_data)
             return Response('Feedback successfully created.', status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class CVFeedback(generics.RetrieveAPIView):
