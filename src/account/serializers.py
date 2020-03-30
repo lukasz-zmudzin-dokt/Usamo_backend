@@ -179,7 +179,6 @@ class StaffAccountSerializer(AbstractAccountSerializer):
         self.__add_to_group(user, self.group_type)
 
     def validate(self, attrs):
-        print(attrs)
         self.group_type = attrs['staff_account']['group_type']
         attrs.pop('staff_account', None)
         return attrs

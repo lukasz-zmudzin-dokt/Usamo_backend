@@ -123,7 +123,6 @@ class StaffRegistrationView(AbstractRegistrationView):
         }
     )
     def post(self, request):
-        print(request.data)
         serializer = StaffAccountSerializer(data=request.data)
         return self.perform_registration(serializer=serializer)
 
