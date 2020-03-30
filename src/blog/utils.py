@@ -8,9 +8,5 @@ def __create_file_path(folder, filename):
     return os.path.join(f'uploads/blog/{folder}', filename)
 
 
-def create_blog_content_file_path(instance, filename):
-    return __create_file_path('content', filename)
-
-
 def create_blog_attachment_file_path(instance, filename):
     return __create_file_path('attachment', filename)
