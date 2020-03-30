@@ -154,8 +154,9 @@ class LoginView(ObtainAuthToken):
     @swagger_auto_schema(
         operation_description="Obtain auth token by specifying username and password",
         responses={
-            status.HTTP_201_CREATED: 'Generated token and user type',
-            status.HTTP_406_NOT_ACCEPTABLE: 'Serializer errors/ Unable to login with given credentials'}
+            201: 'Generated token and user type',
+            406: 'Serializer errors/ Unable to login with given credentials'
+        }
     )
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
@@ -178,7 +179,8 @@ class DataView(views.APIView):
                               "Example response is for default user.",
 
         responses={
-            status.HTTP_200_OK: DefaultAccountSerializer}
+            200: DefaultAccountSerializer
+        }
     )
     @permission_classes([IsAuthenticated])
     def get(self, request):

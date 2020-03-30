@@ -34,18 +34,12 @@ class JobOfferEditSerializer(serializers.Serializer):
         return JobOfferEdit(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.offer_name = validated_data.get(
-            'offer_name', instance.offer_name)
-        instance.company_name = validated_data.get(
-            'company_name', instance.company_name)
-        instance.company_address = validated_data.get(
-            'company_address', instance.company_address)
-        instance.voivodeship = validated_data.get(
-            'voivodeship', instance.voivodeship)
-        instance.expiration_date = validated_data.get(
-            'expiration_date', instance.expiration_date)
-        instance.description = validated_data.get(
-            'description', instance.description)
+        instance.offer_name = validated_data.get('offer_name', instance.offer_name)
+        instance.company_name = validated_data.get('company_name', instance.company_name)
+        instance.company_address = validated_data.get('company_address', instance.company_address)
+        instance.voivodeship = validated_data.get('voivodeship', instance.voivodeship)
+        instance.expiration_date = validated_data.get('expiration_date', instance.expiration_date)
+        instance.description = validated_data.get('description', instance.description)
         return instance
 
 
@@ -57,10 +51,8 @@ class JobOfferFiltersSerializer(serializers.Serializer):
         return JobOfferFilters(**validated_data)
 
     def update(self, instance, validated_data):
-        instance.voivodeship = validated_data.get(
-            'voivodeship', instance.voivodeship)
-        instance.min_expiration_date = validated_data.get(
-            'min_expiration_date', instance.min_expiration_date)
+        instance.voivodeship = validated_data.get('voivodeship', instance.voivodeship)
+        instance.min_expiration_date = validated_data.get('min_expiration_date', instance.min_expiration_date)
         return instance
 
 

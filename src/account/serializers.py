@@ -100,13 +100,10 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
 
 
 class EmployerAccountSerializer(AbstractAccountSerializer):
-    company_address = serializers.CharField(
-        source='employer_account.company_address')
-    company_name = serializers.CharField(
-        source='employer_account.company_name')
+    company_address = serializers.CharField(source='employer_account.company_address')
+    company_name = serializers.CharField(source='employer_account.company_name')
     nip = serializers.CharField(source='employer_account.nip')
-    phone_number = serializers.CharField(
-        source='employer_account.phone_number')
+    phone_number = serializers.CharField(source='employer_account.phone_number')
 
     class Meta:
         model = Account
@@ -205,7 +202,8 @@ class EmployerDetailSerializer(EmployerAccountSerializer, AccountListSerializer)
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name',
-                  'phone_number', 'company_name', 'company_address', 'nip', 'date_joined', 'last_login', 'status']
+                  'phone_number', 'company_name', 'company_address', 
+                  'nip', 'date_joined', 'last_login', 'status']
 
 
 class StaffDetailSerializer(StaffAccountSerializer, AccountListSerializer):
@@ -221,4 +219,5 @@ class DefaultAccountDetailSerializer(DefaultAccountSerializer, AccountListSerial
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'first_name',  'last_name',
-                  'phone_number', 'facility_name', 'facility_address', 'date_joined', 'last_login', 'status']
+                  'phone_number', 'facility_name', 'facility_address', 
+                  'date_joined', 'last_login', 'status']

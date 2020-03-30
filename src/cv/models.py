@@ -20,16 +20,12 @@ def max_value_current_year(value):
 
 def validate_cv_id(cv_id):
     if not CV.objects.filter(cv_id=cv_id).exists():
-        raise ValidationError('%(value)s is not a cv id',
-                              params={'value': cv_id},
-                              )
-
+        raise ValidationError('%(value)s is not a cv id', params={'value': cv_id})
+                              
 
 class CV(models.Model):
-    cv_id = models.UUIDField(
-        primary_key=True, editable=False)
-    user = models.ForeignKey(
-        Account, related_name='cv_user', on_delete=models.CASCADE)
+    cv_id = models.UUIDField(primary_key=True, editable=False)
+    user = models.ForeignKey(Account, related_name='cv_user', on_delete=models.CASCADE)
     wants_verification = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
     document = models.FileField(upload_to='cv_docs/%Y/%m/%d/')
@@ -47,8 +43,7 @@ class BasicInfo(models.Model):
 
 
 class School(models.Model):
-    cv = models.ForeignKey(CV, related_name='schools',
-                           on_delete=models.CASCADE, null=True)
+    cv = models.ForeignKey(CV, related_name='schools', on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=200)
     year_start = models.PositiveIntegerField(
         default=current_year(),
@@ -64,8 +59,7 @@ class School(models.Model):
 
 
 class Experience(models.Model):
-    cv = models.ForeignKey(CV, related_name='experiences',
-                           on_delete=models.CASCADE, null=True)
+    cv = models.ForeignKey(CV, related_name='experiences', on_delete=models.CASCADE, null=True)
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=400)
     year_start = models.PositiveIntegerField(
@@ -81,21 +75,18 @@ class Experience(models.Model):
 
 
 class Skill(models.Model):
-    cv = models.ForeignKey(CV, related_name='skills',
-                           on_delete=models.CASCADE, null=True)
+    cv = models.ForeignKey(CV, related_name='skills', on_delete=models.CASCADE, null=True)
     description = models.CharField(max_length=50)
 
 
 class Language(models.Model):
-    cv = models.ForeignKey(CV, related_name='languages',
-                           on_delete=models.CASCADE, null=True)
+    cv = models.ForeignKey(CV, related_name='languages', on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=20)
     level = models.CharField(max_length=20)
 
 
 class Feedback(models.Model):
-    cv_id = models.UUIDField(
-        primary_key=True, validators=[validate_cv_id])
+    cv_id = models.UUIDField(primary_key=True, validators=[validate_cv_id])
     basic_info = models.TextField(blank=True)
     schools = models.TextField(blank=True)
     experiences = models.TextField(blank=True)

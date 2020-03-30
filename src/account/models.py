@@ -45,8 +45,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     username = models.CharField(max_length=30, unique=True)
     first_name = models.CharField(max_length=30, verbose_name='first_name')
     last_name = models.CharField(max_length=30, verbose_name='last_name')
-    date_joined = models.DateTimeField(
-        verbose_name='date_joined', null=True)
+    date_joined = models.DateTimeField(verbose_name='date_joined', null=True)
     last_login = models.DateTimeField(verbose_name='last_login', null=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -72,16 +71,14 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
 
 class DefaultAccount(models.Model):
-    user = models.OneToOneField(
-        Account, on_delete=models.CASCADE, related_name='account')
+    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='account')
     phone_number = PhoneNumberField()
     facility_name = models.CharField(max_length=60)
     facility_address = models.CharField(max_length=120)
 
 
 class EmployerAccount(models.Model):
-    user = models.OneToOneField(
-        Account, on_delete=models.CASCADE, related_name='employer_account')
+    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='employer_account')
     phone_number = PhoneNumberField()
     company_name = models.CharField(max_length=60)
     company_address = models.CharField(max_length=120)
@@ -89,10 +86,9 @@ class EmployerAccount(models.Model):
 
 
 class StaffAccount(models.Model):
-    user = models.OneToOneField(
-        Account, on_delete=models.CASCADE, related_name='staff_account')
+    user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
     group_type = models.CharField(max_length=60,
-                                  default=StaffGroupType.STAFF_VERIFICATION.value, choices=STAFF_GROUP_CHOICES)
+        default=StaffGroupType.STAFF_VERIFICATION.value, choices=STAFF_GROUP_CHOICES)
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

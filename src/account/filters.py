@@ -3,10 +3,8 @@ from .models import *
 
 
 class UserListFilter(filters.FilterSet):
-    username = filters.CharFilter(
-        field_name='username', lookup_expr='icontains')
-    email = filters.CharFilter(
-        field_name='email', lookup_expr='icontains')
+    username = filters.CharFilter(field_name='username', lookup_expr='icontains')
+    email = filters.CharFilter(field_name='email', lookup_expr='icontains')
     date_joined = filters.DateFromToRangeFilter(field_name='date_joined')
     last_login = filters.DateFromToRangeFilter(field_name='last_login')
 
@@ -17,22 +15,15 @@ class UserListFilter(filters.FilterSet):
 
 
 class AbstractTypeListFilter(filters.FilterSet):
-    id = filters.UUIDFilter(
-        field_name='id', lookup_expr='icontains')
-    username = filters.CharFilter(
-        field_name='username', lookup_expr='icontains')
-    email = filters.CharFilter(
-        field_name='email', lookup_expr='icontains')
-    first_name = filters.CharFilter(
-        field_name='first_name', lookup_expr='icontains')
-    last_name = filters.CharFilter(
-        field_name='last_name', lookup_expr='icontains')
+    id = filters.UUIDFilter(field_name='id', lookup_expr='icontains')
+    username = filters.CharFilter(field_name='username', lookup_expr='icontains')
+    email = filters.CharFilter(field_name='email', lookup_expr='icontains')
+    first_name = filters.CharFilter(field_name='first_name', lookup_expr='icontains')
+    last_name = filters.CharFilter(field_name='last_name', lookup_expr='icontains')
     date_joined = filters.DateFromToRangeFilter(field_name='user__date_joined')
     last_login = filters.DateFromToRangeFilter(field_name='user__last_login')
-    status = filters.NumberFilter(
-        field_name='status', lookup_expr='icontains')
-    type = filters.NumberFilter(
-        field_name='type', lookup_expr='icontains')
+    status = filters.NumberFilter(field_name='status', lookup_expr='icontains')
+    type = filters.NumberFilter(field_name='type', lookup_expr='icontains')
 
 
 class DefaultAccountListFilter(AbstractTypeListFilter):
@@ -46,7 +37,8 @@ class DefaultAccountListFilter(AbstractTypeListFilter):
     class Meta:
         model = Account
         fields = ['id', 'status', 'username', 'first_name', 'last_name', 'email',
-                  'phone_number', 'facility_name', 'facility_address', 'date_joined', 'last_login']
+                  'phone_number', 'facility_name', 'facility_address', 
+                  'date_joined', 'last_login']
 
 
 class EmployerListFilter(AbstractTypeListFilter):

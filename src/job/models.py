@@ -17,8 +17,7 @@ class JobOffer(models.Model):
     description = models.CharField(max_length=1000)
     removed = models.BooleanField(editable=False, default=False)
     interested_users = models.ManyToManyField(Account)
-    employer = models.ForeignKey(
-        EmployerAccount, on_delete=models.SET_NULL, null=True, default=None)
+    employer = models.ForeignKey(EmployerAccount, on_delete=models.SET_NULL, null=True, default=None)
 
     def __str__(self):
         return self.offer_name
