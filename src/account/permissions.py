@@ -54,6 +54,24 @@ class IsStaffResponsibleForJobs(AbstractIsAllowedStaff):
         return hasattr(obj, 'employer')
 
 
+class IsStaffBlogCreator(AbstractIsAllowedStaff):
+
+    def _get_allowed_staff_type(self):
+        return StaffGroupType.STAFF_BLOG_CREATOR
+
+    def has_object_permission(self, request, view, obj):
+        return hasattr(obj, 'author') and obj.author.user_id == request.user.id
+
+
+class IsStaffBlogModerator(AbstractIsAllowedStaff):
+
+    def _get_allowed_staff_type(self):
+        return StaffGroupType.STAFF_BLOG_CREATOR
+
+    def has_object_permission(self, request, view, obj):
+        return hasattr(obj, 'author')
+
+
 class AbstractCanStaffVerifyPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
