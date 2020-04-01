@@ -41,6 +41,7 @@ urlpatterns = [
     path('account/', include('account.urls')),
     path('cv/', include('cv.urls')),
     path('job/', include('job.urls')),
+    path('blog/', include('blog.urls')),
     #url('api/', get_swagger_view(title='Usamodzielnieni API')),
     url(r'^swagger(?P<format>\.json|\.yaml)$', schema_view.without_ui(cache_timeout=0), name='schema-json'),
     url(r'^swagger/$', schema_view.with_ui('swagger', cache_timeout=0), name='schema-swagger-ui'),
