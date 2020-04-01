@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from account.permissions import IsStaffBlogCreator, IsStaffBlogModerator
+
+from .permissions import GetRequestPermission
 from .serializers import *
 
 
@@ -40,7 +42,6 @@ def sample_blogpostid_response():
 
 class BlogPostCreateView(views.APIView):
 
-
     @permission_classes([IsAuthenticated])
     def post(self, request):
         try:
@@ -58,6 +59,7 @@ class BlogPostCreateView(views.APIView):
 
 
 class BlogPostView(views.APIView):
+    permission_classes = [GetRequestPermission | IsStaffBlogModerator]
 
     def get(self, request, id):
         try:
@@ -67,8 +69,6 @@ class BlogPostView(views.APIView):
         except ObjectDoesNotExist:
             return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
 
-
-    @permission_classes([IsAuthenticated])
     def put(self, request, id):
         try:
             instance = BlogPost.objects.get(pk=id)
@@ -81,7 +81,6 @@ class BlogPostView(views.APIView):
         except ObjectDoesNotExist:
             return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
 
-    @permission_classes([IsAuthenticated])
     def delete(self, request, id):
         try:
             instance = BlogPost.objects.get(pk=id)

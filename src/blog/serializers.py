@@ -42,10 +42,10 @@ class BlogPostSerializer(serializers.ModelSerializer):
         return response
 
     def create(self, validated_data):
+        tags_data = validated_data.pop('tags')
         category_data = validated_data.pop('category')
         category, _ = BlogPostCategory.objects.get_or_create(name=category_data['name'])
         blog_post = BlogPost.objects.create(category=category, **validated_data)
-        tags_data = validated_data.pop('tags')
         for tag_data in tags_data:
             tag, _ = BlogPostTag.objects.get_or_create(name=tag_data['name'])
             blog_post.tags.add(tag)
