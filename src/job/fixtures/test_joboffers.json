@@ -1,35 +1,35 @@
 [
-    {
-        "model": "job.joboffer",
-        "pk": "c333a01b-920d-454a-a8b4-ab1dccc37890",
-        "fields": {
-            "offer_name": "offer2",
-            "company_name": "company2",
-            "company_address": "adress2",
-            "voivodeship": "lubelskie",
-            "expiration_date": "2020-05-28",
-            "description": "description",
-            "removed": false,
-            "employer": 1,
-            "interested_users": []
-        }
-    },
-    {
-        "model": "job.joboffer",
-        "pk": "fe3ee8bf-730d-47a6-96e6-b8accc080a82",
-        "fields": {
-            "offer_name": "offer1",
-            "company_name": "company1",
-            "company_address": "adress1",
-            "voivodeship": "mazowieckie",
-            "expiration_date": "2020-05-28",
-            "description": "description",
-            "removed": false,
-            "employer": 1,
-            "interested_users": [
-                "4718f0c8-ed63-4bbf-9b5e-0c1715689f03",
-                "cfc436e1-f773-4f60-b5fc-aee39042c4be"
-            ]
-        }
+  {
+    "model": "job.joboffer",
+    "pk": "47991e86-4b42-4507-b154-1548bf8a3bd3",
+    "fields": {
+      "offer_name": "offer1",
+      "company_name": "company1",
+      "company_address": "adress1",
+      "voivodeship": "mazowieckie",
+      "expiration_date": "2020-05-28",
+      "description": "description",
+      "removed": false,
+      "employer": 1,
+      "interested_users": []
     }
+  },
+  {
+    "model": "job.joboffer",
+    "pk": "fbca7511-3879-47b6-ab08-8d39ccc2b6f3",
+    "fields": {
+      "offer_name": "offer2",
+      "company_name": "company2",
+      "company_address": "adress2",
+      "voivodeship": "lubelskie",
+      "expiration_date": "2020-05-28",
+      "description": "description2",
+      "removed": false,
+      "employer": 1,
+      "interested_users": [
+        1,
+        2
+      ]
+    }
+  }
 ]

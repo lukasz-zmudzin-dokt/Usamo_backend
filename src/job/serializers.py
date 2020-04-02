@@ -4,7 +4,6 @@ from account.models import DefaultAccount
 from rest_framework import serializers
 
 from .models import *
-from account.models import *
 
 
 class JobOfferSerializer(serializers.ModelSerializer):
@@ -57,7 +56,11 @@ class JobOfferFiltersSerializer(serializers.Serializer):
 
 
 class InterestedUserSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source='user.id')
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+    email = serializers.CharField(source='user.email')
 
     class Meta:
-        model = Account
+        model = DefaultAccount
         fields = ['id', 'first_name', 'last_name', 'email']

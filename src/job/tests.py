@@ -283,9 +283,6 @@ class JobOfferInterestedUsersAddTestCase(APITestCase):
         self.assertEquals(updated_offer.interested_users.count(), 1)
 
 
-''' Ten test obecnie nie ma sensu - zmieniłem serializer i modele, bo poprzednie
-    wersje nie działały
-
     def test_offer_insterested_users_not_default_user(self):
         self.client.force_authenticate(
             user=self.user, token=self.user.auth_token)
@@ -294,7 +291,6 @@ class JobOfferInterestedUsersAddTestCase(APITestCase):
         self.assertEquals(JobOffer.objects.count(), 1)
         updated_offer = JobOffer.objects.get()
         self.assertEquals(updated_offer.interested_users.count(), 0)
-'''
 
 
 class EmployerJobOfferInterestedUsersListTestCase(APITestCase):
@@ -307,7 +303,7 @@ class EmployerJobOfferInterestedUsersListTestCase(APITestCase):
         cls.user = create_user()
         cls.default_user = create_default(cls.user)
         cls.offer = JobOffer.objects.create(**create_test_offer_data(), employer=cls.employer)
-        cls.offer.interested_users.add(cls.user)
+        cls.offer.interested_users.add(cls.default_user)
 
     def test_employer_offer_insterested_users_list_success(self):
         self.client.force_authenticate(user=self.user, token=self.user.auth_token)
