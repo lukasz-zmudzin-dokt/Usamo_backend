@@ -143,25 +143,18 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
 
 
 class StaffAccountSerializer(AbstractAccountSerializer):
-
-    type = serializers.ChoiceField(choices={i: i for i in StaffGroupType.get_all_types()}, write_only=True)
-
-    groups = serializers.SerializerMethodField()
+    group_type = serializers.ChoiceField(choices={i: i for i in StaffGroupType.get_all_types()})
 
     class Meta:
         model = Account
-        fields = ['email', 'username', 'last_name', 'first_name', 'password', 'type', 'groups']
+        fields = ['email', 'username', 'last_name', 'first_name', 'password', 'group_type']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
             'last_name': {'required': True},
             'first_name': {'required': True},
-            'type': {'required': True}
+            'group_type': {'required': True}
         }
-
-    def get_groups(self, user):
-        groups = user.groups.values_list('name', flat=True)
-        return list(groups)
 
     def update_or_create_account(self, user, account_data):
         return StaffAccount.objects.update_or_create(user=user, defaults=account_data)
@@ -178,9 +171,9 @@ class StaffAccountSerializer(AbstractAccountSerializer):
         user.groups.add(group)
 
     def post_user_created(self, user, data):
-        self.__add_to_group(user, self.type)
+        self.__add_to_group(user, self.group_type)
 
     def validate(self, attrs):
-        self.type = attrs['type']
-        attrs.pop('type', None)
+        self.group_type = attrs['group_type']
+        attrs.pop('group_type', None)
         return attrs
