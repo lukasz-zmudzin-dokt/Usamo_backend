@@ -266,4 +266,6 @@ class UserCVListView(generics.ListAPIView):
 
     def get_queryset(self):
         user = self.request.user
-        return CV.objects.filter(user=user)
+        def_account = get_object_or_404(
+            DefaultAccount.objects.filter(user=user))
+        return CV.objects.filter(user=def_account)
