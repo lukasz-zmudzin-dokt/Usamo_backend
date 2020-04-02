@@ -143,7 +143,7 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
 
 
 class StaffAccountSerializer(AbstractAccountSerializer):
-    group_type = serializers.ChoiceField(choices={i: i for i in StaffGroupType.get_all_types()})
+    group_type = serializers.SerializerMethodField()
 
     class Meta:
         model = Account
@@ -155,6 +155,10 @@ class StaffAccountSerializer(AbstractAccountSerializer):
             'first_name': {'required': True},
             'group_type': {'required': True}
         }
+
+    def get_group_type(self, user):
+        groups = user.groups.values_list('name', flat=True)
+        return list(groups)
 
     def update_or_create_account(self, user, account_data):
         return StaffAccount.objects.update_or_create(user=user, defaults=account_data)
