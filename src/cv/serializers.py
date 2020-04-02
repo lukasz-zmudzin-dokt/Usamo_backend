@@ -64,6 +64,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
 class CVSerializer(serializers.ModelSerializer):
     cv_id = serializers.UUIDField()
+    user_id = serializers.UUIDField(source='user.user.id')
     basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
     experiences = ExperienceSerializer(many=True, required=False)
@@ -73,8 +74,21 @@ class CVSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'user', 'basic_info', 'schools', 'experiences', 'skills',
+        fields = ['cv_id', 'user', 'user_id', 'basic_info', 'schools', 'experiences', 'skills',
                   'languages', 'wants_verification', 'is_verified']
+        
+        extra_kwargs = {
+            'cv_id': {'required': True},
+            'user': {'write_only': True},
+            'user_id': {'required': True},
+            'basic_info': {'required': True},
+            'schools': {'required': True},
+            'experiences': {'required': False},
+            'skills': {'required': True},
+            'languages': {'required': True},
+            'wants_verification': {'required': False},
+            'is_verified': {'required': False}
+        }
 
     def create(self, validated_data):
         if CV.objects.filter(cv_id=validated_data['cv_id']).exists():

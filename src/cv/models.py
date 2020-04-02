@@ -1,6 +1,6 @@
 import datetime
 import uuid
-from account.models import Account
+from account.models import Account, DefaultAccount
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -25,7 +25,7 @@ def validate_cv_id(cv_id):
 
 class CV(models.Model):
     cv_id = models.UUIDField(primary_key=True, editable=False)
-    user = models.ForeignKey(Account, related_name='cv_user', on_delete=models.CASCADE)
+    user = models.ForeignKey(DefaultAccount, related_name='cv_user', on_delete=models.CASCADE)
     wants_verification = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
     document = models.FileField(upload_to='cv_docs/%Y/%m/%d/')

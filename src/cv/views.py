@@ -7,6 +7,7 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from usamo import settings
+from account.models import DefaultAccount
 from .models import *
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.compat import coreapi, coreschema
@@ -29,7 +30,8 @@ class CVView(views.APIView):
         request_body=CVSerializer,
         responses={
             '201': 'CV successfully generated.',
-            '400': 'Unexpected argument: cv_id'
+            '400': 'Unexpected argument: cv_id',
+            '403': "This user's account is not of type DefaultAccount"
         },
         operation_description="Create or update database object for CV generation.",
     )
@@ -39,7 +41,14 @@ class CVView(views.APIView):
             return Response('Unexpected argument: cv_id', status.HTTP_400_BAD_REQUEST)
         request_data = request.data
         request_data['cv_id'] = uuid.uuid4()
-        request_data['user'] = request.user.id
+
+        try:
+            def_account = DefaultAccount.objects.get(user=request.user)
+        except DefaultAccount.DoesNotExist:
+            return Response("This user's account is not of type DefaultAccount", status.HTTP_403_FORBIDDEN)
+
+        request_data['user'] = def_account.id
+        request_data['user_id'] = request.user.id
         serializer = self.serializer_class(data=request_data)
 
         if serializer.is_valid():
