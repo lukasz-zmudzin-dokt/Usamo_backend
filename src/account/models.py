@@ -6,10 +6,10 @@ from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import Group, PermissionsMixin
-
-
+from datetime import datetime
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
-from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
+from .account_type import *
+import uuid
 
 
 class AccountManager(BaseUserManager):
@@ -40,18 +40,21 @@ class AccountManager(BaseUserManager):
 
 
 class Account(AbstractBaseUser, PermissionsMixin):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name='id')
     email = models.EmailField(verbose_name='email', max_length=60, unique=True)
     username = models.CharField(max_length=30, unique=True)
     first_name = models.CharField(max_length=30, verbose_name='first_name')
     last_name = models.CharField(max_length=30, verbose_name='last_name')
-    date_joined = models.DateTimeField(verbose_name='date_joined', auto_now_add=True)
-    last_login = models.DateTimeField(verbose_name='last_login', auto_now=True)
+    date_joined = models.DateTimeField(verbose_name='date_joined', null=True)
+    last_login = models.DateTimeField(verbose_name='last_login', null=True)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
-    status = models.IntegerField(default=AccountStatus.WAITING_FOR_VERIFICATION.value, choices=ACCOUNT_STATUS_CHOICES)
-    type = models.IntegerField(default=AccountType.STANDARD.value, choices=ACCOUNT_TYPE_CHOICES)
+    status = models.IntegerField(
+        default=AccountStatus.WAITING_FOR_VERIFICATION.value, choices=ACCOUNT_STATUS_CHOICES)
+    type = models.IntegerField(
+        default=AccountType.STANDARD.value, choices=ACCOUNT_TYPE_CHOICES)
     USERNAME_FIELD = 'username'
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
@@ -84,12 +87,23 @@ class EmployerAccount(models.Model):
 
 class StaffAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
-    
+    group_type = models.CharField(max_length=60,
+        default=StaffGroupType.STAFF_VERIFICATION.value, choices=STAFF_GROUP_CHOICES)
+
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_token(sender, instance, created, **kwargs):
     if created:
         Token.objects.create(user=instance)
+        instance.last_login = datetime.now()
+        instance.date_joined = datetime.now()
+
+
+@receiver(post_save, sender=Token)
+def update_last_login(sender, instance, created, **kwargs):
+    if created:
+        instance.user.last_login = datetime.now()
+        instance.user.save()
 
 
 @receiver(post_save, sender=EmployerAccount)
@@ -105,5 +119,3 @@ def set_admin_status(sender, instance, created, **kwargs):
         instance.user.is_staff = True
         instance.user.type = AccountType.STAFF.value
         instance.user.status = AccountStatus.VERIFIED.value
-
-

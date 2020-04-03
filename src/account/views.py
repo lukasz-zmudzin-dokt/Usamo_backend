@@ -7,13 +7,17 @@ from rest_framework import views
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import permission_classes, api_view, renderer_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
+from rest_framework.generics import ListAPIView, RetrieveAPIView
+from django_filters import rest_framework as filters
 
 from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .account_status import AccountStatus
-from .serializers import DefaultAccountSerializer, EmployerAccountSerializer, StaffAccountSerializer
+from .serializers import *
+from .models import *
+from .filters import *
 
 
 class AbstractRegistrationView(views.APIView):
@@ -149,8 +153,9 @@ class LoginView(ObtainAuthToken):
     @swagger_auto_schema(
         operation_description="Obtain auth token by specifying username and password",
         responses={
-            status.HTTP_201_CREATED: 'Generated token and user type',
-            status.HTTP_406_NOT_ACCEPTABLE: 'Serializer errors/ Unable to login with given credentials'}
+            201: 'Generated token and user type',
+            406: 'Serializer errors/ Unable to login with given credentials'
+        }
     )
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
@@ -173,7 +178,8 @@ class DataView(views.APIView):
                               "Example response is for default user.",
 
         responses={
-            status.HTTP_200_OK: DefaultAccountSerializer}
+            200: DefaultAccountSerializer
+        }
     )
     @permission_classes([IsAuthenticated])
     def get(self, request):
@@ -189,3 +195,89 @@ class DataView(views.APIView):
             user_type = AccountType.STAFF.value
 
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})
+
+
+class AdminUserAdmissionView(views.APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, user_id):
+        if user_id is not None:
+            try:
+                user = Account.objects.get(pk=user_id)
+            except Account.DoesNotExist:
+                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
+            user.status = AccountStatus.VERIFIED.value
+            user.save()
+            return Response('User successfully verified.', status.HTTP_200_OK)
+
+        return Response('User id was not specified.', status.HTTP_406_NOT_ACCEPTABLE)
+
+
+class AdminUserRejectionView(views.APIView):
+    permission_classes = [IsAdminUser]
+
+    def post(self, request, user_id):
+        if user_id is not None:
+            try:
+                user = Account.objects.get(pk=user_id)
+            except Account.DoesNotExist:
+                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
+            user.status = AccountStatus.NOT_VERIFIED.value
+            user.save()
+            return Response('User status successfully set to not verified.', status.HTTP_200_OK)
+
+        return Response('User id was not specified.', status.HTTP_406_NOT_ACCEPTABLE)
+
+
+class AdminAllAccountsListView(ListAPIView):
+    queryset = Account.objects.all()
+    serializer_class = AccountListSerializer
+    permission_classes = [IsAdminUser]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = UserListFilter
+
+
+class AdminDefaultAccountsListView(ListAPIView):
+    serializer_class = AccountListSerializer
+    permission_classes = [IsAdminUser]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = DefaultAccountListFilter
+
+    def get_queryset(self):
+        return Account.objects.filter(type=AccountType.STANDARD.value)
+
+
+class AdminEmployerListView(ListAPIView):
+    serializer_class = AccountListSerializer
+    permission_classes = [IsAdminUser]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = EmployerListFilter
+
+    def get_queryset(self):
+        return Account.objects.filter(type=AccountType.EMPLOYER.value)
+
+
+class AdminStaffListView(ListAPIView):
+    serializer_class = AccountListSerializer
+    permission_classes = [IsAdminUser]
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = StaffListFilter
+
+    def get_queryset(self):
+        return Account.objects.filter(type=AccountType.STAFF.value)
+
+
+class AdminUserDetailView(RetrieveAPIView):
+    queryset = Account.objects.all()
+    permission_classes = [IsAdminUser]
+
+    def get_serializer_class(self):
+        pk = self.kwargs['pk']
+        account = Account.objects.get(pk=pk)
+
+        if account.type == AccountType.EMPLOYER.value:
+            return EmployerDetailSerializer
+        if account.type == AccountType.STAFF.value:
+            return StaffDetailSerializer
+
+        return DefaultAccountDetailSerializer

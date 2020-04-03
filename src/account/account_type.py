@@ -1,9 +1,11 @@
 from enum import Enum
 
+
 class AccountType(Enum):
     STANDARD = 1
     STAFF = 2
     EMPLOYER = 3
+
 
 ACCOUNT_TYPE_CHOICES = [
     (AccountType.STANDARD.value, 'Standard'),
@@ -21,3 +23,9 @@ class StaffGroupType(Enum):
     def get_all_types():
         return [StaffGroupType.STAFF_VERIFICATION.value, StaffGroupType.STAFF_CV.value, StaffGroupType.STAFF_JOBS.value]
 
+
+STAFF_GROUP_CHOICES = [
+    (StaffGroupType.STAFF_VERIFICATION.value, 'staff_verification'),
+    (AccountType.STAFF.value, 'staff_cv'),
+    (AccountType.EMPLOYER.value, 'staff_jobs')
+]
