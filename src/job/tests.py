@@ -2,16 +2,20 @@ from datetime import date
 
 from rest_framework import status
 from rest_framework.test import APITestCase
-from job.models import JobOffer, JobOfferEdit
+from job.models import *
 from job.enums import Voivodeships
 from account.models import Account, DefaultAccount, EmployerAccount
 
 
 # Create your tests here.
 def create_test_offer_data(name="OFERTA TESTOWA", voivodeship="mazowieckie", expiration_date=date(2020, 5, 5),
-                           description="TEST TEST"):
+                           description="TEST TEST", category='IT', offer_type='Praca'):
+    category, _ = JobOfferCategory.objects.get_or_create(name=category)
+    offer_type, _ = JobOfferType.objects.get_or_create(name=offer_type)
     return {
         "offer_name": name,
+        "category": category.name,
+        "type": offer_type.name,
         "company_name": "TESTOWA FIRMA",
         "company_address": "TESTOWY ADRES",
         "voivodeship": voivodeship,
@@ -19,6 +23,21 @@ def create_test_offer_data(name="OFERTA TESTOWA", voivodeship="mazowieckie", exp
         "description": description
     }
 
+def create_test_offer_instance(name="OFERTA TESTOWA", voivodeship="mazowieckie", expiration_date=date(2020, 5, 5),
+                           description="TEST TEST", category='IT', offer_type='Praca', employer=None):
+    category, _ = JobOfferCategory.objects.get_or_create(name=category)
+    offer_type, _ = JobOfferType.objects.get_or_create(name=offer_type)
+    return JobOffer.objects.create(
+        offer_name=name,
+        category=category,
+        offer_type=offer_type,
+        company_name="TESTOWA FIRMA",
+        company_address="TESTOWY ADRES",
+        voivodeship=voivodeship,
+        expiration_date=expiration_date,
+        description=description,
+        employer=employer
+    )
 
 def create_offer_edit_data():
     return {
@@ -88,7 +107,7 @@ class JobOfferGetTestCase(APITestCase):
     def setUp(cls):
         cls.url = lambda self, id: '/job/job-offer/%s/' % id
         cls.user = create_user()
-        cls.offer = JobOffer.objects.create(**create_test_offer_data())
+        cls.offer = create_test_offer_instance()
 
     def test_offer_get_success(self):
         self.assertEquals(JobOffer.objects.count(), 1)
@@ -110,7 +129,7 @@ class JobOfferEditTestCase(APITestCase):
     def setUp(cls):
         cls.url = lambda self, id: '/job/job-offer/%s/' % id
         cls.user = create_user()
-        cls.offer = JobOffer.objects.create(**create_test_offer_data())
+        cls.offer = create_test_offer_instance()
 
     def test_offer_edit_success(self):
         self.assertEquals(JobOffer.objects.count(), 1)
@@ -142,7 +161,7 @@ class JobOfferDeleteTestCase(APITestCase):
     def setUp(cls):
         cls.url = lambda self, id: '/job/job-offer/%s/' % id
         cls.user = create_user()
-        cls.offer = JobOffer.objects.create(**create_test_offer_data())
+        cls.offer = create_test_offer_instance()
 
     def test_offer_delete_success(self):
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 1)
@@ -175,9 +194,9 @@ class JobOffersListTestCase(APITestCase):
     def setUp(cls):
         cls.url = '/job/job-offers/'
         cls.user = create_user()
-        cls.offer1 = JobOffer.objects.create(**create_test_offer_data())
-        cls.offer2 = JobOffer.objects.create(**create_test_offer_data(name='Oferta 2', description='nowa oferta',
-                                                                      voivodeship='lubelskie'))
+        cls.offer1 = create_test_offer_instance()
+        cls.offer2 = create_test_offer_instance(name='Oferta 2', description='nowa oferta',
+                                                                      voivodeship='lubelskie')
 
     def test_offer_list_success(self):
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 2)
@@ -205,14 +224,10 @@ class EmployerJobOffersListTestCase(APITestCase):
         cls.url = '/job/employer/job-offers/'
         cls.user = create_user()
         cls.employer = create_employer(cls.user)
-        cls.employer_offer1 = JobOffer.objects.create(
-            **create_test_offer_data(), employer=cls.employer)
-        cls.employer_offer2 = JobOffer.objects.create(
-            **create_test_offer_data(name='Oferta 2', description='nowa oferta - 2', expiration_date=date(2020, 1, 1),
-                                     voivodeship='lubelskie'),
-            employer=cls.employer)
-        cls.not_employer_offer = JobOffer.objects.create(
-            **create_test_offer_data(name='Oferta 3', description='nowa oferta - 3'))
+        cls.employer_offer1 = create_test_offer_instance(employer=cls.employer)
+        cls.employer_offer2 = create_test_offer_instance(name='Oferta 2', description='nowa oferta - 2',
+                                                         voivodeship='lubelskie', employer=cls.employer)
+        cls.not_employer_offer = create_test_offer_instance(name='Oferta 3', description='nowa oferta - 3')
 
     def test_employer_offer_list_success(self):
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 3)
@@ -248,7 +263,7 @@ class JobOfferInterestedUsersAddTestCase(APITestCase):
     def setUp(cls):
         cls.url = lambda self, id: '/job/offer-interested/%s/' % id
         cls.user = create_user()
-        cls.offer = JobOffer.objects.create(**create_test_offer_data())
+        cls.offer = create_test_offer_instance()
 
     def test_offer_insterested_users_add_success(self):
         default_user = create_default(self.user)
@@ -302,7 +317,7 @@ class EmployerJobOfferInterestedUsersListTestCase(APITestCase):
         cls.employer = create_employer(cls.employer_user)
         cls.user = create_user()
         cls.default_user = create_default(cls.user)
-        cls.offer = JobOffer.objects.create(**create_test_offer_data(), employer=cls.employer)
+        cls.offer = create_test_offer_instance(employer=cls.employer)
         cls.offer.interested_users.add(cls.default_user)
 
     def test_employer_offer_insterested_users_list_success(self):

@@ -64,6 +64,8 @@ def sample_offer_response():
         properties={
             'id': Schema(type='string', default="uuid4"),
             'offer_name': Schema(type='string', default="offer name"),
+            'category': Schema(type='string', default="offer category"),
+            'type': Schema(type='string', default="offer type"),
             'company_name': Schema(type='string', default="company name"),
             'company_address': Schema(type='string', default="company address"),
             'voivodeship': Schema(type='string', default="mazowieckie"),
