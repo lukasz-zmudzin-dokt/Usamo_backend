@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'job.apps.JobConfig',
     'cv.apps.CvConfig',
     'account.apps.AccountConfig',
+    'blog.apps.BlogConfig',
     'drf_yasg',
     'django_rest_passwordreset',
     'django_filters',
