@@ -4,7 +4,7 @@ from account.account_type import StaffGroupType
 from account.permissions import AbstractIsAllowedStaff
 
 
-class GetRequestPermission(permissions.BasePermission):
+class GetRequestPublicPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.method == "GET"
