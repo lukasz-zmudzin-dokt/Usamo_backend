@@ -2,6 +2,8 @@ from django.utils import timezone
 from rest_framework import serializers
 
 from account.serializers import StaffAccountSerializer
+from account.models import StaffAccount
+
 from .models import *
 
 
@@ -25,15 +27,25 @@ class BlogPostCategorySerializer(serializers.ModelSerializer):
         return super().to_internal_value(formatted_data)
 
 
+class BlogAuthorSerializer(serializers.ModelSerializer):
+    email = serializers.CharField(source='user.email')
+    first_name = serializers.CharField(source='user.first_name')
+    last_name = serializers.CharField(source='user.last_name')
+
+    class Meta:
+        model = StaffAccount
+        fields = ['email', 'first_name', 'last_name']
+
+
 class BlogPostSerializer(serializers.ModelSerializer):
     category = BlogPostTagSerializer()
     tags = BlogPostTagSerializer(many=True)
-    author = StaffAccountSerializer(source='author.user', required=False)
+    author = BlogAuthorSerializer(read_only=True)
 
     class Meta:
         model = BlogPost
         fields = ['category', 'tags', 'content', 'date_created', 'author']
-        read_only_fields = ['date_created']
+        read_only_fields = ['date_created', 'author']
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
