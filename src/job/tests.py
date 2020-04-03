@@ -42,7 +42,7 @@ def create_employer(user):
 
 def create_default(user):
     return DefaultAccount.objects.create(user=user, phone_number='+48123456789', facility_name='test facility',
-                                          facility_address='TESTOWY ADRES')
+                                         facility_address='TESTOWY ADRES')
 
 
 class JobOfferCreateTestCase(APITestCase):
@@ -86,7 +86,7 @@ class JobOfferGetTestCase(APITestCase):
 
     @classmethod
     def setUp(cls):
-        cls.url = lambda self, id: '/job/job-offer/%s' % id
+        cls.url = lambda self, id: '/job/job-offer/%s/' % id
         cls.user = create_user()
         cls.offer = JobOffer.objects.create(**create_test_offer_data())
 
@@ -108,7 +108,7 @@ class JobOfferEditTestCase(APITestCase):
 
     @classmethod
     def setUp(cls):
-        cls.url = lambda self, id: '/job/job-offer/%s' % id
+        cls.url = lambda self, id: '/job/job-offer/%s/' % id
         cls.user = create_user()
         cls.offer = JobOffer.objects.create(**create_test_offer_data())
 
@@ -140,7 +140,7 @@ class JobOfferDeleteTestCase(APITestCase):
 
     @classmethod
     def setUp(cls):
-        cls.url = lambda self, id: '/job/job-offer/%s' % id
+        cls.url = lambda self, id: '/job/job-offer/%s/' % id
         cls.user = create_user()
         cls.offer = JobOffer.objects.create(**create_test_offer_data())
 
@@ -205,7 +205,8 @@ class EmployerJobOffersListTestCase(APITestCase):
         cls.url = '/job/employer/job-offers/'
         cls.user = create_user()
         cls.employer = create_employer(cls.user)
-        cls.employer_offer1 = JobOffer.objects.create(**create_test_offer_data(), employer=cls.employer)
+        cls.employer_offer1 = JobOffer.objects.create(
+            **create_test_offer_data(), employer=cls.employer)
         cls.employer_offer2 = JobOffer.objects.create(
             **create_test_offer_data(name='Oferta 2', description='nowa oferta - 2', expiration_date=date(2020, 1, 1),
                                      voivodeship='lubelskie'),
@@ -245,7 +246,7 @@ class JobOfferInterestedUsersAddTestCase(APITestCase):
 
     @classmethod
     def setUp(cls):
-        cls.url = lambda self, id: '/job/offer-interested/%s' % id
+        cls.url = lambda self, id: '/job/offer-interested/%s/' % id
         cls.user = create_user()
         cls.offer = JobOffer.objects.create(**create_test_offer_data())
 
@@ -281,8 +282,10 @@ class JobOfferInterestedUsersAddTestCase(APITestCase):
         updated_offer = JobOffer.objects.get()
         self.assertEquals(updated_offer.interested_users.count(), 1)
 
+
     def test_offer_insterested_users_not_default_user(self):
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(
+            user=self.user, token=self.user.auth_token)
         response1 = self.client.post(self.url(self.offer.id))
         self.assertEquals(response1.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEquals(JobOffer.objects.count(), 1)
@@ -294,7 +297,7 @@ class EmployerJobOfferInterestedUsersListTestCase(APITestCase):
 
     @classmethod
     def setUp(cls):
-        cls.url = lambda self, id: '/job/employer/offer-interested/%s' % id
+        cls.url = lambda self, id: '/job/employer/offer-interested/%s/' % id
         cls.employer_user = create_user(username='testemployer')
         cls.employer = create_employer(cls.employer_user)
         cls.user = create_user()
@@ -307,7 +310,7 @@ class EmployerJobOfferInterestedUsersListTestCase(APITestCase):
         response = self.client.get(self.url(self.offer.id))
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data), 1)
-        self.assertEquals(response.data[0]['id'], self.default_user.id)
+        self.assertEquals(response.data[0]['id'], str(self.user.id))
 
     def test_employer_offer_insterested_users_bad_offer(self):
         self.client.force_authenticate(user=self.user, token=self.user.auth_token)
@@ -328,4 +331,3 @@ class VoivodeshipEnumTestCase(APITestCase):
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data['voivodeships']), 16)
         self.assertEquals(sorted(response.data['voivodeships']), sorted(Voivodeships().getKeys()))
-
