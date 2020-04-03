@@ -4,6 +4,7 @@ from drf_yasg import openapi
 from django.http import HttpResponse, JsonResponse
 from django.utils.datastructures import MultiValueDictKeyError
 from drf_yasg.utils import swagger_auto_schema
+from django.utils.decorators import method_decorator
 from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from usamo import settings
@@ -18,7 +19,7 @@ from rest_framework import status, generics, parsers, renderers
 from rest_framework.response import Response
 from rest_framework import views
 from rest_framework.authtoken.models import Token
-
+from job.views import sample_message_response
 
 def index(request):
     return HttpResponse("Hello, world. You're at the CV generator.")
@@ -32,7 +33,7 @@ class CVView(views.APIView):
         responses={
             '201': 'CV successfully generated.',
             '400': 'Unexpected argument: cv_id',
-            '403': "This user's account is not of type DefaultAccount"
+            '403': "User type is not standard"
         },
         operation_description="Create or update database object for CV generation.",
     )
@@ -59,11 +60,15 @@ class CVView(views.APIView):
             return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
 
     @swagger_auto_schema(
-        operation_description='Generate pdf url based on existing CV data.',
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this cv')
+        ],
         responses={
-            '200': 'url',
+            '200': sample_message_response("/media/cv_docs/2020/04/03/file_name.pdf"),
             '404': "CV not found. Make sure cv_id was specified in the url."
-        }
+        },
+        operation_description='Generate pdf url based on existing CV data.'
     )
     def get(self, request, **kwargs):
         cv_id = kwargs.get('cv_id', None)
@@ -76,6 +81,10 @@ class CVView(views.APIView):
 
     @swagger_auto_schema(
         operation_description="Deletes cv from database if it exists",
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this cv')
+        ],
         responses={
             '200': 'CV deleted successfully.',
             '404': "CV not found. Make sure cv_id was specified in the url."
@@ -95,6 +104,10 @@ class CVView(views.APIView):
 class CVDataView(views.APIView):
     @swagger_auto_schema(
         operation_description="Returns CV data in json format",
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this cv')
+        ],
         responses={
             '200': CVDataSerializer,
             '404': "CV not found."
@@ -125,7 +138,10 @@ class CVPictureView(views.APIView):
                 name='picture',
                 in_='form-data',
                 type=openapi.TYPE_FILE
-            )],
+            ),
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this cv')
+        ],
         responses={
             '201': 'Picture added successfully.',
             '400': 'Make sure the form key is "picture". / serializer errors ',
@@ -158,8 +174,12 @@ class CVPictureView(views.APIView):
 
     @swagger_auto_schema(
         operation_description="Returns picture url if it was uploaded",
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this cv')
+        ],
         responses={
-            200: 'url',
+            200: sample_message_response("/media/cv_pics/2020/04/03/file_name.png"),
             404: 'CV/picture not found'
         }
     )
@@ -177,6 +197,10 @@ class CVPictureView(views.APIView):
 
     @swagger_auto_schema(
         operation_description="Deletes cv picture from the database",
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this cv')
+        ],
         responses={
             200: 'Picture deleted successfully.',
             404: 'CV/picture not found.'
@@ -199,9 +223,14 @@ class CVPictureView(views.APIView):
 
         return Response('Picture deleted successfully.', status.HTTP_200_OK)
 
-
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': CVDataSerializer(many=True),
+        '404': "Not found",
+    },
+    operation_description="Returns unverified cv list for admin"
+))
 class AdminUnverifiedCVList(generics.ListAPIView):
-
     serializer_class = CVDataSerializer
     permission_classes = [IsAdminUser]
 
@@ -217,6 +246,14 @@ class AdminFeedback(views.APIView):
     permission_classes = [IsAdminUser]
     serializer_class = FeedbackSerializer
 
+    @swagger_auto_schema(
+        request_body=FeedbackSerializer,
+        responses={
+            '201': 'Feedback successfully created.',
+            '400': 'Serializer errors'
+        },
+        operation_description="Lets admin create feedback for a cv.",
+    )
     def post(self, request):
         request_data = request.data
         serializer = self.serializer_class(data=request_data)
@@ -228,10 +265,18 @@ class AdminFeedback(views.APIView):
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': FeedbackSerializer,
+        '404': "Not found",
+    },
+    manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string')
+        ],
+    operation_description="Returns feedback for users cv"
+))
 class CVFeedback(generics.RetrieveAPIView):
-    """
-    Returns CV feedback from admin.
-    """
+    
     serializer_class = FeedbackSerializer
 
     def get_object(self):
@@ -243,6 +288,10 @@ class CVFeedback(generics.RetrieveAPIView):
 class CVStatus(views.APIView):
     @swagger_auto_schema(
         operation_description="Returns cv verification status",
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this cv')
+        ],
         responses={
             200: 'is_verified: true/false',
             404: 'detail: not found'
@@ -254,12 +303,26 @@ class CVStatus(views.APIView):
         return JsonResponse(response, safe=False)
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': CVDataSerializer(many=True),
+        '404': "Not found",
+    },
+    operation_description="Returns all CVs list for admin"
+))
 class AdminCVListView(generics.ListAPIView):
     queryset = CV.objects.all()
     serializer_class = CVDataSerializer
     permission_classes = [IsAdminUser]
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': CVDataSerializer(many=True),
+        '404': "Not found",
+    },
+    operation_description="Returns users CV list"
+))
 class UserCVListView(generics.ListAPIView):
     serializer_class = CVDataSerializer
     permission_classes = [IsAuthenticated]

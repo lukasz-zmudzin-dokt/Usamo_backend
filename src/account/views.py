@@ -1,7 +1,8 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import JsonResponse, HttpRequest
-from drf_yasg.openapi import Schema
+from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework import views
 from rest_framework.authtoken.models import Token
@@ -29,7 +30,7 @@ class AbstractRegistrationView(views.APIView):
             user = serializer.create(serializer.validated_data)
             self.set_response_params(user=user, response_data=response_data)
         else:
-            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
         return Response(response_data, status=status.HTTP_201_CREATED)
 
@@ -45,13 +46,13 @@ class AbstractRegistrationView(views.APIView):
 
 
 def sample_registration_response(account_type):
-    response = Schema(properties={
-        'response_message': Schema(type='string', default='Successfully registered a new user'),
-        'email': Schema(type='string', format='email', default='example@domain.com'),
-        'username': Schema(type='string', default='sample_user'),
-        'token': Schema(type='string', default='8f67f4a7e4c79f720ea82e6008f2f6e8a9661af7'),
-        'status': Schema(type='string', default='Waiting for verification'),
-        'type': Schema(type='string', default=account_type)
+    response = openapi.Schema(properties={
+        'response_message': openapi.Schema(type='string', default='Successfully registered a new user'),
+        'email': openapi.Schema(type='string', format='email', default='example@domain.com'),
+        'username': openapi.Schema(type='string', default='sample_user'),
+        'token': openapi.Schema(type='string', default='8f67f4a7e4c79f720ea82e6008f2f6e8a9661af7'),
+        'status': openapi.Schema(type='string', default='Waiting for verification'),
+        'type': openapi.Schema(type='string', default=account_type)
     },
         type='object'
     )
@@ -77,7 +78,7 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
         query_serializer=DefaultAccountSerializer,
         responses={
             201: sample_registration_response('Standard'),
-            406: 'Not acceptable'
+            400: 'Serializer errors'
         }
     )
     def post(self, request):
@@ -106,7 +107,7 @@ class EmployerRegistrationView(AbstractRegistrationView):
         query_serializer=EmployerAccountSerializer,
         responses={
             201: sample_registration_response('Employer'),
-            406: 'Not acceptable'
+            400: 'Serializer errors'
         }
     )
     def post(self, request):
@@ -119,7 +120,7 @@ class StaffRegistrationView(AbstractRegistrationView):
         query_serializer=StaffAccountSerializer,
         responses={
             201: sample_registration_response('Staff'),
-            406: 'Not acceptable'
+            400: 'Serializer errors'
         }
     )
     def post(self, request):
@@ -154,7 +155,7 @@ class LoginView(ObtainAuthToken):
         operation_description="Obtain auth token by specifying username and password",
         responses={
             201: 'Generated token and user type',
-            406: 'Serializer errors/ Unable to login with given credentials'
+            400: 'Serializer errors/ Unable to login with given credentials'
         }
     )
     def post(self, request, *args, **kwargs):
@@ -168,7 +169,7 @@ class LoginView(ObtainAuthToken):
                 'type': dict(ACCOUNT_TYPE_CHOICES)[user.type]
             }, status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class DataView(views.APIView):
@@ -200,6 +201,18 @@ class DataView(views.APIView):
 class AdminUserAdmissionView(views.APIView):
     permission_classes = [IsAdminUser]
 
+    @swagger_auto_schema(
+        responses={
+            '200': 'User successfully verified.',
+            '400': 'User id was not specified.',
+            '404': 'User with the id given was not found.'
+        },
+        manual_parameters=[
+            openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this account')
+        ],
+        operation_description="Sets user's status to verified.",
+    )
     def post(self, request, user_id):
         if user_id is not None:
             try:
@@ -210,12 +223,24 @@ class AdminUserAdmissionView(views.APIView):
             user.save()
             return Response('User successfully verified.', status.HTTP_200_OK)
 
-        return Response('User id was not specified.', status.HTTP_406_NOT_ACCEPTABLE)
+        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
 
 
 class AdminUserRejectionView(views.APIView):
     permission_classes = [IsAdminUser]
 
+    @swagger_auto_schema(
+        responses={
+            '200': 'User status successfully set to not verified.',
+            '400': 'User id was not specified.',
+            '404': 'User with the id given was not found.'
+        },
+        manual_parameters=[
+            openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this account')
+        ],
+        operation_description="Sets user's status to not verified.",
+    )
     def post(self, request, user_id):
         if user_id is not None:
             try:
@@ -229,6 +254,13 @@ class AdminUserRejectionView(views.APIView):
         return Response('User id was not specified.', status.HTTP_406_NOT_ACCEPTABLE)
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': AccountListSerializer(many=True),
+        '404': "Not found",
+    },
+    operation_description="Returns all accounts list for admin"
+))
 class AdminAllAccountsListView(ListAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountListSerializer
@@ -237,6 +269,13 @@ class AdminAllAccountsListView(ListAPIView):
     filterset_class = UserListFilter
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': AccountListSerializer(many=True),
+        '404': "Not found",
+    },
+    operation_description="Returns standard accounts list for admin"
+))
 class AdminDefaultAccountsListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [IsAdminUser]
@@ -247,6 +286,13 @@ class AdminDefaultAccountsListView(ListAPIView):
         return Account.objects.filter(type=AccountType.STANDARD.value)
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': AccountListSerializer(many=True),
+        '404': "Not found",
+    },
+    operation_description="Returns employer accounts list for admin"
+))
 class AdminEmployerListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [IsAdminUser]
@@ -257,6 +303,13 @@ class AdminEmployerListView(ListAPIView):
         return Account.objects.filter(type=AccountType.EMPLOYER.value)
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': AccountListSerializer(many=True),
+        '404': "Not found",
+    },
+    operation_description="Returns staff accounts list for admin"
+))
 class AdminStaffListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [IsAdminUser]
@@ -267,6 +320,13 @@ class AdminStaffListView(ListAPIView):
         return Account.objects.filter(type=AccountType.STAFF.value)
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': DefaultAccountDetailSerializer,
+        '404': "Not found",
+    },
+    operation_description="Get user's data by specifying his/her id (for admin). Example response is for standard user."
+))
 class AdminUserDetailView(RetrieveAPIView):
     queryset = Account.objects.all()
     permission_classes = [IsAdminUser]
