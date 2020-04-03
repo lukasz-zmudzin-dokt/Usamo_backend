@@ -1,9 +1,12 @@
+import django_filters
+from django.shortcuts import get_object_or_404
+
 from account.models import StaffAccount
 from django.core.exceptions import ObjectDoesNotExist
 from drf_yasg.openapi import Schema
-from rest_framework import views, status
+from rest_framework import views, status, generics
 from rest_framework.decorators import permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from account.permissions import IsStaffBlogCreator, IsStaffBlogModerator
@@ -88,3 +91,24 @@ class BlogPostView(views.APIView):
             return Response(status=status.HTTP_204_NO_CONTENT)
         except ObjectDoesNotExist:
             return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
+
+
+class BlogPostCategoryListView(generics.ListAPIView):
+    serializer_class = BlogPostCategorySerializer
+    permission_classes = [AllowAny]
+    queryset = BlogPostCategory.objects.all()
+
+
+class BlogPostListView(generics.ListAPIView):
+    serializer_class = BlogPostSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = BlogPost.objects.all()
+        category = self.request.query_params.get('category', None)
+        tag = self.request.query_params.get('tag', None)
+        if category is not None:
+            queryset = queryset.filter(category__name=category)
+        if tag is not None:
+            queryset = queryset.filter(tags__name__contains=tag)
+        return queryset

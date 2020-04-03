@@ -3,7 +3,7 @@
     "model": "cv.cv",
     "pk": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
     "fields": {
-      "user": 1,
+      "cv_user": 1,
       "wants_verification": true,
       "is_verified": true,
       "document": "cv_docs/2020/03/28/Oiu76z2ZiOcmkQEnlmWsDzQgQi4MuDNqkp96gKjBSFU4.pdf"
