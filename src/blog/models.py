@@ -1,7 +1,7 @@
 from django.db import models
 from .utils import create_blog_attachment_file_path
 
-from account.models import StaffAccount, Account
+from account.models import StaffAccount, DefaultAccount, Account
 
 
 class BlogPostTag(models.Model):
@@ -27,8 +27,8 @@ class BlogPostAttachment(models.Model):
 
 
 class BlogPostComment(models.Model):
-    author = models.ForeignKey(Account, on_delete=models.CASCADE)
+    author = models.ForeignKey(Account, null=True, on_delete=models.CASCADE)
     content = models.TextField()
-    blog_post = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
+    blog_post = models.ForeignKey(BlogPost, null=True, on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
 

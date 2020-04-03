@@ -1,8 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from account.serializers import StaffAccountSerializer
-from account.models import StaffAccount
+from account.models import StaffAccount, Account
 
 from .models import *
 
@@ -34,6 +33,16 @@ class BlogAuthorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StaffAccount
+        fields = ['email', 'first_name', 'last_name']
+
+
+class CommentAuthorSerializer(serializers.ModelSerializer):
+    email = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
+
+    class Meta:
+        model = Account
         fields = ['email', 'first_name', 'last_name']
 
 
@@ -81,3 +90,20 @@ class BlogPostSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+
+class BlogPostCommentSerializer(serializers.ModelSerializer):
+    author = CommentAuthorSerializer(read_only=True)
+    blog_post = BlogPostSerializer(required=False)
+
+    class Meta:
+        model = BlogPostComment
+        fields = ['author', 'content', 'blog_post', 'date_created']
+        read_only_fields = ['date_created', 'author']
+
+    def create(self, validated_data):
+        return BlogPostComment.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.content = validated_data.get('content', instance.content)
+        instance.save()
+        return instance

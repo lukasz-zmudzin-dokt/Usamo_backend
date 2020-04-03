@@ -1,4 +1,4 @@
-from account.models import StaffAccount
+from account.models import StaffAccount, DefaultAccount, Account
 from django.core.exceptions import ObjectDoesNotExist
 from drf_yasg.openapi import Schema, Parameter, IN_PATH
 from drf_yasg.utils import swagger_auto_schema
@@ -29,6 +29,11 @@ def sample_error_response(error_message):
 
 
 class BlogPostIdResponse(Response):
+    def __init__(self, id):
+        super().__init__(data={"id": id}, status=status.HTTP_200_OK)
+
+
+class BlogPostCommentIdResponse(Response):
     def __init__(self, id):
         super().__init__(data={"id": id}, status=status.HTTP_200_OK)
 
@@ -159,3 +164,44 @@ class BlogPostView(views.APIView):
             return Response(status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
+
+
+class BlogPostCommentCreateView(views.APIView):
+
+    @permission_classes([IsAuthenticated])
+    def post(self, request, id):
+        try:
+            author = Account.objects.get(id=request.user.id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("No user?", status.HTTP_403_FORBIDDEN)
+        try:
+            blog_post = BlogPost.objects.get(pk=id)
+            serializer = BlogPostCommentSerializer(data=request.data)
+            if serializer.is_valid():
+                instance = serializer.create(serializer.validated_data)
+                instance.author = author
+                instance.blog_post = blog_post
+                instance.save()
+                return BlogPostCommentIdResponse(instance.id)
+            else:
+                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return ErrorResponse(f"No blog with id: {id}", status.HTTP_400_BAD_REQUEST)
+
+
+class BlogPostCommentUpdateView(views.APIView):
+
+    @permission_classes([IsAuthenticated])
+    def put(self, request, id):
+        try:
+            comment = BlogPostComment.objects.get(pk=id)
+            if comment.author.id != request.user.id:
+                return ErrorResponse("Not a comment author", status.HTTP_400_BAD_REQUEST)
+            serializer = BlogPostCommentSerializer(comment, data=request.data, partial=True)
+            if serializer.is_valid():
+                serializer.save()
+                return BlogPostCommentIdResponse(comment.id)
+            else:
+                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
