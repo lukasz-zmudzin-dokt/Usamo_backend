@@ -1,9 +1,10 @@
 import django_filters
 from django.shortcuts import get_object_or_404
+from django.utils.decorators import method_decorator
 
 from account.models import StaffAccount
 from django.core.exceptions import ObjectDoesNotExist
-from drf_yasg.openapi import Schema
+from drf_yasg.openapi import Schema, IN_QUERY
 from rest_framework import views, status, generics
 from drf_yasg.openapi import Schema, Parameter, IN_PATH
 from drf_yasg.utils import swagger_auto_schema
@@ -47,6 +48,7 @@ def sample_blogpostid_response():
         }
     )
 
+
 def sample_blogpost_request(required=True):
     return Schema(
         type='object',
@@ -57,6 +59,7 @@ def sample_blogpost_request(required=True):
         },
         required=['category', 'tags', 'content'] if required else []
     )
+
 
 def sample_blogpost_response():
     return Schema(
@@ -167,12 +170,22 @@ class BlogPostView(views.APIView):
             return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+        operation_description="Returns list of all categories."
+    ))
 class BlogPostCategoryListView(generics.ListAPIView):
     serializer_class = BlogPostCategorySerializer
     permission_classes = [AllowAny]
     queryset = BlogPostCategory.objects.all()
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+        manual_parameters=[
+            Parameter('category', IN_QUERY, type='string'),
+            Parameter('tag', IN_QUERY, type='string')
+        ],
+        operation_description="Returns blog post list. Can be filtered by category and/or tag."
+    ))
 class BlogPostListView(generics.ListAPIView):
     serializer_class = BlogPostSerializer
     permission_classes = [AllowAny]
