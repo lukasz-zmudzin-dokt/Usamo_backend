@@ -56,6 +56,7 @@ class JobOfferFiltersSerializer(serializers.Serializer):
 
 
 class InterestedUserSerializer(serializers.ModelSerializer):
+    id = serializers.UUIDField(source='user.id')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
     email = serializers.CharField(source='user.email')

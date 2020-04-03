@@ -1,52 +1,35 @@
 [
   {
     "model": "job.joboffer",
-    "pk": "00f56b34-be73-4bdf-88e9-a5b3337935ef",
+    "pk": "47991e86-4b42-4507-b154-1548bf8a3bd3",
     "fields": {
-      "offer_name": "Test offer 2",
-      "company_name": "Test company",
-      "company_address": "Test company address",
-      "voivodeship": "lubelskie",
-      "expiration_date": "2021-12-12",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nibh augue, suscipit a, scelerisque sed, lacinia in, mi. Cras vel lorem. Etiam pellentesque aliquet tellus. Phasellus pharetra nulla ac diam. Quisque semper justo at risus. Donec venenatis, turpis vel hendrerit interdum, dui ligula ultricies purus, sed posuere libero dui id orci. Nam congue, pede vitae dapibus aliquet, elit magna vulputate arcu, vel tempus metus leo non est. Etiam sit amet lectus quis est congue mollis. Phasellus congue lacus eget neque. Phasellus ornare, ante vitae consectetuer consequat, purus sapien ultricies dolor, et mollis pede metus eget nisi. Praesent sodales velit quis augue. Cras suscipit, urna at aliquam rhoncus, urna quam viverra nisi, in interdum massa nibh nec erat.",
+      "offer_name": "offer1",
+      "company_name": "company1",
+      "company_address": "adress1",
+      "voivodeship": "mazowieckie",
+      "expiration_date": "2020-05-28",
+      "description": "description",
       "removed": false,
       "employer": 1,
-      "interested_users": [
-        1
-      ]
+      "interested_users": []
     }
   },
   {
     "model": "job.joboffer",
-    "pk": "072f36de-0736-4544-b4cb-b3200971fbd2",
+    "pk": "fbca7511-3879-47b6-ab08-8d39ccc2b6f3",
     "fields": {
-      "offer_name": "Test offer 1",
-      "company_name": "Test company",
-      "company_address": "Test company address",
-      "voivodeship": "mazowieckie",
-      "expiration_date": "2020-12-12",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nibh augue, suscipit a, scelerisque sed, lacinia in, mi. Cras vel lorem. Etiam pellentesque aliquet tellus. Phasellus pharetra nulla ac diam. Quisque semper justo at risus. Donec venenatis, turpis vel hendrerit interdum, dui ligula ultricies purus, sed posuere libero dui id orci. Nam congue, pede vitae dapibus aliquet, elit magna vulputate arcu, vel tempus metus leo non est. Etiam sit amet lectus quis est congue mollis. Phasellus congue lacus eget neque. Phasellus ornare, ante vitae consectetuer consequat, purus sapien ultricies dolor, et mollis pede metus eget nisi. Praesent sodales velit quis augue. Cras suscipit, urna at aliquam rhoncus, urna quam viverra nisi, in interdum massa nibh nec erat.",
+      "offer_name": "offer2",
+      "company_name": "company2",
+      "company_address": "adress2",
+      "voivodeship": "lubelskie",
+      "expiration_date": "2020-05-28",
+      "description": "description2",
       "removed": false,
       "employer": 1,
       "interested_users": [
         1,
         2
       ]
-    }
-  },
-  {
-    "model": "job.joboffer",
-    "pk": "2c464add-ba6c-4f2d-8b15-72228294e31d",
-    "fields": {
-      "offer_name": "Test offer 3",
-      "company_name": "Test company",
-      "company_address": "Test company address",
-      "voivodeship": "lubelskie",
-      "expiration_date": "2020-05-01",
-      "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Proin nibh augue, suscipit a, scelerisque sed, lacinia in, mi. Cras vel lorem. Etiam pellentesque aliquet tellus. Phasellus pharetra nulla ac diam. Quisque semper justo at risus. Donec venenatis, turpis vel hendrerit interdum, dui ligula ultricies purus, sed posuere libero dui id orci. Nam congue, pede vitae dapibus aliquet, elit magna vulputate arcu, vel tempus metus leo non est. Etiam sit amet lectus quis est congue mollis. Phasellus congue lacus eget neque. Phasellus ornare, ante vitae consectetuer consequat, purus sapien ultricies dolor, et mollis pede metus eget nisi. Praesent sodales velit quis augue. Cras suscipit, urna at aliquam rhoncus, urna quam viverra nisi, in interdum massa nibh nec erat.",
-      "removed": false,
-      "employer": 1,
-      "interested_users": []
     }
   }
 ]
