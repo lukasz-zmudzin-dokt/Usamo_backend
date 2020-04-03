@@ -8,6 +8,7 @@ from rest_framework.decorators import action
 from rest_framework.generics import get_object_or_404
 from usamo import settings
 from account.models import DefaultAccount
+from account.account_type import AccountType
 from .models import *
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.compat import coreapi, coreschema
@@ -45,10 +46,9 @@ class CVView(views.APIView):
         try:
             def_account = DefaultAccount.objects.get(user=request.user)
         except DefaultAccount.DoesNotExist:
-            return Response("This user's account is not of type DefaultAccount", status.HTTP_403_FORBIDDEN)
+            return Response('User type is not standard', status.HTTP_403_FORBIDDEN)
 
-        request_data['user'] = def_account.id
-        request_data['user_id'] = request.user.id
+        request_data['cv_user'] = def_account.id
         serializer = self.serializer_class(data=request_data)
 
         if serializer.is_valid():
@@ -96,7 +96,7 @@ class CVDataView(views.APIView):
     @swagger_auto_schema(
         operation_description="Returns CV data in json format",
         responses={
-            '200': CVSerializer,
+            '200': CVDataSerializer,
             '404': "CV not found."
         }
     )
@@ -106,7 +106,7 @@ class CVDataView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
             return Response("CV not found.", status.HTTP_404_NOT_FOUND)
-        serializer = CVSerializer(instance=cv)
+        serializer = CVDataSerializer(instance=cv)
         return Response(serializer.data, status.HTTP_200_OK)
 
 
@@ -202,7 +202,7 @@ class CVPictureView(views.APIView):
 
 class AdminUnverifiedCVList(generics.ListAPIView):
 
-    serializer_class = CVSerializer
+    serializer_class = CVDataSerializer
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):
@@ -256,16 +256,16 @@ class CVStatus(views.APIView):
 
 class AdminCVListView(generics.ListAPIView):
     queryset = CV.objects.all()
-    serializer_class = CVSerializer
+    serializer_class = CVDataSerializer
     permission_classes = [IsAdminUser]
 
 
 class UserCVListView(generics.ListAPIView):
-    serializer_class = CVSerializer
+    serializer_class = CVDataSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
         user = self.request.user
         def_account = get_object_or_404(
             DefaultAccount.objects.filter(user=user))
-        return CV.objects.filter(user=def_account)
+        return CV.objects.filter(cv_user=def_account)

@@ -25,7 +25,7 @@ def validate_cv_id(cv_id):
 
 class CV(models.Model):
     cv_id = models.UUIDField(primary_key=True, editable=False)
-    user = models.ForeignKey(DefaultAccount, related_name='cv_user', on_delete=models.CASCADE)
+    cv_user = models.ForeignKey(DefaultAccount, related_name='cv_user', on_delete=models.CASCADE)
     wants_verification = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
     document = models.FileField(upload_to='cv_docs/%Y/%m/%d/')
