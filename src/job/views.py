@@ -219,7 +219,7 @@ class JobOfferListView(generics.ListAPIView):
         return JobOffer.objects.filter(removed=False, **valid_filters)
 
     def get(self, request):
-        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.data)
+        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.query_params)
         if self.filter_serializer.is_valid():
             return super().get(request)
         else:
