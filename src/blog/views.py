@@ -176,6 +176,7 @@ class BlogPostCommentCreateView(views.APIView):
             return ErrorResponse("No user?", status.HTTP_403_FORBIDDEN)
         try:
             blog_post = BlogPost.objects.get(pk=id)
+            request.data["blog_post"] = blog_post.pk
             serializer = BlogPostCommentSerializer(data=request.data)
             if serializer.is_valid():
                 instance = serializer.create(serializer.validated_data)
@@ -196,7 +197,7 @@ class BlogPostCommentUpdateView(views.APIView):
         try:
             comment = BlogPostComment.objects.get(pk=id)
             if comment.author.id != request.user.id:
-                return ErrorResponse("Not a comment author", status.HTTP_400_BAD_REQUEST)
+                return ErrorResponse("Not a comment author", status.HTTP_403_FORBIDDEN)
             serializer = BlogPostCommentSerializer(comment, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()

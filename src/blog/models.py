@@ -29,6 +29,6 @@ class BlogPostAttachment(models.Model):
 class BlogPostComment(models.Model):
     author = models.ForeignKey(Account, null=True, on_delete=models.CASCADE)
     content = models.TextField()
-    blog_post = models.ForeignKey(BlogPost, null=True, on_delete=models.CASCADE)
+    blog_post = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
 

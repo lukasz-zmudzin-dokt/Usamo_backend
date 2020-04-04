@@ -93,7 +93,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
 class BlogPostCommentSerializer(serializers.ModelSerializer):
     author = CommentAuthorSerializer(read_only=True)
-    blog_post = BlogPostSerializer(required=False)
+    # blog_post = BlogPostSerializer(required=False)
 
     class Meta:
         model = BlogPostComment
