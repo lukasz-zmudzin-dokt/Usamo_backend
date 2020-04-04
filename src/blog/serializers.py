@@ -51,8 +51,6 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        response['category'] = instance.category.name
-        response['tags'] = [tag['name'] for tag in response['tags']]
         return response
 
     def create(self, validated_data):
