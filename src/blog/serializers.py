@@ -26,6 +26,9 @@ class BlogPostCategorySerializer(serializers.ModelSerializer):
         formatted_data = {'name': data}
         return super().to_internal_value(formatted_data)
 
+    def to_representation(self, instance):
+        return instance.name
+
 
 class BlogAuthorSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email')
