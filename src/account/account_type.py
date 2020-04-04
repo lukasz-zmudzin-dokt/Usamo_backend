@@ -18,10 +18,12 @@ class StaffGroupType(Enum):
     STAFF_VERIFICATION = 'staff_verification'
     STAFF_CV = 'staff_cv'
     STAFF_JOBS = 'staff_jobs'
+    STAFF_BLOG_CREATOR = 'staff_blog_creator'
+    STAFF_BLOG_MODERATOR = 'staff_blog_moderator'
 
     @staticmethod
     def get_all_types():
-        return [StaffGroupType.STAFF_VERIFICATION.value, StaffGroupType.STAFF_CV.value, StaffGroupType.STAFF_JOBS.value]
+        return [e.value for e in StaffGroupType]
 
 
 STAFF_GROUP_CHOICES = [
