@@ -64,6 +64,8 @@ def sample_offer_response():
         properties={
             'id': Schema(type='string', default="uuid4"),
             'offer_name': Schema(type='string', default="offer name"),
+            'category': Schema(type='string', default="offer category"),
+            'type': Schema(type='string', default="offer type"),
             'company_name': Schema(type='string', default="company name"),
             'company_address': Schema(type='string', default="company address"),
             'voivodeship': Schema(type='string', default="mazowieckie"),
@@ -219,7 +221,7 @@ class JobOfferListView(generics.ListAPIView):
         return JobOffer.objects.filter(removed=False, **valid_filters)
 
     def get(self, request):
-        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.data)
+        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.query_params)
         if self.filter_serializer.is_valid():
             return super().get(request)
         else:
