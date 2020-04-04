@@ -22,7 +22,7 @@ class IsStaffBlogCreator(AbstractIsAllowedStaff):
 class IsStaffBlogModerator(AbstractIsAllowedStaff):
 
     def _get_allowed_staff_type(self):
-        return StaffGroupType.STAFF_BLOG_CREATOR
+        return StaffGroupType.STAFF_BLOG_MODERATOR
 
     def has_object_permission(self, request, view, obj):
         return hasattr(obj, 'author')
