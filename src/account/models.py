@@ -6,7 +6,7 @@ from django.conf import settings
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.authtoken.models import Token
 from django.contrib.auth.models import Group, PermissionsMixin
-from datetime import datetime
+from django.utils import timezone
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
 from .account_type import *
 import uuid
@@ -95,14 +95,14 @@ class StaffAccount(models.Model):
 def create_user_token(sender, instance, created, **kwargs):
     if created:
         Token.objects.create(user=instance)
-        instance.last_login = datetime.now()
-        instance.date_joined = datetime.now()
+        instance.last_login = timezone.now()
+        instance.date_joined = timezone.now()
 
 
 @receiver(post_save, sender=Token)
 def update_last_login(sender, instance, created, **kwargs):
     if created:
-        instance.user.last_login = datetime.now()
+        instance.user.last_login = timezone.now()
         instance.user.save()
 
 

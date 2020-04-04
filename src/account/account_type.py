@@ -28,6 +28,8 @@ class StaffGroupType(Enum):
 
 STAFF_GROUP_CHOICES = [
     (StaffGroupType.STAFF_VERIFICATION.value, 'staff_verification'),
-    (AccountType.STAFF.value, 'staff_cv'),
-    (AccountType.EMPLOYER.value, 'staff_jobs')
+    (StaffGroupType.STAFF_CV.value, 'staff_cv'),
+    (StaffGroupType.STAFF_JOBS.value, 'staff_jobs'),
+    (StaffGroupType.STAFF_BLOG_CREATOR.value, 'staff_blog_creator'),
+    (StaffGroupType.STAFF_BLOG_MODERATOR.value, 'staff_blog_moderator')
 ]
