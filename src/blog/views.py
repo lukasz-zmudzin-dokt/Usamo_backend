@@ -1,13 +1,12 @@
-from account.models import StaffAccount
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.decorators import method_decorator
+from drf_yasg.openapi import IN_QUERY
 from drf_yasg.openapi import Schema, Parameter, IN_PATH
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics
 from rest_framework import views, status
-from rest_framework.decorators import permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
-from account.serializers import StaffAccountSerializer
 
 from .permissions import *
 from .serializers import *
@@ -40,6 +39,7 @@ def sample_blogpostid_response():
         }
     )
 
+
 def sample_blogpost_request(required=True):
     return Schema(
         type='object',
@@ -50,6 +50,7 @@ def sample_blogpost_request(required=True):
         },
         required=['category', 'tags', 'content'] if required else []
     )
+
 
 def sample_blogpost_response():
     return Schema(
@@ -158,3 +159,43 @@ class BlogPostView(views.APIView):
             return Response(status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
             return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
+
+
+@method_decorator(name='get', decorator=swagger_auto_schema(
+        operation_description="Returns list of all categories."
+    ))
+class BlogPostCategoryListView(generics.ListAPIView):
+    serializer_class = BlogPostCategorySerializer
+    permission_classes = [AllowAny]
+    queryset = BlogPostCategory.objects.all()
+
+
+@method_decorator(name='get', decorator=swagger_auto_schema(
+        operation_description="Returns list of all tags."
+    ))
+class BlogPostTagListView(generics.ListAPIView):
+    serializer_class = BlogPostTagSerializer
+    permission_classes = [AllowAny]
+    queryset = BlogPostTag.objects.all()
+
+
+@method_decorator(name='get', decorator=swagger_auto_schema(
+        manual_parameters=[
+            Parameter('category', IN_QUERY, type='string'),
+            Parameter('tag', IN_QUERY, type='string')
+        ],
+        operation_description="Returns blog post list. Can be filtered by category and/or tag."
+    ))
+class BlogPostListView(generics.ListAPIView):
+    serializer_class = BlogPostSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        queryset = BlogPost.objects.all()
+        category = self.request.query_params.get('category', None)
+        tag = self.request.query_params.get('tag', None)
+        if category is not None:
+            queryset = queryset.filter(category__name=category)
+        if tag is not None:
+            queryset = queryset.filter(tags__name__contains=tag)
+        return queryset
