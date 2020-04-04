@@ -1,21 +1,12 @@
-import django_filters
-from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
-
-from account.models import StaffAccount
 from django.core.exceptions import ObjectDoesNotExist
-from drf_yasg.openapi import Schema, IN_QUERY
-from rest_framework import views, status, generics
+from django.utils.decorators import method_decorator
+from drf_yasg.openapi import IN_QUERY
 from drf_yasg.openapi import Schema, Parameter, IN_PATH
 from drf_yasg.utils import swagger_auto_schema
+from rest_framework import generics
 from rest_framework import views, status
-from rest_framework.decorators import permission_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-
-from account.permissions import IsStaffBlogCreator, IsStaffBlogModerator
-
-from account.serializers import StaffAccountSerializer
 
 from .permissions import *
 from .serializers import *

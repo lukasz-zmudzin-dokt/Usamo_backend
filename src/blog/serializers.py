@@ -1,11 +1,5 @@
-from abc import ABC
-
 from django.utils import timezone
 from rest_framework import serializers
-
-from account.serializers import StaffAccountSerializer
-from account.models import StaffAccount
-
 from .models import *
 
 
