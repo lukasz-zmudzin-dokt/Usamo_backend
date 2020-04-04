@@ -56,10 +56,11 @@ class BlogPostSerializer(serializers.ModelSerializer):
     category = BlogPostTagSerializer()
     tags = BlogPostTagSerializer(many=True)
     author = BlogAuthorSerializer(read_only=True)
+    summary = serializers.CharField(required=False)
 
     class Meta:
         model = BlogPost
-        fields = ['category', 'tags', 'content', 'date_created', 'author']
+        fields = ['category', 'tags', 'content', 'date_created', 'author', 'summary']
         read_only_fields = ['date_created', 'author']
 
     def to_representation(self, instance):
@@ -90,9 +91,25 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
         if 'content' in validated_data:
             instance.content = validated_data.get('content', instance.content)
+
+        if 'summary' in validated_data:
+            instance.summary = validated_data.get('summary', instance.summary)
+        else:
+            instance.summary = set_summary(instance.content)
+
         instance.date_modified = timezone.now()
         instance.save()
         return instance
+
+
+class BlogPostListSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)
+    category = BlogPostTagSerializer(read_only=True)
+    tags = BlogPostTagSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = BlogPost
+        fields = ['id', 'category', 'tags', 'summary']
 
 
 class BlogPostCommentSerializer(serializers.ModelSerializer):
