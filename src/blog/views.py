@@ -98,7 +98,7 @@ class BlogPostCreateView(views.APIView):
             serializer = BlogPostSerializer(data=request.data)
             if serializer.is_valid():
                 instance = serializer.create(serializer.validated_data)
-                instance.author_id = author.id
+                instance.author = author
                 instance.save()
                 return BlogPostIdResponse(instance.id)
             else:
