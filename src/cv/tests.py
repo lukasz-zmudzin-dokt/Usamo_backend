@@ -18,11 +18,14 @@ from cv.cv_test_data import user_data
 import os
 
 
-class GenerateTestCase(APITestCase):
+class CVGeneratorTestCase(APITestCase):
     @classmethod
     def setUp(cls):
-        cls.url = 'cv/generate/'
-        cls.user = Account.objects.create_user(username='testuser', password='testuser', first_name='test', last_name='test', email='pan@test.com')
+        cls.url_generator = 'cv/generator/'
+        cls.url_delete
+        cls.url_get
+        cls.user = Account.objects.create_user(
+            username='testuser', password='testuser', first_name='test', last_name='test', email='pan@test.com')
         cls.token = Token.objects.get_or_create(user=cls.user)
 
     def _make_request(self, data, method):
@@ -69,7 +72,9 @@ class GenerateTestCase(APITestCase):
         response = generate_view(request)
 
         self.assertEqual(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
-        self.assertRaises(CV.DoesNotExist, lambda: CV.objects.get(cv_id=self.user.id))
+        self.assertRaises(
+            CV.DoesNotExist, lambda: CV.objects.get(cv_id=self.user.id))
+
 
 class DataTestCase(APITestCase):
     @classmethod
@@ -77,6 +82,7 @@ class DataTestCase(APITestCase):
         cls.url = '/cv/data/'
         cls.token = 'insert_token_here'
         cls.cv_data = cv_test_data
+
 
 class PictureTestCase(APITestCase):
     @classmethod
@@ -88,14 +94,15 @@ class PictureTestCase(APITestCase):
         cls.picture = SimpleUploadedFile(name='test_image.png',
                                          content=open('cv/cv_pic.png', 'rb').read(), content_type='image/png')
         cls.user_data = user_data
-    
+
     def test_picture_success(self):
         self.client = APIClient()
         self.client.post(self.url_reg, self.user_data, format='json')
         user = Account.objects.get()
         self.client.force_authenticate(user=user, token=user.auth_token)
         self.client.post(self.url_cv, self.cv_data, format='json')
-        response = self.client.post(self.url, {'picture' : self.picture}, format='multipart')
+        response = self.client.post(
+            self.url, {'picture': self.picture}, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
         data1 = BasicInfo.objects.get()
@@ -112,14 +119,15 @@ class PictureTestCase(APITestCase):
         user = Account.objects.get()
         self.client.force_authenticate(user=user, token=user.auth_token)
 
-        response = self.client.post(self.url, {'picture' : self.picture}, format='multipart')
+        response = self.client.post(
+            self.url, {'picture': self.picture}, format='multipart')
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEqual(response.data, 'CV not found.')
         response2 = self.client.get(self.url)
 
         self.assertEqual(response2.status_code, status.HTTP_404_NOT_FOUND)
-        self.assertEqual(response2.data, 'CV not found.')  
-    
+        self.assertEqual(response2.data, 'CV not found.')
+
     def test_picture_failure_not_uploaded(self):
         self.client = APIClient()
         self.client.post(self.url_reg, self.user_data, format='json')
@@ -137,7 +145,8 @@ class PictureTestCase(APITestCase):
         user = Account.objects.get()
         self.client.force_authenticate(user=user, token=user.auth_token)
         self.client.post(self.url_cv, self.cv_data, format='json')
-        response1 = self.client.post(self.url, {'picture' : self.picture}, format='multipart')
+        response1 = self.client.post(
+            self.url, {'picture': self.picture}, format='multipart')
         self.assertEqual(response1.status_code, status.HTTP_201_CREATED)
 
         data1 = BasicInfo.objects.get()
