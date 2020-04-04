@@ -1,8 +1,35 @@
 [
   {
+    "model": "job.joboffercategory",
+    "pk": "IT",
+    "fields": {}
+  },
+  {
+    "model": "job.joboffercategory",
+    "pk": "PR",
+    "fields": {}
+  },
+  {
+    "model": "job.joboffertype",
+    "pk": "Praca",
+    "fields": {}
+  },
+  {
+    "model": "job.joboffertype",
+    "pk": "Praktyki",
+    "fields": {}
+  },
+  {
+    "model": "job.joboffertype",
+    "pk": "Sta\u017c",
+    "fields": {}
+  },
+  {
     "model": "job.joboffer",
     "pk": "47991e86-4b42-4507-b154-1548bf8a3bd3",
     "fields": {
+      "category": "IT",
+      "offer_type": "Sta\u017c",
       "offer_name": "offer1",
       "company_name": "company1",
       "company_address": "adress1",
@@ -18,6 +45,8 @@
     "model": "job.joboffer",
     "pk": "fbca7511-3879-47b6-ab08-8d39ccc2b6f3",
     "fields": {
+      "category": "PR",
+      "offer_type": "Praca",
       "offer_name": "offer2",
       "company_name": "company2",
       "company_address": "adress2",

@@ -15,6 +15,9 @@ class BlogPostTagSerializer(serializers.ModelSerializer):
         formatted_data = {'name': data}
         return super().to_internal_value(formatted_data)
 
+    def to_representation(self, instance):
+        return instance.name
+
 
 class BlogPostCategorySerializer(serializers.ModelSerializer):
     class Meta:
@@ -24,6 +27,9 @@ class BlogPostCategorySerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         formatted_data = {'name': data}
         return super().to_internal_value(formatted_data)
+
+    def to_representation(self, instance):
+        return instance.name
 
 
 class BlogAuthorSerializer(serializers.ModelSerializer):
@@ -58,8 +64,6 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
-        response['category'] = instance.category.name
-        response['tags'] = [tag['name'] for tag in response['tags']]
         return response
 
     def create(self, validated_data):

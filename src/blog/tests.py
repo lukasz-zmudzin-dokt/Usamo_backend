@@ -16,6 +16,7 @@ def create_test_blogpost_instance(category, tags, content, author):
     instance.tags.set([BlogPostTag.objects.get_or_create(name=tag)[0] for tag in tags])
     return instance
 
+
 def create_test_blogpost(category='category', tags=None, content='BASE64CONTENT'):
     if tags is None:
         tags = ['tag1', 'tag2']
@@ -24,6 +25,20 @@ def create_test_blogpost(category='category', tags=None, content='BASE64CONTENT'
         "tags": tags,
         "content": content
     }
+
+
+def create_test_category_set(n):
+    categories = []
+    for i in range(n):
+        categories.append({"name": f"category{i}"})
+    return categories
+
+
+def create_test_category_instances_set(n):
+    instances = []
+    for i in range(n):
+        instances.append(BlogPostCategory.objects.get_or_create(name=f'category{i}'))
+    return instances
 
 
 def create_user(username='testuser'):
@@ -43,7 +58,7 @@ class BlogPostCreateTestCase(APITestCase):
 
     @classmethod
     def setUp(cls):
-        cls.url = '/blog/'
+        cls.url = '/blog/blogpost/'
         cls.user = create_user()
 
     def test_blogpost_create_not_staff(self):
@@ -79,7 +94,7 @@ class BlogPostGetTestCase(APITestCase):
 
     @classmethod
     def setUp(cls):
-        cls.url = lambda self, id: '/blog/%s' % id
+        cls.url = lambda self, id: '/blog/blogpost/%s' % id
         cls.user = create_user()
         cls.staff = create_staff(cls.user, StaffGroupType.STAFF_BLOG_CREATOR)
         cls.blogpost = create_test_blogpost_instance(**create_test_blogpost(), author=cls.staff)
@@ -100,7 +115,7 @@ class BlogPostEditTestCase(APITestCase):
 
     @classmethod
     def setUp(cls):
-        cls.url = lambda self, id: '/blog/%s' % id
+        cls.url = lambda self, id: '/blog/blogpost/%s' % id
         cls.user = create_user()
         cls.staff = create_staff(cls.user, StaffGroupType.STAFF_BLOG_CREATOR)
         cls.blogpost = create_test_blogpost_instance(**create_test_blogpost(), author=cls.staff)
@@ -125,7 +140,7 @@ class BlogPostDeleteTestCase(APITestCase):
 
     @classmethod
     def setUp(cls):
-        cls.url = lambda self, id: '/blog/%s' % id
+        cls.url = lambda self, id: '/blog/blogpost/%s' % id
         cls.user = create_user()
         cls.staff = create_staff(cls.user, StaffGroupType.STAFF_BLOG_CREATOR)
         cls.blogpost = create_test_blogpost_instance(**create_test_blogpost(), author=cls.staff)
@@ -145,3 +160,37 @@ class BlogPostDeleteTestCase(APITestCase):
         response = self.client.delete(self.url(self.blogpost.pk), create_test_blogpost(category='edited'), format='json')
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(BlogPost.objects.count(), 0)
+
+
+class BlogPostCategoryGetTestCase(APITestCase):
+    @classmethod
+    def setUp(cls):
+        cls.n = 10
+        cls.url = '/blog/categories'
+        cls.categories = create_test_category_instances_set(cls.n)
+
+    def test_blogpostcategory_get_success(self):
+        self.assertEquals(BlogPostCategory.objects.count(), self.n)
+        response = self.client.get(self.url, format='json')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(response.data, [c['name'] for c in create_test_category_set(self.n)])
+
+
+class BlogPostCategoryFilteringTestCase(APITestCase):
+    @classmethod
+    def setUp(cls):
+        cls.url = '/blog/blogposts'
+        cls.user = create_user()
+        cls.staff = create_staff(cls.user, StaffGroupType.STAFF_BLOG_CREATOR)
+        cls.blogpost1 = create_test_blogpost_instance(**create_test_blogpost(category='category1'), author=cls.staff)
+        cls.blogpost2 = create_test_blogpost_instance(**create_test_blogpost(category='category2'), author=cls.staff)
+
+    def test_blogpost_filtering_success(self):
+        self.assertTrue(BlogPostCategory.objects.filter(name='category1').exists())
+        response = self.client.get(self.url, {'category': 'category1'}, HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        test_blogpost = create_test_blogpost(category='category1')
+        self.assertTrue(any(blogpost['content'] for blogpost in response.data), test_blogpost['content'])
+        self.assertTrue(all(blogpost['category'] for blogpost in response.data), test_blogpost['category'])
+        self.assertTrue(any(blogpost['tags'] for blogpost in response.data), test_blogpost['tags'])
+
