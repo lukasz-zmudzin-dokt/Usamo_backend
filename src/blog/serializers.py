@@ -1,3 +1,5 @@
+from abc import ABC
+
 from django.utils import timezone
 from rest_framework import serializers
 
@@ -15,6 +17,9 @@ class BlogPostTagSerializer(serializers.ModelSerializer):
     def to_internal_value(self, data):
         formatted_data = {'name': data}
         return super().to_internal_value(formatted_data)
+
+    def to_representation(self, instance):
+        return instance.name
 
 
 class BlogPostCategorySerializer(serializers.ModelSerializer):
@@ -83,4 +88,3 @@ class BlogPostSerializer(serializers.ModelSerializer):
         instance.date_modified = timezone.now()
         instance.save()
         return instance
-

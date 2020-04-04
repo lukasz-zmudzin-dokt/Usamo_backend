@@ -180,6 +180,15 @@ class BlogPostCategoryListView(generics.ListAPIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+        operation_description="Returns list of all tags."
+    ))
+class BlogPostTagListView(generics.ListAPIView):
+    serializer_class = BlogPostTagSerializer
+    permission_classes = [AllowAny]
+    queryset = BlogPostTag.objects.all()
+
+
+@method_decorator(name='get', decorator=swagger_auto_schema(
         manual_parameters=[
             Parameter('category', IN_QUERY, type='string'),
             Parameter('tag', IN_QUERY, type='string')
