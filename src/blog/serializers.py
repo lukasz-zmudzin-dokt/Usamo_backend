@@ -57,7 +57,7 @@ class BlogPostCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BlogPostComment
-        fields = ['id', 'author', 'content', 'date_created']
+        fields = ['id', 'blog_post', 'author', 'content', 'date_created']
         read_only_fields = ['id', 'date_created', 'author']
         extra_kwargs = {
             'blog_post': {'write_only': True}
