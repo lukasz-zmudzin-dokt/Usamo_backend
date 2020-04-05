@@ -96,6 +96,13 @@ def sample_blogpost_response():
     )
 
 
+def sample_string_response():
+    return Schema(
+        type='array',
+        items=Schema(type='string')
+    )
+
+
 class BlogPostCreateView(views.APIView):
     permission_classes = [IsStaffBlogCreator | IsStaffBlogModerator]
 
@@ -186,7 +193,10 @@ class BlogPostView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-        operation_description="Returns list of all categories."
+        operation_description="Returns list of all categories.",
+        responses={
+            200: sample_string_response()
+        }
     ))
 class BlogPostCategoryListView(generics.ListAPIView):
     serializer_class = BlogPostCategorySerializer
@@ -195,7 +205,10 @@ class BlogPostCategoryListView(generics.ListAPIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-        operation_description="Returns list of all tags."
+        operation_description="Returns list of all tags.",
+        responses={
+            200: sample_string_response()
+        }
     ))
 class BlogPostTagListView(generics.ListAPIView):
     serializer_class = BlogPostTagSerializer
@@ -211,7 +224,7 @@ class BlogPostTagListView(generics.ListAPIView):
         operation_description="Returns blog post list. Can be filtered by category and/or tag."
     ))
 class BlogPostListView(generics.ListAPIView):
-    serializer_class = BlogPostSerializer
+    serializer_class = BlogPostListSerializer
     permission_classes = [AllowAny]
 
     def get_queryset(self):
