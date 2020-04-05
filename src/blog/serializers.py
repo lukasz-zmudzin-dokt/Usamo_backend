@@ -32,20 +32,10 @@ class BlogPostCategorySerializer(serializers.ModelSerializer):
         return instance.name
 
 
-class BlogAuthorSerializer(serializers.ModelSerializer):
+class AuthorSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
-
-    class Meta:
-        model = StaffAccount
-        fields = ['email', 'first_name', 'last_name']
-
-
-class CommentAuthorSerializer(serializers.ModelSerializer):
-    email = serializers.CharField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
 
     class Meta:
         model = Account
@@ -53,12 +43,12 @@ class CommentAuthorSerializer(serializers.ModelSerializer):
 
 
 class BlogPostCommentSerializer(serializers.ModelSerializer):
-    author = CommentAuthorSerializer(read_only=True)
+    author = AuthorSerializer(read_only=True)
 
     class Meta:
         model = BlogPostComment
         fields = ['id', 'blog_post', 'author', 'content', 'date_created']
-        read_only_fields = ['id', 'date_created', 'author']
+        read_only_fields = ['id', 'date_created']
         extra_kwargs = {
             'blog_post': {'write_only': True}
         }
@@ -75,7 +65,7 @@ class BlogPostCommentSerializer(serializers.ModelSerializer):
 class BlogPostSerializer(serializers.ModelSerializer):
     category = BlogPostTagSerializer()
     tags = BlogPostTagSerializer(many=True)
-    author = BlogAuthorSerializer(read_only=True)
+    author = AuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
     summary = serializers.CharField(required=False)
 
