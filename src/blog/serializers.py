@@ -32,10 +32,20 @@ class BlogPostCategorySerializer(serializers.ModelSerializer):
         return instance.name
 
 
-class AuthorSerializer(serializers.ModelSerializer):
+class BlogAuthorSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
+
+    class Meta:
+        model = StaffAccount
+        fields = ['email', 'first_name', 'last_name']
+
+
+class CommentAuthorSerializer(serializers.ModelSerializer):
+    email = serializers.CharField()
+    first_name = serializers.CharField()
+    last_name = serializers.CharField()
 
     class Meta:
         model = Account
@@ -43,7 +53,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 
 
 class BlogPostCommentSerializer(serializers.ModelSerializer):
-    author = AuthorSerializer(read_only=True)
+    author = CommentAuthorSerializer(read_only=True)
 
     class Meta:
         model = BlogPostComment
@@ -65,7 +75,7 @@ class BlogPostCommentSerializer(serializers.ModelSerializer):
 class BlogPostSerializer(serializers.ModelSerializer):
     category = BlogPostTagSerializer()
     tags = BlogPostTagSerializer(many=True)
-    author = AuthorSerializer(read_only=True)
+    author = BlogAuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
     summary = serializers.CharField(required=False)
 
