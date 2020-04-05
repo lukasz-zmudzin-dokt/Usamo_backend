@@ -3,15 +3,15 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics
+from rest_framework import generics, serializers
 from rest_framework import status
 from rest_framework import views
 from rest_framework.decorators import permission_classes
 from rest_framework.pagination import PageNumberPagination
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 
-from .models import JobOffer
+from .models import JobOffer, JobOfferCategory, JobOfferType
 from .serializers import JobOfferSerializer, JobOfferEditSerializer, JobOfferFiltersSerializer, \
     InterestedUserSerializer, Voivodeships
 
@@ -323,18 +323,48 @@ class EmployerJobOffersView(generics.ListAPIView):
 
 
 class VoivodeshipsEnumView(views.APIView):
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(
         responses={
             '200': Schema(type='object', properties={
                 "voivodeships": Schema(type='array', items=Schema(type='string', default=['w1', 'w2', '...']))
-            }),
-            '401': 'No authorization token'
+            })
         },
         operation_description="returns list of possible voivodeship values",
     )
-    @permission_classes([IsAuthenticated])
     def get(self, request):
         response = {"voivodeships": Voivodeships().getKeys()}
         return Response(response, status=status.HTTP_200_OK)
 
+
+class JobOfferCategoryListView(views.APIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        responses={
+            '200': Schema(type='object', properties={
+                "categories": Schema(type='array', items=Schema(type='string', default=['c1', 'c2', '...']))
+            })
+        },
+        operation_description="Returns list of all categories."
+    )
+    def get(self, request):
+        response = {"categories": list(JobOfferCategory.objects.values_list('name', flat=True))}
+        return Response(response, status=status.HTTP_200_OK)
+
+
+class JobOfferTypesListView(generics.ListAPIView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        responses={
+            '200': Schema(type='object', properties={
+                "offer_types": Schema(type='array', items=Schema(type='string', default=['t1', 't2', '...']))
+            })
+        },
+        operation_description="Returns list of all types."
+    )
+    def get(self, request):
+        response = {"offer_types": list(JobOfferType.objects.values_list('name', flat=True))}
+        return Response(response, status=status.HTTP_200_OK)

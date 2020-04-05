@@ -14,5 +14,7 @@ urlpatterns = [
          views.EmployerJobOfferInterestedUsersView.as_view()),
     path('employer/job-offers/', views.EmployerJobOffersView.as_view()),
     # enums
-    path('enums/voivodeships/', views.VoivodeshipsEnumView.as_view())
+    path('enums/voivodeships/', views.VoivodeshipsEnumView.as_view()),
+    path('enums/categories/', views.JobOfferCategoryListView.as_view()),
+    path('enums/types/', views.JobOfferTypesListView.as_view())
 ]

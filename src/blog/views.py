@@ -63,6 +63,7 @@ def sample_blogpost_response():
     return Schema(
         type='object',
         properties={
+            'id': Schema(type='integer', default="1"),
             'category': Schema(type='string', default='Kategoria'),
             'tags': Schema(type='array', items=Schema(type='string', default=['Tag1', 'Tag2'])),
             'content': Schema(type='string', format='byte', default='base64-encoded-html-string'),
@@ -74,6 +75,22 @@ def sample_blogpost_response():
                     "first_name": Schema(type='string', default='first_name'),
                     "last_name": Schema(type='string', default='last_name')
                 }
+            ),
+            'comments': Schema(
+                type='array',
+                items=Schema(
+                    type='object',
+                    properties={
+                        "id": Schema(type='integer', default="1"),
+                        "author": {
+                            "email": Schema(type='string', format='email', default='email@example.com'),
+                            "first_name": Schema(type='string', default='first_name'),
+                            "last_name": Schema(type='string', default='last_name')
+                        },
+                        "content": Schema(type='string', default='Treść komentarza'),
+                        "date_created": Schema(type='string')
+                    }
+                )
             )
         }
     )
