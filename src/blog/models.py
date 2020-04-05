@@ -40,7 +40,7 @@ class BlogPostAttachment(models.Model):
 
 
 class BlogPostComment(models.Model):
-    author = models.ForeignKey(Account, null=True, on_delete=models.CASCADE)
+    author = models.ForeignKey(Account, null=True, on_delete=models.SET_NULL)
     content = models.TextField()
     blog_post = models.ForeignKey(BlogPost, related_name='comments', on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
