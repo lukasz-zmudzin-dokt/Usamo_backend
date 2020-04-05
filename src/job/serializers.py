@@ -76,12 +76,16 @@ class JobOfferFiltersSerializer(serializers.Serializer):
         return instance
 
 
-class InterestedUserSerializer(serializers.ModelSerializer):
-    id = serializers.UUIDField(source='user.id')
-    first_name = serializers.CharField(source='user.first_name')
-    last_name = serializers.CharField(source='user.last_name')
-    email = serializers.CharField(source='user.email')
-
+class JobOfferApplicationSerializer(serializers.ModelSerializer):
+    cv_id = serializers.UUIDField(source='cv.cv_id', read_only=True)
+    user_id = serializers.UUIDField(source='cv.cv_user.user.id', read_only=True)
+    first_name = serializers.CharField(source='cv.cv_user.first_name', read_only=True)
+    last_name = serializers.CharField(source='cv.cv_user.last_name', read_only=True)
+    date_posted = serializers.DateTimeField(format='%d/%m/%Y %X', read_only=True)
+    
     class Meta:
-        model = DefaultAccount
-        fields = ['id', 'first_name', 'last_name', 'email']
+        model = JobOfferApplication
+        fields = '__all__'
+        extra_kwargs = {
+            'cv': {'write_only': True}
+        }

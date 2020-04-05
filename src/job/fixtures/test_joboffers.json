@@ -37,8 +37,7 @@
       "expiration_date": "2020-05-28",
       "description": "description",
       "removed": false,
-      "employer": 1,
-      "interested_users": []
+      "employer": 1
     }
   },
   {
@@ -54,11 +53,7 @@
       "expiration_date": "2020-05-28",
       "description": "description2",
       "removed": false,
-      "employer": 1,
-      "interested_users": [
-        1,
-        2
-      ]
+      "employer": 1
     }
   }
 ]

@@ -1,11 +1,10 @@
 import uuid
-
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import SET_NULL
-
 from .enums import Voivodeships
 from account.models import DefaultAccount, EmployerAccount
+from cv.models import CV
 
 
 class JobOfferCategory(models.Model):
@@ -27,11 +26,16 @@ class JobOffer(models.Model):
     expiration_date = models.DateField()
     description = models.CharField(max_length=1000)
     removed = models.BooleanField(editable=False, default=False)
-    interested_users = models.ManyToManyField(DefaultAccount)
     employer = models.ForeignKey(EmployerAccount, on_delete=models.SET_NULL, null=True, default=None)
 
     def __str__(self):
         return self.offer_name
+        
+
+class JobOfferApplication(models.Model):
+    cv = models.ForeignKey(CV, related_name='application_cv', on_delete=models.CASCADE)
+    job_offer = models.ForeignKey(JobOffer, on_delete=models.CASCADE)
+    date_posted = models.DateTimeField(auto_now_add=True)
 
 
 class JobOfferEdit:
