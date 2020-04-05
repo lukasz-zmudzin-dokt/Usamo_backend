@@ -232,24 +232,19 @@ class JobOfferListView(generics.ListAPIView):
 class CreateJobOfferApplicationView(views.APIView):
 
     @swagger_auto_schema(
-        manual_parameters=[
-            Parameter('offer_id', IN_PATH, type='integer')
-        ],
+        request_body=JobOfferApplicationSerializer,
         responses={
-            '200': sample_message_response("Added to interested users"),
-            '400': sample_error_response("User already added"),
-            '401': 'No authorization token',
-            '403': sample_error_response('No user or user is not default user'),
-            '404': sample_error_response("Offer not found"),
+            '201': '"id": application.id',
+            '400': 'Serializer errors',
+            '403': "User is not a default user / User has already applied for this offer."
         },
-        operation_description="Adding user to offer interested users.",
+        operation_description="Create a job application by specyfying cv and job_offer.",
     )
-    
     def post(self, request):
         try:
             user = DefaultAccount.objects.get(user=request.user)
         except DefaultAccount.DoesNotExist:
-            return Response("No user or user is not a default user", status.HTTP_403_FORBIDDEN)
+            return Response("User is not a standard user", status.HTTP_403_FORBIDDEN)
        
         prev_app = JobOfferApplication.objects.filter(cv__cv_user=user, 
             job_offer__id=request.data['job_offer'])
@@ -269,11 +264,23 @@ class CreateJobOfferApplicationView(views.APIView):
 
 class JobOfferApplicationView(views.APIView):
 
+    @swagger_auto_schema(
+        responses={
+            '200': JobOfferApplicationSerializer,
+            '403': "User is not a standard user",
+            '404': "This user has no application with given id"
+        },
+        manual_parameters=[
+            Parameter('offer_id', IN_PATH, type='string($uuid)', 
+                description='ID of an offer, for which the user has applied.')
+        ],
+        operation_description="Get current user's application for a particular job offer.",
+    )
     def get(self, request, offer_id):
         try:
             user = DefaultAccount.objects.get(user=request.user)
         except DefaultAccount.DoesNotExist:
-            return Response("No user or user is not a default user", status.HTTP_403_FORBIDDEN)
+            return Response("User is not a standard user", status.HTTP_403_FORBIDDEN)
 
         application = JobOfferApplication.objects.filter(cv__cv_user=user, job_offer__id=offer_id)
         if not application:
@@ -282,12 +289,23 @@ class JobOfferApplicationView(views.APIView):
         serializer = JobOfferApplicationSerializer(application.first())
         return Response(serializer.data, status.HTTP_200_OK)
 
-
+    @swagger_auto_schema(
+        responses={
+            '200': "Application successfully deleted.",
+            '403': "User is not a standard user",
+            '404': "This user has no application with given id"
+        },
+        manual_parameters=[
+            Parameter('offer_id', IN_PATH, type='string($uuid)', 
+                description='ID of an offer, for which the user has applied.')
+        ],
+        operation_description="Delete current user's application for a particular job offer.",
+    )
     def delete(self, request, offer_id):
         try:
             user = DefaultAccount.objects.get(user=request.user)
         except DefaultAccount.DoesNotExist:
-            return Response("No user or user is not a default user", status.HTTP_403_FORBIDDEN)
+            return Response("User is not a standard user", status.HTTP_403_FORBIDDEN)
 
         application = JobOfferApplication.objects.filter(cv__cv_user=user, job_offer__id=offer_id)
         
@@ -297,7 +315,17 @@ class JobOfferApplicationView(views.APIView):
         application.delete()
         return Response("Application successfully deleted.", status.HTTP_200_OK)
 
-
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': JobOfferApplicationSerializer(many=True),
+        '404': "Not found",
+    },
+    manual_parameters=[
+        Parameter('offer_id', IN_PATH, type='string($uuid)', 
+                description='ID of the offer, for which users have applied.')
+    ],
+    operation_description="Returns the list of applications for a job offer."
+))
 class EmployerApplicationListView(ListAPIView):
     serializer_class = JobOfferApplicationSerializer
     permission_classes = [IsEmployer]
@@ -306,7 +334,13 @@ class EmployerApplicationListView(ListAPIView):
         id = self.kwargs['offer_id']
         return JobOfferApplication.objects.filter(job_offer=id)
 
-
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': JobOfferApplicationSerializer(many=True),
+        '404': "Not found",
+    },
+    operation_description="Returns the list of user's job applications."
+))
 class UserApplicationsView(ListAPIView):
     serializer_class = JobOfferApplicationSerializer
     permission_classes = [IsAuthenticated]
