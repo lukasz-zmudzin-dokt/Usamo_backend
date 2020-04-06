@@ -36,10 +36,11 @@ class BlogAuthorSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
+    id = serializers.UUIDField(source='user.id', read_only=True)
 
     class Meta:
         model = StaffAccount
-        fields = ['email', 'first_name', 'last_name']
+        fields = ['email', 'first_name', 'last_name', 'id']
 
 
 class CommentAuthorSerializer(serializers.ModelSerializer):
@@ -49,11 +50,12 @@ class CommentAuthorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Account
-        fields = ['email', 'first_name', 'last_name']
+        fields = ['email', 'first_name', 'last_name', 'id']
 
 
 class BlogPostCommentSerializer(serializers.ModelSerializer):
     author = CommentAuthorSerializer(read_only=True)
+    date_created = serializers.DateTimeField(format='%d/%m/%Y %X', read_only=True)
 
     class Meta:
         model = BlogPostComment
@@ -78,10 +80,11 @@ class BlogPostSerializer(serializers.ModelSerializer):
     author = BlogAuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
     summary = serializers.CharField(required=False)
+    date_created = serializers.DateTimeField(format='%d/%m/%Y %X', read_only=True)
 
     class Meta:
         model = BlogPost
-        fields = ['id', 'category', 'tags', 'content', 'date_created', 'author', 'comments', 'summary']
+        fields = ['id', 'author', 'category', 'tags', 'content', 'date_created', 'author', 'comments', 'summary']
         read_only_fields = ['id', 'date_created', 'author', 'comments']
 
     def to_representation(self, instance):
@@ -127,7 +130,8 @@ class BlogPostListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='pk', read_only=True)
     category = BlogPostTagSerializer(read_only=True)
     tags = BlogPostTagSerializer(many=True, read_only=True)
+    author = BlogAuthorSerializer(read_only=True)
 
     class Meta:
         model = BlogPost
-        fields = ['id', 'category', 'tags', 'summary']
+        fields = ['id', 'author', 'category', 'tags', 'summary']
