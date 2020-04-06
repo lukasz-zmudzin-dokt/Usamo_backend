@@ -36,10 +36,11 @@ class BlogAuthorSerializer(serializers.ModelSerializer):
     email = serializers.CharField(source='user.email')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
+    id = serializers.UUIDField(source='user.id', read_only=True)
 
     class Meta:
         model = StaffAccount
-        fields = ['email', 'first_name', 'last_name']
+        fields = ['email', 'first_name', 'last_name', 'id']
 
 
 class CommentAuthorSerializer(serializers.ModelSerializer):
@@ -78,11 +79,10 @@ class BlogPostSerializer(serializers.ModelSerializer):
     author = BlogAuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
     summary = serializers.CharField(required=False)
-    author_id = serializers.UUIDField(source='author.user.id', read_only=True)
 
     class Meta:
         model = BlogPost
-        fields = ['id', 'author_id', 'category', 'tags', 'content', 'date_created', 'author', 'comments', 'summary']
+        fields = ['id', 'author', 'category', 'tags', 'content', 'date_created', 'author', 'comments', 'summary']
         read_only_fields = ['id', 'date_created', 'author', 'comments']
 
     def to_representation(self, instance):
@@ -128,8 +128,8 @@ class BlogPostListSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField(source='pk', read_only=True)
     category = BlogPostTagSerializer(read_only=True)
     tags = BlogPostTagSerializer(many=True, read_only=True)
-    author_id = serializers.UUIDField(source='author.user.id', read_only=True)
+    author = BlogAuthorSerializer(read_only=True)
 
     class Meta:
         model = BlogPost
-        fields = ['id', 'author_id', 'category', 'tags', 'summary']
+        fields = ['id', 'author', 'category', 'tags', 'summary']
