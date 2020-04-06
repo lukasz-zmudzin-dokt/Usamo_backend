@@ -1,7 +1,7 @@
 from account.models import StaffAccount, DefaultAccount, Account
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
-from drf_yasg.openapi import IN_QUERY
+from drf_yasg.openapi import IN_QUERY, IN_FORM
 from drf_yasg.openapi import Schema, Parameter, IN_PATH
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
@@ -136,6 +136,16 @@ class BlogPostHeaderView(views.APIView):
     permission_classes = (IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator)
     parser_classes = (MultiPartParser, )
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('id', IN_PATH, type='integer'),
+            Parameter('file', IN_FORM, type='file')
+        ],
+        responses={
+            200: 'OK',
+            400: 'There is no such blog'
+        },
+    )
     def post(self, request, id):
 
         existing_header = BlogPostHeader.objects.filter(blog_post_id=id)
@@ -154,6 +164,15 @@ class BlogPostHeaderView(views.APIView):
             return ErrorResponse(serializer.errors, status.HTTP_400_BAD_REQUEST)
         return Response('OK', status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('id', IN_PATH, type='integer')
+        ],
+        responses={
+            200: 'OK',
+            400: 'There is no such header'
+        }
+    )
     def delete(self, request, id):
         header = BlogPostHeader.objects.filter(blog_post_id=id)
         if not header:
