@@ -9,6 +9,8 @@ from rest_framework import views, status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 
 from .permissions import *
 from .serializers import *
@@ -104,7 +106,7 @@ def sample_string_response():
 
 
 class BlogPostCreateView(views.APIView):
-    permission_classes = [IsStaffBlogCreator | IsStaffBlogModerator]
+    permission_classes = [IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator]
 
     @swagger_auto_schema(
         request_body=sample_blogpost_request(),
@@ -127,6 +129,36 @@ class BlogPostCreateView(views.APIView):
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             return ErrorResponse("No user or user is not staff member", status.HTTP_403_FORBIDDEN)
+
+
+class BlogPostHeaderView(views.APIView):
+
+    permission_classes = (IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator)
+    parser_classes = (MultiPartParser, )
+
+    def post(self, request, id):
+
+        existing_header = BlogPostHeader.objects.filter(blog_post_id=id)
+        existing_header.delete()
+
+        blog_post = BlogPost.objects.filter(id=id)
+        if not blog_post:
+            return ErrorResponse('There is no such blog', status.HTTP_400_BAD_REQUEST)
+
+        data = request.data
+        data['blog_post'] = blog_post.id
+        serializer = BlogPostHeaderSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            return ErrorResponse(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        return Response('OK', status.HTTP_200_OK)
+
+    def delete(self, request, id):
+        header = BlogPostHeader.objects.filter(blog_post_id=id)
+        if not header:
+            return ErrorResponse('There is no such header', status.HTTP_400_BAD_REQUEST)
+        return Response('OK', status.HTTP_200_OK)
 
 
 class BlogPostView(views.APIView):

@@ -78,11 +78,16 @@ class BlogPostSerializer(serializers.ModelSerializer):
     author = BlogAuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
     summary = serializers.CharField(required=False)
+    header = serializers.SerializerMethodField()
 
     class Meta:
         model = BlogPost
-        fields = ['id', 'category', 'tags', 'content', 'date_created', 'author', 'comments', 'summary']
+        fields = ['id', 'category', 'tags', 'content', 'date_created', 'author', 'comments', 'summary', 'title', 'header']
         read_only_fields = ['id', 'date_created', 'author', 'comments']
+
+    def get_header(self, obj):
+        header = BlogPostHeader.objects.filter(blog_post_id=obj.id)
+        return header.file.url if header else ""
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
@@ -131,3 +136,13 @@ class BlogPostListSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
         fields = ['id', 'category', 'tags', 'summary']
+
+
+class BlogPostHeaderSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = BlogPostHeader
+        fields = '__all__'
+
+
+
