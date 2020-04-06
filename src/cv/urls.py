@@ -8,7 +8,7 @@ import uuid
 
 urlpatterns = [
     path('', views.index, name='index'),
-    path('generator/', views.CVView.as_view(), name='cv_generator'),
+    path('generator/', views.CreateCVView.as_view(), name='cv_generator'),
     path('generator/<uuid:cv_id>/', views.CVView.as_view(), name='cv_view'),
     path('data/<uuid:cv_id>/', views.CVDataView.as_view(), name='cv_data'),
     path('picture/<uuid:cv_id>/', views.CVPictureView.as_view(), name='cv_picture'),

@@ -24,7 +24,7 @@ def validate_cv_id(cv_id):
                               
 
 class CV(models.Model):
-    cv_id = models.UUIDField(primary_key=True, editable=False)
+    cv_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     cv_user = models.ForeignKey(DefaultAccount, related_name='cv_user', on_delete=models.CASCADE)
     wants_verification = models.BooleanField(default=True)
     is_verified = models.BooleanField(default=False)
