@@ -55,9 +55,10 @@ def sample_blogpost_request(required=True):
         properties={
             'category': Schema(type='string', default='Kategoria'),
             'tags': Schema(type='array', items=Schema(type='string', default=['Tag1', 'Tag2'])),
-            'content': Schema(type='string', format='byte', default='base64-encoded-html-string')
+            'content': Schema(type='string', format='byte', default='base64-encoded-html-string'),
+            'title': Schema(type='string', default='Title')
         },
-        required=['category', 'tags', 'content'] if required else []
+        required=['category', 'tags', 'content', 'title'] if required else []
     )
 
 
@@ -69,6 +70,8 @@ def sample_blogpost_response():
             'category': Schema(type='string', default='Kategoria'),
             'tags': Schema(type='array', items=Schema(type='string', default=['Tag1', 'Tag2'])),
             'content': Schema(type='string', format='byte', default='base64-encoded-html-string'),
+            'title': Schema(type='string', default='Title'),
+            'header': Schema(type='string', default='header-url'),
             'date_created': Schema(type='string', default="2020-02-20"),
             'author': Schema(
                 type='object',
