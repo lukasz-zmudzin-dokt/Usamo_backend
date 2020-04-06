@@ -9,7 +9,8 @@ from rest_framework import views, status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
-
+from account.account_type import StaffGroupType
+from django.contrib.auth.models import Group
 from .permissions import *
 from .serializers import *
 
@@ -233,14 +234,14 @@ class BlogPostCommentCreateView(views.APIView):
 
 
 class BlogPostCommentUpdateView(views.APIView):
+    permission_classes = [IsAuthenticated]
 
-    @permission_classes([IsAuthenticated])
     def put(self, request, id):
         try:
             comment = BlogPostComment.objects.get(pk=id)
+            serializer = BlogPostCommentSerializer(comment, data=request.data, partial=True)
             if comment.author.id != request.user.id:
                 return ErrorResponse("Not a comment author", status.HTTP_403_FORBIDDEN)
-            serializer = BlogPostCommentSerializer(comment, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return BlogPostCommentIdResponse(comment.id)
@@ -248,3 +249,27 @@ class BlogPostCommentUpdateView(views.APIView):
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        try:
+            comment = BlogPostComment.objects.get(pk=id)
+        except ObjectDoesNotExist:
+            return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
+
+        if comment.author.id == request.user.id:
+            comment.delete()
+            return Response(status=status.HTTP_200_OK)
+        else:
+            try:
+                author = StaffAccount.objects.get(user_id=request.user.id)
+                contains = False
+                for e in author.user.groups.all():
+                    if str(e) == StaffGroupType.STAFF_BLOG_MODERATOR.value:
+                        contains = True
+                if contains:
+                    comment.delete()
+                    return Response(status=status.HTTP_200_OK)
+                else:
+                    return ErrorResponse("User is not an author or Blog Moderator", status.HTTP_403_FORBIDDEN)
+            except ObjectDoesNotExist:
+                return ErrorResponse("User is not an author or Blog Moderator", status.HTTP_403_FORBIDDEN)
