@@ -55,6 +55,7 @@ class CommentAuthorSerializer(serializers.ModelSerializer):
 
 class BlogPostCommentSerializer(serializers.ModelSerializer):
     author = CommentAuthorSerializer(read_only=True)
+    date_created = serializers.DateTimeField(format='%d/%m/%Y %X', read_only=True)
 
     class Meta:
         model = BlogPostComment
@@ -79,6 +80,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
     author = BlogAuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
     summary = serializers.CharField(required=False)
+    date_created = serializers.DateTimeField(format='%d/%m/%Y %X', read_only=True)
 
     class Meta:
         model = BlogPost
