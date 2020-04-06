@@ -141,7 +141,7 @@ class BlogPostHeaderView(views.APIView):
         existing_header = BlogPostHeader.objects.filter(blog_post_id=id)
         existing_header.delete()
 
-        blog_post = BlogPost.objects.filter(id=id)
+        blog_post = BlogPost.objects.filter(id=id).first()
         if not blog_post:
             return ErrorResponse('There is no such blog', status.HTTP_400_BAD_REQUEST)
 

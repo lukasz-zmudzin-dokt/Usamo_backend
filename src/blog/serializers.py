@@ -86,7 +86,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
         read_only_fields = ['id', 'date_created', 'author', 'comments']
 
     def get_header(self, obj):
-        header = BlogPostHeader.objects.filter(blog_post_id=obj.id)
+        header = BlogPostHeader.objects.filter(blog_post_id=obj.id).first()
         return header.file.url if header else ""
 
     def to_representation(self, instance):
