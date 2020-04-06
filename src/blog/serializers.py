@@ -52,15 +52,37 @@ class CommentAuthorSerializer(serializers.ModelSerializer):
         fields = ['email', 'first_name', 'last_name']
 
 
+class BlogPostCommentSerializer(serializers.ModelSerializer):
+    author = CommentAuthorSerializer(read_only=True)
+
+    class Meta:
+        model = BlogPostComment
+        fields = ['id', 'blog_post', 'author', 'content', 'date_created']
+        read_only_fields = ['id', 'date_created']
+        extra_kwargs = {
+            'blog_post': {'write_only': True}
+        }
+
+    def create(self, validated_data):
+        return BlogPostComment.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.content = validated_data.get('content', instance.content)
+        instance.save()
+        return instance
+
+
 class BlogPostSerializer(serializers.ModelSerializer):
     category = BlogPostTagSerializer()
     tags = BlogPostTagSerializer(many=True)
     author = BlogAuthorSerializer(read_only=True)
+    comments = BlogPostCommentSerializer(many=True, read_only=True)
+    summary = serializers.CharField(required=False)
 
     class Meta:
         model = BlogPost
-        fields = ['category', 'tags', 'content', 'date_created', 'author']
-        read_only_fields = ['date_created', 'author']
+        fields = ['id', 'category', 'tags', 'content', 'date_created', 'author', 'comments', 'summary']
+        read_only_fields = ['id', 'date_created', 'author', 'comments']
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
@@ -90,24 +112,22 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
         if 'content' in validated_data:
             instance.content = validated_data.get('content', instance.content)
+
+        if 'summary' in validated_data:
+            instance.summary = validated_data.get('summary', instance.summary)
+        else:
+            instance.summary = set_summary(instance.content)
+
         instance.date_modified = timezone.now()
         instance.save()
         return instance
 
 
-class BlogPostCommentSerializer(serializers.ModelSerializer):
-    author = CommentAuthorSerializer(read_only=True)
-    # blog_post = BlogPostSerializer(required=False)
+class BlogPostListSerializer(serializers.ModelSerializer):
+    id = serializers.IntegerField(source='pk', read_only=True)
+    category = BlogPostTagSerializer(read_only=True)
+    tags = BlogPostTagSerializer(many=True, read_only=True)
 
     class Meta:
-        model = BlogPostComment
-        fields = ['author', 'content', 'blog_post', 'date_created']
-        read_only_fields = ['date_created', 'author']
-
-    def create(self, validated_data):
-        return BlogPostComment.objects.create(**validated_data)
-
-    def update(self, instance, validated_data):
-        instance.content = validated_data.get('content', instance.content)
-        instance.save()
-        return instance
+        model = BlogPost
+        fields = ['id', 'category', 'tags', 'summary']

@@ -63,23 +63,9 @@ class FeedbackSerializer(serializers.ModelSerializer):
         return fb
 
 
-class CVDataSerializer(serializers.ModelSerializer):
-    user_id = serializers.UUIDField(source='cv_user.user.id')
-    basic_info = BasicInfoSerializer()
-    schools = SchoolSerializer(many=True)
-    experiences = ExperienceSerializer(many=True, required=False)
-    skills = SkillSerializer(many=True)
-    languages = LanguageSerializer(many=True)
-    is_verified = serializers.BooleanField(default=False)
-
-    class Meta:
-        model = CV
-        fields = ['cv_id', 'user_id', 'basic_info', 'schools', 'experiences', 'skills',
-                  'languages', 'wants_verification', 'is_verified']
-
-
 class CVSerializer(serializers.ModelSerializer):
-    cv_id = serializers.UUIDField()
+    cv_id = serializers.UUIDField(read_only=True)
+    user_id = serializers.UUIDField(source='cv_user.user.id', read_only=True)
     basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
     experiences = ExperienceSerializer(many=True, required=False)
@@ -89,12 +75,11 @@ class CVSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'cv_user', 'basic_info', 'schools', 'experiences', 'skills',
+        fields = ['cv_id', 'user_id', 'cv_user', 'basic_info', 'schools', 'experiences', 'skills',
                   'languages', 'wants_verification', 'is_verified']
         
         extra_kwargs = {
-            'cv_id': {'required': True},
-            'cv_user': {'required': True},
+            'cv_user': {'required': False, 'write_only': True},
             'basic_info': {'required': True},
             'schools': {'required': True},
             'experiences': {'required': False},
@@ -105,18 +90,13 @@ class CVSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        if CV.objects.filter(cv_id=validated_data['cv_id']).exists():
-            cv = self.update(CV.objects.all().get(
-                cv_id=validated_data['cv_id']), validated_data)
-        else:
-            pdf = generate(validated_data)
-            django_file = ContentFile(pdf)
-            django_file.name = create_unique_filename('cv_docs', 'pdf')
-            cv = CV.objects.create(
-                cv_id=validated_data['cv_id'], cv_user=validated_data['cv_user'], wants_verification=True, 
-                    is_verified=False, document=django_file)
-            basic_info_data = validated_data.pop('basic_info')
-            BasicInfo.objects.create(cv=cv, **basic_info_data)
+        pdf = generate(validated_data)
+        django_file = ContentFile(pdf)
+        django_file.name = create_unique_filename('cv_docs', 'pdf')
+        cv = CV.objects.create(cv_user=validated_data['cv_user'], wants_verification=True, 
+                is_verified=False, document=django_file)
+        basic_info_data = validated_data.pop('basic_info')
+        BasicInfo.objects.create(cv=cv, **basic_info_data)
         return self.create_lists(cv, validated_data)
 
     def update(self, cv, validated_data):

@@ -34,8 +34,7 @@ lub
 -CV: stworzyłem jedno cv z feedbackiem (bez zdjęcia) dla użytkownika standard1. Nie ma sensu odpalać urla do niego, bo pdf fizycznie nie będzie na serwerze - zresztą heroku i tak co reset usuwa pliki statyczne. Można je natomiast wykorzystać
 do testowania endpointów do kasowania, czytania danych cv, listy cv itd. 
 
--Job: dwie oferty pracy stworzone przez użytkownika employer1. Pierwsza z nich ma dwóch zainteresowanych użytkowników: standard1 i standard2.
-
+-Job: dwie oferty pracy stworzone przez użytkownika employer1. Pierwsza z nich ma 3 aplikacje, kolejno użytkowników standard1, standard2 i standard3.
 
 Aby załadować dane do bazy, należy użyć polecenia: *python manage.py loaddata nazwa.json* (info dla backendu)
 

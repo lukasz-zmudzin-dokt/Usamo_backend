@@ -3,16 +3,22 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # job offers
-    path('job-offer/<uuid:offer_id>/', views.JobOfferView.as_view()),
-    path('job-offer/', views.JobOfferCreateView.as_view()),
-    path('job-offers/', views.JobOfferListView.as_view()),
-    path('offer-interested/<uuid:offer_id>/',
-         views.JobOfferInterestedUsersView.as_view()),
-    # job offers for employers
-    path('employer/offer-interested/<uuid:offer_id>/',
-         views.EmployerJobOfferInterestedUsersView.as_view()),
-    path('employer/job-offers/', views.EmployerJobOffersView.as_view()),
-    # enums
-    path('enums/voivodeships/', views.VoivodeshipsEnumView.as_view())
+     # job offers
+     path('job-offer/<uuid:offer_id>/', views.JobOfferView.as_view()),
+     path('job-offer/', views.JobOfferCreateView.as_view()),
+     path('job-offers/', views.JobOfferListView.as_view()),
+     path('job-offers/application/',
+         views.CreateJobOfferApplicationView.as_view()),
+     path('job-offers/application/<uuid:offer_id>/',
+         views.JobOfferApplicationView.as_view()),
+     path('user/application_list/', views.UserApplicationsView.as_view()),
+     # job offers for employers
+     path('employer/job-offers/', views.EmployerJobOffersView.as_view()),
+     path('employer/application_list/<uuid:offer_id>/', views.EmployerApplicationListView.as_view()),
+     # enums
+     path('enums/voivodeships/', views.VoivodeshipsEnumView.as_view()),
+     path('enums/categories/', views.JobOfferCategoryListView.as_view()),
+     path('enums/types/', views.JobOfferTypesListView.as_view())
 ]
+
+

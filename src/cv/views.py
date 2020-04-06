@@ -25,24 +25,20 @@ def index(request):
     return HttpResponse("Hello, world. You're at the CV generator.")
 
 
-class CVView(views.APIView):
+class CreateCVView(views.APIView):
     serializer_class = CVSerializer
 
     @swagger_auto_schema(
         request_body=CVSerializer,
         responses={
             '201': 'CV successfully generated.',
-            '400': 'Unexpected argument: cv_id',
+            '400': 'Serializer errors',
             '403': "User type is not standard"
         },
         operation_description="Create or update database object for CV generation.",
     )
-    def post(self, request, **kwargs):
-        cv_id = kwargs.get('cv_id', None)
-        if cv_id is not None:
-            return Response('Unexpected argument: cv_id', status.HTTP_400_BAD_REQUEST)
+    def post(self, request):
         request_data = request.data
-        request_data['cv_id'] = uuid.uuid4()
 
         try:
             def_account = DefaultAccount.objects.get(user=request.user)
@@ -57,8 +53,10 @@ class CVView(views.APIView):
             response = {"cv_id" : cv.pk}
             return Response(response, status.HTTP_201_CREATED)
         else:
-            return Response(serializer.errors, status.HTTP_406_NOT_ACCEPTABLE)
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
+
+class CVView(views.APIView):
     @swagger_auto_schema(
         manual_parameters=[
             openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
@@ -106,10 +104,10 @@ class CVDataView(views.APIView):
         operation_description="Returns CV data in json format",
         manual_parameters=[
             openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this cv')
+                description='A UUID string identifying this cv') 
         ],
         responses={
-            '200': CVDataSerializer,
+            '200': CVSerializer,
             '404': "CV not found."
         }
     )
@@ -119,7 +117,7 @@ class CVDataView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
             return Response("CV not found.", status.HTTP_404_NOT_FOUND)
-        serializer = CVDataSerializer(instance=cv)
+        serializer = CVSerializer(instance=cv)
         return Response(serializer.data, status.HTTP_200_OK)
 
 
@@ -225,13 +223,13 @@ class CVPictureView(views.APIView):
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
-        '200': CVDataSerializer(many=True),
+        '200': CVSerializer(many=True),
         '404': "Not found",
     },
     operation_description="Returns unverified cv list for admin"
 ))
 class AdminUnverifiedCVList(generics.ListAPIView):
-    serializer_class = CVDataSerializer
+    serializer_class = CVSerializer
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):
@@ -305,26 +303,26 @@ class CVStatus(views.APIView):
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
-        '200': CVDataSerializer(many=True),
+        '200': CVSerializer(many=True),
         '404': "Not found",
     },
     operation_description="Returns all CVs list for admin"
 ))
 class AdminCVListView(generics.ListAPIView):
     queryset = CV.objects.all()
-    serializer_class = CVDataSerializer
+    serializer_class = CVSerializer
     permission_classes = [IsAdminUser]
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
-        '200': CVDataSerializer(many=True),
+        '200': CVSerializer(many=True),
         '404': "Not found",
     },
     operation_description="Returns users CV list"
 ))
 class UserCVListView(generics.ListAPIView):
-    serializer_class = CVDataSerializer
+    serializer_class = CVSerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):

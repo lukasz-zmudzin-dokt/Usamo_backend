@@ -64,6 +64,7 @@ def sample_blogpost_response():
     return Schema(
         type='object',
         properties={
+            'id': Schema(type='integer', default="1"),
             'category': Schema(type='string', default='Kategoria'),
             'tags': Schema(type='array', items=Schema(type='string', default=['Tag1', 'Tag2'])),
             'content': Schema(type='string', format='byte', default='base64-encoded-html-string'),
@@ -75,8 +76,31 @@ def sample_blogpost_response():
                     "first_name": Schema(type='string', default='first_name'),
                     "last_name": Schema(type='string', default='last_name')
                 }
+            ),
+            'comments': Schema(
+                type='array',
+                items=Schema(
+                    type='object',
+                    properties={
+                        "id": Schema(type='integer', default="1"),
+                        "author": {
+                            "email": Schema(type='string', format='email', default='email@example.com'),
+                            "first_name": Schema(type='string', default='first_name'),
+                            "last_name": Schema(type='string', default='last_name')
+                        },
+                        "content": Schema(type='string', default='Treść komentarza'),
+                        "date_created": Schema(type='string')
+                    }
+                )
             )
         }
+    )
+
+
+def sample_string_response():
+    return Schema(
+        type='array',
+        items=Schema(type='string')
     )
 
 
@@ -170,7 +194,10 @@ class BlogPostView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-        operation_description="Returns list of all categories."
+        operation_description="Returns list of all categories.",
+        responses={
+            200: sample_string_response()
+        }
     ))
 class BlogPostCategoryListView(generics.ListAPIView):
     serializer_class = BlogPostCategorySerializer
@@ -179,7 +206,10 @@ class BlogPostCategoryListView(generics.ListAPIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-        operation_description="Returns list of all tags."
+        operation_description="Returns list of all tags.",
+        responses={
+            200: sample_string_response()
+        }
     ))
 class BlogPostTagListView(generics.ListAPIView):
     serializer_class = BlogPostTagSerializer
@@ -195,7 +225,7 @@ class BlogPostTagListView(generics.ListAPIView):
         operation_description="Returns blog post list. Can be filtered by category and/or tag."
     ))
 class BlogPostListView(generics.ListAPIView):
-    serializer_class = BlogPostSerializer
+    serializer_class = BlogPostListSerializer
     permission_classes = [AllowAny]
 
     def get_queryset(self):
