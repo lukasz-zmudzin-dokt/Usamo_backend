@@ -1,0 +1,88 @@
+[
+  {
+    "model": "blog.blogposttag",
+    "pk": 1,
+    "fields": {
+      "name": "#4konserwy"
+    }
+  },
+  {
+    "model": "blog.blogposttag",
+    "pk": 2,
+    "fields": {
+      "name": "#przegryw"
+    }
+  },
+  {
+    "model": "blog.blogposttag",
+    "pk": 3,
+    "fields": {
+      "name": "#maklowicz"
+    }
+  },
+  {
+    "model": "blog.blogpostcategory",
+    "pk": 1,
+    "fields": {
+      "name": "Korwinizm"
+    }
+  },
+  {
+    "model": "blog.blogpostcategory",
+    "pk": 2,
+    "fields": {
+      "name": "Gotowanie"
+    }
+  },
+  {
+    "model": "blog.blogpost",
+    "pk": 1,
+    "fields": {
+      "author": 4,
+      "category": 1,
+      "content": "Ajsem tibiti ooooo",
+      "date_created": "2020-04-06T22:21:55.747Z",
+      "date_modified": "2020-04-06T22:21:55.758Z",
+      "summary": "Ajsem tibiti ooooo",
+      "tags": [
+        1,
+        2
+      ]
+    }
+  },
+  {
+    "model": "blog.blogpost",
+    "pk": 2,
+    "fields": {
+      "author": 4,
+      "category": 2,
+      "content": "D\u017awig",
+      "date_created": "2020-04-06T22:25:16.903Z",
+      "date_modified": "2020-04-06T22:25:16.908Z",
+      "summary": "D\u017awig",
+      "tags": [
+        3
+      ]
+    }
+  },
+  {
+    "model": "blog.blogpostcomment",
+    "pk": 1,
+    "fields": {
+      "author": "b582b042-d6d8-4e57-9447-564a6748b4f7",
+      "content": "Ale pan Janusz zmasakrowa\u0142",
+      "blog_post": 1,
+      "date_created": "2020-04-06T22:33:41.670Z"
+    }
+  },
+  {
+    "model": "blog.blogpostcomment",
+    "pk": 2,
+    "fields": {
+      "author": "8b58d6b2-51d1-4fb7-9c36-7bfc5f46f75d",
+      "content": "DARUDE SANDSTORM",
+      "blog_post": 1,
+      "date_created": "2020-04-06T22:35:12.499Z"
+    }
+  }
+]
