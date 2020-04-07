@@ -48,6 +48,15 @@ def sample_blogpostid_response():
     )
 
 
+def sample_commentid_response():
+    return Schema(
+        type='object',
+        properties={
+            "id": Schema(type='integer', default='1')
+        }
+    )
+
+
 def sample_blogpost_request(required=True):
     return Schema(
         type='object',
@@ -57,6 +66,16 @@ def sample_blogpost_request(required=True):
             'content': Schema(type='string', format='byte', default='base64-encoded-html-string')
         },
         required=['category', 'tags', 'content'] if required else []
+    )
+
+
+def sample_comment_request(required=True):
+    return Schema(
+        type='object',
+        properties={
+            'content': Schema(type='string', format='byte', default='base64-encoded-html-string')
+        },
+        required=['content'] if required else []
     )
 
 
@@ -240,8 +259,16 @@ class BlogPostListView(generics.ListAPIView):
 
 
 class BlogPostCommentCreateView(views.APIView):
+    permission_classes = [IsAuthenticated]
 
-    @permission_classes([IsAuthenticated])
+    @swagger_auto_schema(
+        request_body=sample_comment_request(),
+        responses={
+            200: sample_commentid_response(),
+            403: 'Forbidden - no permissions',
+            400: 'No blog_post instance with given id'
+        }
+    )
     def post(self, request, id):
         try:
             author = Account.objects.get(id=request.user.id)
@@ -266,6 +293,17 @@ class BlogPostCommentCreateView(views.APIView):
 class BlogPostCommentUpdateView(views.APIView):
     permission_classes = [IsAuthenticated]
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('id', IN_PATH, type='integer')
+        ],
+        request_body=sample_comment_request(required=False),
+        responses={
+            200: sample_commentid_response(),
+            403: 'Forbidden - no permissions',
+            400: 'No instance with given id'
+        }
+    )
     def put(self, request, id):
         try:
             comment = BlogPostComment.objects.get(pk=id)
@@ -280,6 +318,16 @@ class BlogPostCommentUpdateView(views.APIView):
         except ObjectDoesNotExist:
             return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('id', IN_PATH, type='integer')
+        ],
+        responses={
+            200: "OK",
+            403: 'Forbidden - no permissions',
+            400: 'No instance with given id'
+        }
+    )
     def delete(self, request, id):
         try:
             comment = BlogPostComment.objects.get(pk=id)
