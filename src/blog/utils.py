@@ -10,3 +10,8 @@ def __create_file_path(folder, filename):
 
 def create_blog_attachment_file_path(instance, filename):
     return __create_file_path('attachment', filename)
+
+
+def create_blog_header_file_path(instance, filename):
+    return __create_file_path('header', filename)
+
