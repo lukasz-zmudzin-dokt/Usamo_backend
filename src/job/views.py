@@ -54,7 +54,7 @@ def sample_offerid_response():
     return Schema(
         type='object',
         properties={
-            "offer_id": Schema(type='string', default='uuid4')
+            "offer_id": Schema(type='string', default='uuid4', format='byte')
         }
     )
 
@@ -63,7 +63,7 @@ def sample_offer_response():
     return Schema(
         type='object',
         properties={
-            'id': Schema(type='string', default="uuid4"),
+            'id': Schema(type='string', default="uuid4", format='byte'),
             'offer_name': Schema(type='string', default="offer name"),
             'category': Schema(type='string', default="offer category"),
             'type': Schema(type='string', default="offer type"),
@@ -125,7 +125,7 @@ class JobOfferView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('offer_id', IN_PATH, type='integer')
+            Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         responses={
             '200': sample_message_response("Offer edited successfully"),
@@ -155,7 +155,7 @@ class JobOfferView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('offer_id', IN_PATH, type='integer')
+            Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         responses={
             '200': JobOfferSerializer,
@@ -175,7 +175,7 @@ class JobOfferView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('offer_id', IN_PATH, type='integer')
+            Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         responses={
             '200': sample_message_response('Offer deleted'),
