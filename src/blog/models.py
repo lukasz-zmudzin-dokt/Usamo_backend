@@ -39,6 +39,11 @@ class BlogPostHeader(models.Model):
     file = models.ImageField(upload_to=create_blog_header_file_path)
     blog_post = models.OneToOneField(BlogPost, on_delete=models.CASCADE, null=True)
 
+    def delete(self, **kwargs):
+        self.file.delete()
+        self.blog_post.header = None
+        super().delete(**kwargs)
+
 
 class BlogPostAttachment(models.Model):
     file = models.FileField(upload_to=create_blog_attachment_file_path, null=True, blank=True)

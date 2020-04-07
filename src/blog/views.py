@@ -1,3 +1,5 @@
+import os
+
 from account.models import StaffAccount, DefaultAccount, Account
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
@@ -180,6 +182,8 @@ class BlogPostHeaderView(views.APIView):
         header = BlogPostHeader.objects.filter(blog_post_id=id)
         if not header:
             return ErrorResponse('There is no such header', status.HTTP_400_BAD_REQUEST)
+        header = BlogPostHeader.objects.get(blog_post_id=id)
+        header.delete()
         return Response('OK', status.HTTP_200_OK)
 
 
