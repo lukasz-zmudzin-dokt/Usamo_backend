@@ -1,4 +1,5 @@
 from django_filters import rest_framework as filters
+from drf_yasg.inspectors import CoreAPICompatInspector
 from .models import *
 
 
@@ -64,3 +65,16 @@ class StaffListFilter(AbstractTypeListFilter):
         model = Account
         fields = ['id', 'username', 'first_name', 'last_name', 'group_type',
                   'email', 'date_joined', 'last_login']
+
+
+class DjangoFilterDescriptionInspector(CoreAPICompatInspector):
+   def get_filter_parameters(self, filter_backend):
+      if isinstance(filter_backend, filters.DjangoFilterBackend):
+         result = super(DjangoFilterDescriptionInspector, self).get_filter_parameters(filter_backend)
+         for param in result:
+            if not param.get('description', ''):
+               param.description = "Filter the returned list by {field_name}".format(field_name=param.name)
+
+         return result
+
+      return NotHandled

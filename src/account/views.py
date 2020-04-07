@@ -13,7 +13,6 @@ from rest_framework.renderers import JSONRenderer
 from rest_framework.response import Response
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from django_filters import rest_framework as filters
-
 from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from .account_status import AccountStatus
 from .serializers import *
@@ -259,6 +258,7 @@ class AdminUserRejectionView(views.APIView):
         '200': AccountListSerializer(many=True),
         '404': "Not found",
     },
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     operation_description="Returns all accounts list for admin"
 ))
 class AdminAllAccountsListView(ListAPIView):
@@ -274,6 +274,7 @@ class AdminAllAccountsListView(ListAPIView):
         '200': AccountListSerializer(many=True),
         '404': "Not found",
     },
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     operation_description="Returns standard accounts list for admin"
 ))
 class AdminDefaultAccountsListView(ListAPIView):
@@ -291,6 +292,7 @@ class AdminDefaultAccountsListView(ListAPIView):
         '200': AccountListSerializer(many=True),
         '404': "Not found",
     },
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     operation_description="Returns employer accounts list for admin"
 ))
 class AdminEmployerListView(ListAPIView):
@@ -308,6 +310,7 @@ class AdminEmployerListView(ListAPIView):
         '200': AccountListSerializer(many=True),
         '404': "Not found",
     },
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     operation_description="Returns staff accounts list for admin"
 ))
 class AdminStaffListView(ListAPIView):
