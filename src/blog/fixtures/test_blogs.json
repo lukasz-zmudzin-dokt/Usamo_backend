@@ -39,6 +39,7 @@
     "pk": 1,
     "fields": {
       "author": 4,
+      "title": "Nowa wypowiedź Pana Janusza.",
       "category": 1,
       "content": "Ajsem tibiti ooooo",
       "date_created": "2020-04-06T22:21:55.747Z",

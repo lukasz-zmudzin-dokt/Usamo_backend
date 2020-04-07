@@ -381,7 +381,7 @@ class BlogPostCommentUpdateView(views.APIView):
             Parameter('id', IN_PATH, type='integer')
         ],
         responses={
-            200: "OK",
+            200: "Comment was successfully deleted",
             403: 'Forbidden - no permissions',
             400: 'No instance with given id'
         }
