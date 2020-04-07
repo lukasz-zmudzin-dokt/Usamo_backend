@@ -1,7 +1,9 @@
+import os
+
 from account.models import StaffAccount, DefaultAccount, Account
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
-from drf_yasg.openapi import IN_QUERY
+from drf_yasg.openapi import IN_QUERY, IN_FORM
 from drf_yasg.openapi import Schema, Parameter, IN_PATH
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics
@@ -9,6 +11,8 @@ from rest_framework import views, status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.parsers import MultiPartParser
+from rest_framework.permissions import IsAuthenticated
 
 from .permissions import *
 from .serializers import *
@@ -53,9 +57,10 @@ def sample_blogpost_request(required=True):
         properties={
             'category': Schema(type='string', default='Kategoria'),
             'tags': Schema(type='array', items=Schema(type='string', default=['Tag1', 'Tag2'])),
-            'content': Schema(type='string', format='byte', default='base64-encoded-html-string')
+            'content': Schema(type='string', format='byte', default='base64-encoded-html-string'),
+            'title': Schema(type='string', default='Title')
         },
-        required=['category', 'tags', 'content'] if required else []
+        required=['category', 'tags', 'content', 'title'] if required else []
     )
 
 
@@ -67,6 +72,8 @@ def sample_blogpost_response():
             'category': Schema(type='string', default='Kategoria'),
             'tags': Schema(type='array', items=Schema(type='string', default=['Tag1', 'Tag2'])),
             'content': Schema(type='string', format='byte', default='base64-encoded-html-string'),
+            'title': Schema(type='string', default='Title'),
+            'header': Schema(type='string', default='header-url'),
             'date_created': Schema(type='string', default="2020-02-20"),
             'author': Schema(
                 type='object',
@@ -104,7 +111,7 @@ def sample_string_response():
 
 
 class BlogPostCreateView(views.APIView):
-    permission_classes = [IsStaffBlogCreator | IsStaffBlogModerator]
+    permission_classes = [IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator]
 
     @swagger_auto_schema(
         request_body=sample_blogpost_request(),
@@ -127,6 +134,57 @@ class BlogPostCreateView(views.APIView):
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             return ErrorResponse("No user or user is not staff member", status.HTTP_403_FORBIDDEN)
+
+
+class BlogPostHeaderView(views.APIView):
+
+    permission_classes = (IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator)
+    parser_classes = (MultiPartParser, )
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('id', IN_PATH, type='integer'),
+            Parameter('file', IN_FORM, type='file')
+        ],
+        responses={
+            200: 'OK',
+            400: 'There is no such blog'
+        },
+    )
+    def post(self, request, id):
+
+        existing_header = BlogPostHeader.objects.filter(blog_post_id=id)
+        existing_header.delete()
+
+        blog_post = BlogPost.objects.filter(id=id).first()
+        if not blog_post:
+            return ErrorResponse('There is no such blog', status.HTTP_400_BAD_REQUEST)
+
+        data = request.data
+        data['blog_post'] = blog_post.id
+        serializer = BlogPostHeaderSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+        else:
+            return ErrorResponse(serializer.errors, status.HTTP_400_BAD_REQUEST)
+        return Response('OK', status.HTTP_200_OK)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('id', IN_PATH, type='integer')
+        ],
+        responses={
+            200: 'OK',
+            400: 'There is no such header'
+        }
+    )
+    def delete(self, request, id):
+        header = BlogPostHeader.objects.filter(blog_post_id=id)
+        if not header:
+            return ErrorResponse('There is no such header', status.HTTP_400_BAD_REQUEST)
+        header = BlogPostHeader.objects.get(blog_post_id=id)
+        header.delete()
+        return Response('OK', status.HTTP_200_OK)
 
 
 class BlogPostView(views.APIView):

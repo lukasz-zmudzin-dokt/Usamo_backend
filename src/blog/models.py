@@ -1,5 +1,5 @@
 from django.db import models
-from .utils import create_blog_attachment_file_path
+from .utils import create_blog_attachment_file_path, create_blog_header_file_path
 
 from account.models import StaffAccount, DefaultAccount, Account
 
@@ -24,6 +24,7 @@ class BlogPost(models.Model):
     category = models.ForeignKey(BlogPostCategory, on_delete=models.CASCADE)
     tags = models.ManyToManyField(BlogPostTag, blank=True)
     content = models.TextField()
+    title = models.TextField(blank=False, null=False)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     summary = models.TextField(null=True)
@@ -32,6 +33,16 @@ class BlogPost(models.Model):
         if self.summary is None:
             self.summary = set_summary(self.content)
         super().save()
+
+
+class BlogPostHeader(models.Model):
+    file = models.ImageField(upload_to=create_blog_header_file_path)
+    blog_post = models.OneToOneField(BlogPost, on_delete=models.CASCADE, null=True)
+
+    def delete(self, **kwargs):
+        self.file.delete()
+        self.blog_post.header = None
+        super().delete(**kwargs)
 
 
 class BlogPostAttachment(models.Model):
