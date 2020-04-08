@@ -255,9 +255,13 @@ class AdminFeedback(views.APIView):
     def post(self, request):
         request_data = request.data
         serializer = self.serializer_class(data=request_data)
+        try:
+            CV = CV.objects.get(cv_id=request_data['cv_id'])
+        except CV.DoesNotExist:
+            return Response('CV with the given id was not found.', status.HTTP_404_NOT_FOUND)
 
         if serializer.is_valid():
-            cv = serializer.create(serializer.validated_data)
+            feedback = serializer.create(serializer.validated_data)
             return Response('Feedback successfully created.', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -281,6 +285,34 @@ class CVFeedback(generics.RetrieveAPIView):
         fb = get_object_or_404(
             Feedback.objects.filter(cv_id=self.kwargs['cv_id']))
         return fb
+
+
+class AdminCVVerificationView(views.APIView):
+    permission_classes = [IsAdminUser]
+
+    @swagger_auto_schema(
+        responses={
+            '200': 'CV was successfully verified.',
+            '400': 'CV id was not specified.',
+            '404': 'CV with the given id was not found.'
+        },
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying cv.')
+        ],
+        operation_description="Sets cv's status to verified.",
+    )
+    def post(self, request, cv_id):
+        if cv_id is not None:
+            try:
+                cv = CV.objects.get(cv_id=cv_id)
+            except CV.DoesNotExist:
+                return Response('CV with the given id was not found.', status.HTTP_404_NOT_FOUND)
+            cv.is_verified = True
+            cv.save()
+            return Response('CV successfully verified.', status.HTTP_200_OK)
+
+        return Response('CV id was not specified.', status.HTTP_400_BAD_REQUEST)
 
 
 class CVStatus(views.APIView):
@@ -330,3 +362,5 @@ class UserCVListView(generics.ListAPIView):
         def_account = get_object_or_404(
             DefaultAccount.objects.filter(user=user))
         return CV.objects.filter(cv_user=def_account)
+
+
