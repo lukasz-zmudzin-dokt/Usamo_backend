@@ -1,6 +1,6 @@
 from django.db import models
 from .utils import create_blog_attachment_file_path, create_blog_header_file_path
-
+import re
 from account.models import StaffAccount, DefaultAccount, Account
 
 
@@ -8,7 +8,8 @@ def set_summary(content):
     if len(content) < 100:
         return content
     else:
-        return content[:100].rstrip() + '...'
+        cleaner = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+        return re.sub(cleaner, '', content)[:100].rstrip() + '...'
 
 
 class BlogPostTag(models.Model):
