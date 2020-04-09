@@ -4,12 +4,9 @@ import re
 from account.models import StaffAccount, DefaultAccount, Account
 
 
-def set_summary(content):
-    if len(content) < 100:
-        return content
-    else:
-        cleaner = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
-        return re.sub(cleaner, '', content)[:100].rstrip() + '...'
+def clean_html(string):
+    cleaner = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
+    return re.sub(cleaner, '', string)[:100].rstrip()
 
 
 class BlogPostTag(models.Model):
@@ -28,12 +25,23 @@ class BlogPost(models.Model):
     title = models.TextField(blank=False, null=False)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
-    summary = models.TextField(null=True)
+    _summary = models.TextField(null=True)
 
-    def save(self, *args, **kwargs):
-        if self.summary is None:
-            self.summary = set_summary(self.content)
-        super().save()
+    @property
+    def summary(self):
+        if self._summary is None:
+            content = self.content
+            if len(content) >= 100:
+                content = clean_html(content)
+            return content + '...'
+        else:
+            return self._summary
+
+    @summary.setter
+    def summary(self, summary):
+        self._summary = clean_html(summary)
+
+
 
 
 class BlogPostHeader(models.Model):

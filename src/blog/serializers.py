@@ -123,8 +123,6 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
         if 'summary' in validated_data:
             instance.summary = validated_data.get('summary', instance.summary)
-        else:
-            instance.summary = set_summary(instance.content)
 
         instance.date_modified = timezone.now()
         instance.save()
