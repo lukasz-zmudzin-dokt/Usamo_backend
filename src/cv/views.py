@@ -164,7 +164,7 @@ class CVPictureView(views.APIView):
             Response('Make sure the form key is "picture".', status.HTTP_400_BAD_REQUEST)
         serializer = CVSerializer(data=data)
         if serializer.is_valid():
-            serializer.create(serializer.validated_data)
+            serializer.update(cv, serializer.validated_data)
             return Response('Picture added successfully.', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
