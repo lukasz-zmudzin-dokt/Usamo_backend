@@ -57,7 +57,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
         else:
             fb = super().create(validated_data)
         cv = CV.objects.get(cv_id=validated_data['cv_id'])
-        cv.is_verified = True
+        cv.was_reviewed = True
         cv.save()
         fb.save()
         return fb
@@ -71,12 +71,13 @@ class CVSerializer(serializers.ModelSerializer):
     experiences = ExperienceSerializer(many=True, required=False)
     skills = SkillSerializer(many=True)
     languages = LanguageSerializer(many=True)
-    is_verified = serializers.BooleanField(default=False)
+    is_verified = serializers.BooleanField(default=False, read_only=True)
+    was_reviewed = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = CV
         fields = ['cv_id', 'user_id', 'cv_user', 'basic_info', 'schools', 'experiences', 'skills',
-                  'languages', 'wants_verification', 'is_verified']
+                  'languages', 'wants_verification', 'is_verified', 'was_reviewed']
         
         extra_kwargs = {
             'cv_user': {'required': False, 'write_only': True},
