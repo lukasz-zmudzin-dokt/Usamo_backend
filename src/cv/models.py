@@ -30,6 +30,7 @@ class CV(models.Model):
     is_verified = models.BooleanField(default=False)
     was_reviewed = models.BooleanField(default=False)
     document = models.FileField(upload_to='cv_docs/%Y/%m/%d/')
+    data_created = models.DateTimeField(auto_now_add=True)
 
 
 class BasicInfo(models.Model):
