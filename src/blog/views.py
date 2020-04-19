@@ -12,6 +12,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from account.account_type import StaffGroupType
+from account.permissions import GetRequestPublicPermission
 from django.contrib.auth.models import Group
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated

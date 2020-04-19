@@ -78,3 +78,9 @@ class CanStaffVerifyUsers(AbstractCanStaffVerifyPermission):
 
     def _get_staff_type(self):
         return StaffGroupType.STAFF_VERIFICATION
+
+
+class GetRequestPublicPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return request.method == "GET"
