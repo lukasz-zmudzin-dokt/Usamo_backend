@@ -6,7 +6,7 @@ from account.models import StaffAccount, DefaultAccount, Account
 
 def clean_html(string):
     cleaner = re.compile('<.*?>|&([a-z0-9]+|#[0-9]{1,6}|#x[0-9a-f]{1,6});')
-    return re.sub(cleaner, '', string)[:100].rstrip()
+    return re.sub(cleaner, '', string)
 
 
 class BlogPostTag(models.Model):
@@ -29,19 +29,8 @@ class BlogPost(models.Model):
 
     @property
     def summary(self):
-        if self._summary is None:
-            content = self.content
-            if len(content) >= 300:
-                content = clean_html(content)
-            return content + '...'
-        else:
-            return self._summary
-
-    @summary.setter
-    def summary(self, summary):
-        self._summary = clean_html(summary)
-
-
+        content = clean_html(self.content)
+        return content[:300].rstrip() + '...'
 
 
 class BlogPostHeader(models.Model):
