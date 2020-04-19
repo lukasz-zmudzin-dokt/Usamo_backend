@@ -250,7 +250,7 @@ class AdminUserRejectionView(views.APIView):
             user.save()
             return Response('User status successfully set to not verified.', status.HTTP_200_OK)
 
-        return Response('User id was not specified.', status.HTTP_406_NOT_ACCEPTABLE)
+        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(

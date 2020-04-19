@@ -86,7 +86,7 @@ class JobOfferApplicationSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = JobOfferApplication
-        fields = ['cv_url', 'user_id', 'first_name', 'last_name', 'email', 'date_posted', 'job_offer']
+        fields = ['cv', 'job_offer', 'cv_url', 'user_id', 'first_name', 'last_name', 'email', 'date_posted']
         extra_kwargs = {
             'cv': {'write_only': True}
         }

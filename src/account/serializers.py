@@ -26,6 +26,7 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         user.set_password(password)
         user.save()
         account.save()
+        self.post_user_saved(user)
         return user
 
     def update(self, instance, validated_data):
@@ -55,6 +56,10 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
 
     @abc.abstractmethod
     def post_user_created(self, user, data):
+        return
+
+    @abc.abstractmethod
+    def post_user_saved(self, user):
         return
 
 
@@ -96,6 +101,9 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
         return validated_data.pop('account', None)
 
     def post_user_created(self, user, data):
+        pass
+
+    def post_user_saved(self, user):
         pass
 
 
@@ -144,6 +152,9 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
     def post_user_created(self, user, data):
         pass
 
+    def post_user_saved(self, user):
+        pass
+
 
 class StaffAccountSerializer(AbstractAccountSerializer):
     group_type = serializers.CharField(
@@ -177,6 +188,12 @@ class StaffAccountSerializer(AbstractAccountSerializer):
 
     def post_user_created(self, user, data):
         self.__add_to_group(user, self.group_type)
+
+    def post_user_saved(self, user):
+        staff_account = StaffAccount.objects.filter(user_id=user.id).first()
+        if staff_account:
+            staff_account.group_type = self.group_type
+            staff_account.save()
 
     def validate(self, attrs):
         self.group_type = attrs['staff_account']['group_type']
