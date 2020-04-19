@@ -359,10 +359,11 @@ class UserCVNameView(views.APIView):
         operation_description="Changes the name of a CV",
         manual_parameters=[
             openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
-                              description='A UUID string identifying this cv'),
-            openapi.Parameter('name', openapi.IN_BODY, type='string',
-                              description='New CV name')
+                              description='A UUID string identifying this cv')
         ],
+        request_body = openapi.Schema(type='object', properties= {
+            'name': openapi.Schema(type='string')}),
+
         responses={
             200: 'Nazwa CV zmieniona na: nowanazwa',
             403: 'Podane CV nie należy do danego użytkownika',
