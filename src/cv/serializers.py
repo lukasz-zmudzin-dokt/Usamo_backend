@@ -76,8 +76,8 @@ class CVSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'user_id', 'cv_user', 'basic_info', 'schools', 'experiences', 'skills',
-                  'languages', 'wants_verification', 'is_verified', 'was_reviewed']
+        fields = ['cv_id', 'user_id', 'cv_user', 'name', 'basic_info', 'schools', 'experiences', 'skills',
+                  'languages', 'is_verified', 'was_reviewed']
         
         extra_kwargs = {
             'cv_user': {'required': False, 'write_only': True},
@@ -86,16 +86,15 @@ class CVSerializer(serializers.ModelSerializer):
             'experiences': {'required': False},
             'skills': {'required': True},
             'languages': {'required': True},
-            'wants_verification': {'required': False},
-            'is_verified': {'required': False}
+            'is_verified': {'required': False},
+            'name': {'required': False},
         }
 
     def create(self, validated_data):
         pdf = generate(validated_data)
         django_file = ContentFile(pdf)
         django_file.name = create_unique_filename('cv_docs', 'pdf')
-        cv = CV.objects.create(cv_user=validated_data['cv_user'], wants_verification=True, 
-                is_verified=False, document=django_file)
+        cv = CV.objects.create(cv_user=validated_data['cv_user'], is_verified=False, document=django_file)
         basic_info_data = validated_data.pop('basic_info')
         BasicInfo.objects.create(cv=cv, **basic_info_data)
         return self.create_lists(cv, validated_data)
@@ -108,7 +107,6 @@ class CVSerializer(serializers.ModelSerializer):
         Experience.objects.filter(cv=cv).delete()
         Skill.objects.filter(cv=cv).delete()
         Language.objects.filter(cv=cv).delete()
-        cv.wants_verification = True
         cv.is_verified = False
 
         validated_data['basic_info']['picture'] = cv.basic_info.picture
