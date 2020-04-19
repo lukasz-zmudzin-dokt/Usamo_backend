@@ -53,7 +53,6 @@ class School(models.Model):
     cv = models.ForeignKey(CV, related_name='schools', on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=200)
     year_start = models.PositiveIntegerField(
-        default=current_year(),
         validators=[
             MinValueValidator(1990),
             max_value_current_year])
@@ -70,7 +69,6 @@ class Experience(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=400)
     year_start = models.PositiveIntegerField(
-        default=current_year(),
         validators=[
             MinValueValidator(1990),
             max_value_current_year])

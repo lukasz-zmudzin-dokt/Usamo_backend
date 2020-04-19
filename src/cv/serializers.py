@@ -94,7 +94,10 @@ class CVSerializer(serializers.ModelSerializer):
         pdf = generate(validated_data)
         django_file = ContentFile(pdf)
         django_file.name = create_unique_filename('cv_docs', 'pdf')
-        cv = CV.objects.create(cv_user=validated_data['cv_user'], is_verified=False, document=django_file)
+        name = None
+        if 'name' in validated_data:
+            name = validated_data['name']
+        cv = CV.objects.create(cv_user=validated_data['cv_user'], is_verified=False, document=django_file, name=name)
         basic_info_data = validated_data.pop('basic_info')
         BasicInfo.objects.create(cv=cv, **basic_info_data)
         return self.create_lists(cv, validated_data)
