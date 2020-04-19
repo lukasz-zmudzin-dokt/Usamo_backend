@@ -79,7 +79,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
     tags = BlogPostTagSerializer(many=True)
     author = BlogAuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
-    summary = serializers.CharField(required=False)
+    summary = serializers.CharField(required=False, read_only=True)
     header = serializers.SerializerMethodField()
     date_created = serializers.DateTimeField(format='%d/%m/%Y %X', read_only=True)
 
@@ -120,9 +120,6 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
         if 'content' in validated_data:
             instance.content = validated_data.get('content', instance.content)
-
-        if 'summary' in validated_data:
-            instance.summary = validated_data.get('summary', instance.summary)
 
         instance.date_modified = timezone.now()
         instance.save()

@@ -31,7 +31,7 @@ class BlogPost(models.Model):
     def summary(self):
         if self._summary is None:
             content = self.content
-            if len(content) >= 100:
+            if len(content) >= 300:
                 content = clean_html(content)
             return content + '...'
         else:
