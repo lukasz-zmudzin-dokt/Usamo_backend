@@ -7,7 +7,7 @@ from django.contrib.auth.models import Group
 from .account_type import StaffGroupType, ACCOUNT_TYPE_CHOICES
 
 
-from .models import DefaultAccount, EmployerAccount, Account, StaffAccount
+from .models import DefaultAccount, EmployerAccount, Account, StaffAccount, Address
 
 
 class AbstractAccountSerializer(serializers.ModelSerializer):
@@ -63,8 +63,14 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         return
 
 
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['city', 'street', 'street_number', 'postal_code']
+
+
 class DefaultAccountSerializer(AbstractAccountSerializer):
-    facility_address = serializers.CharField(source='account.facility_address')
+    facility_address = AddressSerializer(source='account.facility_address')
     facility_name = serializers.CharField(source='account.facility_name')
     phone_number = serializers.CharField(source='account.phone_number')
 
@@ -88,7 +94,9 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
         return super(DefaultAccountSerializer, self).update(instance, validated_data)
 
     def update_or_create_account(self, user, account_data):
-        return DefaultAccount.objects.update_or_create(user=user, defaults=account_data)
+        address = account_data.pop('facility_address')
+        address_created = Address.objects.create(**address)
+        return DefaultAccount.objects.update_or_create(user=user, defaults=account_data, facility_address=address_created)
 
     def perform_additional_validation(self, data):
         try:
