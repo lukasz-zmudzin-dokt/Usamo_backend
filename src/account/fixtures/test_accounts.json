@@ -289,9 +289,92 @@
       "user": "b582b042-d6d8-4e57-9447-564a6748b4f7",
       "phone_number": "+48123456789",
       "facility_name": "standard1",
-      "facility_address": "standard1"
+      "facility_address": 1
     }
   },
+
+  {
+    "model": "account.address",
+    "pk": 1,
+    "fields": {
+		"city": "Warszawa",
+		"street": "Miodowa",
+		"street_number": 2,
+		"postal_code": "11-111"
+    }
+  },
+  {
+    "model": "account.address",
+    "pk": 2,
+    "fields": {
+		"city": "Warszawa",
+		"street": "Wolska",
+		"street_number": 1,
+		"postal_code": "22-222"
+    }
+  },
+
+  {
+    "model": "account.address",
+    "pk": 3,
+    "fields": {
+		"city": "Warszawa",
+		"street": "Wolska",
+		"street_number": 1,
+		"postal_code": "22-222"
+    }
+  },
+  {
+    "model": "account.address",
+    "pk": 4,
+    "fields": {
+		"city": "Warszawa",
+		"street": "Wolska",
+		"street_number": 1,
+		"postal_code": "22-222"
+    }
+  },
+  {
+    "model": "account.address",
+    "pk": 5,
+    "fields": {
+		"city": "Warszawa",
+		"street": "Wolska",
+		"street_number": 1,
+		"postal_code": "22-222"
+    }
+  },
+  {
+    "model": "account.address",
+    "pk": 6,
+    "fields": {
+		"city": "Warszawa",
+		"street": "Wolska",
+		"street_number": 1,
+		"postal_code": "22-222"
+    }
+  },
+  {
+    "model": "account.address",
+    "pk": 7,
+    "fields": {
+		"city": "Warszawa",
+		"street": "Wolska",
+		"street_number": 1,
+		"postal_code": "22-222"
+    }
+  },
+  {
+    "model": "account.address",
+    "pk": 8,
+    "fields": {
+		"city": "Warszawa",
+		"street": "Wolska",
+		"street_number": 1,
+		"postal_code": "22-222"
+    }
+  },
+
   {
     "model": "account.defaultaccount",
     "pk": 2,
@@ -299,7 +382,7 @@
       "user": "8b58d6b2-51d1-4fb7-9c36-7bfc5f46f75d",
       "phone_number": "+48123456788",
       "facility_name": "standard2",
-      "facility_address": "standard2"
+      "facility_address": 2
     }
   },
   {
@@ -309,7 +392,7 @@
       "user": "386ec47f-b261-41dd-95c7-b5d9f8fe7cd6",
       "phone_number": "+48123336788",
       "facility_name": "standard3",
-      "facility_address": "standard3"
+      "facility_address": 3
     }
   },
   {
@@ -319,7 +402,7 @@
       "user": "04c114a7-794c-4bc8-b3c4-0704b8e35933",
       "phone_number": "+48223336788",
       "facility_name": "standard4",
-      "facility_address": "standard4"
+      "facility_address": 4
     }
   },
   {
@@ -329,7 +412,7 @@
       "user": "f3939bf9-dfd8-4cd5-8d38-bd848119dd1f",
       "phone_number": "+48223336555",
       "facility_name": "standard5",
-      "facility_address": "standard5"
+      "facility_address": 5
     }
   },
   {
@@ -339,7 +422,7 @@
       "user": "fe2c0fca-91a1-437d-846e-7fa6fe6e87ed",
       "phone_number": "+48122226787",
       "company_name": "employer1",
-      "company_address": "employer1",
+      "company_address": 6,
       "nip": "7251801126"
     }
   },
@@ -350,7 +433,7 @@
       "user": "110d18d2-acbd-4ab6-b876-cae8e7e0c554",
       "phone_number": "+48122226227",
       "company_name": "employer2",
-      "company_address": "employer2",
+      "company_address": 7,
       "nip": "5842751979"
     }
   },
@@ -361,7 +444,7 @@
       "user": "6d09179f-016a-446d-92c4-1e62970c0b31",
       "phone_number": "+48122226233",
       "company_name": "employer3",
-      "company_address": "employer3",
+      "company_address": 8,
       "nip": "8512624854"
     }
   },
