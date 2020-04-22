@@ -15,3 +15,9 @@ def validate_nip(nip: str):
     checksum %= 11
     if checksum != int(nip[9]):
         raise ValidationError('Invalid NIP number')
+
+
+def validate_postal_code(postal_code: str):
+    postal_code_regex = re.compile("[0-9]{2}-[0-9]{3}")
+    if postal_code_regex.match(postal_code) is None:
+        raise ValidationError('Invalid postal code')
