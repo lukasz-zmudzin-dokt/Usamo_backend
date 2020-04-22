@@ -27,11 +27,17 @@ def validate_cv_id(cv_id):
 class CV(models.Model):
     cv_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     cv_user = models.ForeignKey(DefaultAccount, related_name='cv_user', on_delete=models.CASCADE)
-    wants_verification = models.BooleanField(default=True)
+    name = models.CharField(max_length=50, null=True)
     is_verified = models.BooleanField(default=False)
     was_reviewed = models.BooleanField(default=False)
     document = models.FileField(upload_to='cv_docs/%Y/%m/%d/')
     date_created = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not self.name:
+            self.name = f'{self.cv_user.user.first_name}_{self.cv_user.user.last_name}' \
+                     f'_CV_{len(CV.objects.filter(cv_user=self.cv_user))+1}'
+        super().save(*args, **kwargs)
 
 
 class BasicInfo(models.Model):
@@ -49,7 +55,6 @@ class School(models.Model):
     cv = models.ForeignKey(CV, related_name='schools', on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=200)
     year_start = models.PositiveIntegerField(
-        default=current_year(),
         validators=[
             MinValueValidator(1990),
             max_value_current_year])
@@ -66,7 +71,6 @@ class Experience(models.Model):
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=400)
     year_start = models.PositiveIntegerField(
-        default=current_year(),
         validators=[
             MinValueValidator(1990),
             max_value_current_year])

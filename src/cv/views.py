@@ -1,28 +1,18 @@
-import os
-import uuid
+from django.http import JsonResponse
 from drf_yasg import openapi
-from django.http import HttpResponse, JsonResponse
 from django.utils.datastructures import MultiValueDictKeyError
-from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
-from rest_framework.decorators import action
-from rest_framework.generics import get_object_or_404
-from usamo import settings
-from account.models import DefaultAccount
-from account.account_type import AccountType
-from .models import *
-from rest_framework.permissions import IsAuthenticated, IsAdminUser
-from rest_framework.compat import coreapi, coreschema
-from rest_framework.schemas import ManualSchema
-from cv.serializers import *
-from rest_framework import status, generics, parsers, renderers
-from rest_framework.response import Response
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+from rest_framework import status, generics
 from rest_framework import views
-from rest_framework.authtoken.models import Token
-from job.views import sample_message_response
+from rest_framework.generics import get_object_or_404
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
+from rest_framework.response import Response
 
-def index(request):
-    return HttpResponse("Hello, world. You're at the CV generator.")
+from cv.models import CV
+from cv.serializers import *
+from job.views import sample_message_response
 
 
 class CreateCVView(views.APIView):
@@ -233,7 +223,7 @@ class AdminUnverifiedCVList(generics.ListAPIView):
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):
-        return CV.objects.filter(wants_verification=True, is_verified=False)
+        return CV.objects.filter(is_verified=False)
 
 
 class AdminFeedback(views.APIView):
@@ -256,7 +246,7 @@ class AdminFeedback(views.APIView):
         request_data = request.data
         serializer = self.serializer_class(data=request_data)
         try:
-            CV = CV.objects.get(cv_id=request_data['cv_id'])
+            cv = CV.objects.get(cv_id=request_data['cv_id'])
         except CV.DoesNotExist:
             return Response('CV with the given id was not found.', status.HTTP_404_NOT_FOUND)
 
@@ -362,5 +352,40 @@ class UserCVListView(generics.ListAPIView):
         def_account = get_object_or_404(
             DefaultAccount.objects.filter(user=user))
         return CV.objects.filter(cv_user=def_account)
+
+
+class UserCVNameView(views.APIView):
+    @swagger_auto_schema(
+        operation_description="Changes the name of a CV",
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                              description='A UUID string identifying this cv')
+        ],
+        request_body = openapi.Schema(type='object', properties= {
+            'name': openapi.Schema(type='string')}),
+
+        responses={
+            200: 'CV name changed to: new_name',
+            403: 'This CV does not belong to current user',
+            404: 'CV with the given id  does not exist',
+            400: 'New name was not specified'
+        }
+    )
+    def put(self, request, cv_id):
+        try:
+            instance = CV.objects.get(cv_id=cv_id)
+        except CV.DoesNotExist:
+            return Response('CV with the given id  does not exist', status=status.HTTP_404_NOT_FOUND)
+
+        if not instance.cv_user.user == request.user:
+            return Response('This CV does not belong to current user', status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            instance.name = request.data['name']
+            instance.save()
+            return Response(f'CV name changed to: {request.data["name"]}', status=status.HTTP_200_OK)
+        except KeyError:
+            return Response('New name was not specified', status=status.HTTP_400_BAD_REQUEST)
+
 
 

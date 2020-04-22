@@ -7,7 +7,6 @@ from . import views
 import uuid
 
 urlpatterns = [
-    path('', views.index, name='index'),
     path('generator/', views.CreateCVView.as_view(), name='cv_generator'),
     path('generator/<uuid:cv_id>/', views.CVView.as_view(), name='cv_view'),
     path('data/<uuid:cv_id>/', views.CVDataView.as_view(), name='cv_data'),
@@ -19,4 +18,5 @@ urlpatterns = [
     path('admin/feedback/', views.AdminFeedback.as_view(), name='feedback'),
     path('admin/verification/<uuid:cv_id>/', views.AdminCVVerificationView.as_view(), name='cv_verification'),
     path('status/<uuid:cv_id>/', views.CVStatus.as_view(), name='cv_status'),
+    path('name/<uuid:cv_id>', views.UserCVNameView.as_view(), name='cv_name'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

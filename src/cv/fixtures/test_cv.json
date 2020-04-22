@@ -4,9 +4,9 @@
     "pk": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
     "fields": {
       "cv_user": 1,
-      "wants_verification": true,
       "is_verified": false,
       "was_reviewed": true,
+      "name": "Moje CV",
       "document": "blank_test_cv",
       "date_created": "2020-04-04T11:21:19.023Z"
     }
