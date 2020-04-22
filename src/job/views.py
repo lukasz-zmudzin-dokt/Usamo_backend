@@ -170,7 +170,10 @@ class JobOfferView(views.APIView):
     )
     def get(self, request, offer_id):
         try:
-            offer = JobOffer.objects.get(pk=offer_id)
+            instance = JobOffer.objects.get(pk=offer_id)
+            if not IsEmployer().has_object_permission(request, self, instance) \
+                     or not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+                return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
             serializer = JobOfferSerializer(offer)
             return Response(serializer.data, status.HTTP_200_OK)
         except ObjectDoesNotExist:
