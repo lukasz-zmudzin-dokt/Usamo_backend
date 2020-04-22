@@ -223,7 +223,7 @@ class AdminUnverifiedCVList(generics.ListAPIView):
     permission_classes = [IsAdminUser]
 
     def get_queryset(self):
-        return CV.objects.filter(wants_verification=True, is_verified=False)
+        return CV.objects.filter(is_verified=False)
 
 
 class AdminFeedback(views.APIView):
@@ -365,27 +365,27 @@ class UserCVNameView(views.APIView):
             'name': openapi.Schema(type='string')}),
 
         responses={
-            200: 'Nazwa CV zmieniona na: nowanazwa',
-            403: 'Podane CV nie należy do danego użytkownika',
-            404: 'Podane CV nie istnieje',
-            406: 'Nie podano nowej nazwy CV'
+            200: 'CV name changed to: new_name',
+            403: 'This CV does not belong to current user',
+            404: 'CV with the given id  does not exist',
+            400: 'New name was not specified'
         }
     )
     def put(self, request, cv_id):
         try:
             instance = CV.objects.get(cv_id=cv_id)
         except CV.DoesNotExist:
-            return Response('Podane CV nie istnieje', status=status.HTTP_404_NOT_FOUND)
+            return Response('CV with the given id  does not exist', status=status.HTTP_404_NOT_FOUND)
 
         if not instance.cv_user.user == request.user:
-            return Response('Podane CV nie należy do danego użytkownika', status=status.HTTP_403_FORBIDDEN)
+            return Response('This CV does not belong to current user', status=status.HTTP_403_FORBIDDEN)
 
         try:
             instance.name = request.data['name']
             instance.save()
-            return Response(f'Nazwa CV zmieniona na: {request.data["name"]}', status=status.HTTP_200_OK)
+            return Response(f'CV name changed to: {request.data["name"]}', status=status.HTTP_200_OK)
         except KeyError:
-            return Response('Nie podano nowej nazwy CV', status=status.HTTP_400_BAD_REQUEST)
+            return Response('New name was not specified', status=status.HTTP_400_BAD_REQUEST)
 
 
 
