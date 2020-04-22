@@ -116,7 +116,7 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
 
 
 class EmployerAccountSerializer(AbstractAccountSerializer):
-    company_address = serializers.CharField(source='employer_account.company_address')
+    company_address = AddressSerializer(source='employer_account.company_address')
     company_name = serializers.CharField(source='employer_account.company_name')
     nip = serializers.CharField(source='employer_account.nip')
     phone_number = serializers.CharField(source='employer_account.phone_number')
@@ -144,7 +144,9 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
             raise serializers.ValidationError({'nip': error.message})
 
     def update_or_create_account(self, user, account_data):
-        return EmployerAccount.objects.update_or_create(user=user, defaults=account_data)
+        address = account_data.pop('company_address')
+        address_created = Address.objects.create(**address)
+        return EmployerAccount.objects.update_or_create(user=user, defaults=account_data, company_address=address_created)
 
     def perform_additional_validation(self, data):
         try:
