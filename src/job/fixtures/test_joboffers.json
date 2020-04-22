@@ -64,24 +64,6 @@
       "job_offer": "47991e86-4b42-4507-b154-1548bf8a3bd3",
       "date_posted": "2020-04-05T23:34:27.899Z"
     }
-  },
-  {
-    "model": "job.jobofferapplication",
-    "pk": 2,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "job_offer": "47991e86-4b42-4507-b154-1548bf8a3bd3",
-      "date_posted": "2020-04-05T23:35:07.535Z"
-    }
-  },
-  {
-    "model": "job.jobofferapplication",
-    "pk": 3,
-    "fields": {
-      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-      "job_offer": "47991e86-4b42-4507-b154-1548bf8a3bd3",
-      "date_posted": "2020-04-05T23:35:53.752Z"
-    }
   }
 ]
 

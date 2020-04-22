@@ -1,4 +1,5 @@
 import datetime
+from django.utils import timezone
 import uuid
 from account.models import Account, DefaultAccount
 from django.core.exceptions import ValidationError
@@ -30,6 +31,7 @@ class CV(models.Model):
     is_verified = models.BooleanField(default=False)
     was_reviewed = models.BooleanField(default=False)
     document = models.FileField(upload_to='cv_docs/%Y/%m/%d/')
+    date_created = models.DateTimeField(default=timezone.now)
 
     def save(self, *args, **kwargs):
         if not self.name:
