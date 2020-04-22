@@ -66,6 +66,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
 class CVSerializer(serializers.ModelSerializer):
     cv_id = serializers.UUIDField(read_only=True)
     user_id = serializers.UUIDField(source='cv_user.user.id', read_only=True)
+    date_created = serializers.DateTimeField(format='%d/%m/%Y %X', read_only=True)
     basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
     experiences = ExperienceSerializer(many=True, required=False)
@@ -76,8 +77,8 @@ class CVSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'user_id', 'cv_user', 'basic_info', 'schools', 'experiences', 'skills',
-                  'languages', 'wants_verification', 'is_verified', 'was_reviewed']
+        fields = ['cv_id', 'user_id', 'date_created', 'wants_verification', 'is_verified', 'was_reviewed',  
+        'cv_user', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
         
         extra_kwargs = {
             'cv_user': {'required': False, 'write_only': True},
