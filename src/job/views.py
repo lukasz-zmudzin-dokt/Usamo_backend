@@ -325,7 +325,8 @@ class JobOfferApplicationView(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': JobOfferApplicationSerializer(many=True),
-        '404': "Not found",
+        '403': "Offer not belongs to employer",
+        '404': "Offer not found"
     },
     manual_parameters=[
         Parameter('offer_id', IN_PATH, type='string($uuid)', 
@@ -340,6 +341,16 @@ class EmployerApplicationListView(ListAPIView):
     def get_queryset(self):
         id = self.kwargs['offer_id']
         return JobOfferApplication.objects.filter(job_offer=id)
+
+    def get(self, request, offer_id):
+        try:
+            offer = JobOffer.objects.get(id=offer_id)
+            if IsEmployer().has_object_permission(request, self, offer):
+                return super().get(request)
+            else:
+                return ErrorResponse("Offer not belongs to employer", status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
