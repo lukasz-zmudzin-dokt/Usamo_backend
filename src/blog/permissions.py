@@ -4,12 +4,6 @@ from account.account_type import StaffGroupType
 from account.permissions import AbstractIsAllowedStaff
 
 
-class GetRequestPublicPermission(permissions.BasePermission):
-
-    def has_permission(self, request, view):
-        return request.method == "GET"
-
-
 class IsStaffBlogCreator(AbstractIsAllowedStaff):
 
     def _get_allowed_staff_type(self):

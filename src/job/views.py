@@ -1,5 +1,5 @@
 from account.models import EmployerAccount, DefaultAccount
-from account.permissions import IsEmployer
+from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
 from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema
@@ -94,6 +94,7 @@ class OffersPagination(PageNumberPagination):
 
 # Create your views here.
 class JobOfferCreateView(views.APIView):
+    permission_classes = [IsEmployer]
 
     @swagger_auto_schema(
         query_serializer=JobOfferSerializer,
@@ -105,7 +106,6 @@ class JobOfferCreateView(views.APIView):
         },
         operation_description="Create job offer.",
     )
-    @permission_classes([IsAuthenticated])
     def post(self, request):
         try:
             employer = EmployerAccount.objects.get(user=request.user)
@@ -122,6 +122,8 @@ class JobOfferCreateView(views.APIView):
 
 
 class JobOfferView(views.APIView):
+    permission_classes = [GetRequestPublicPermission |
+                          IsEmployer | IsStaffResponsibleForJobs]
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -135,13 +137,15 @@ class JobOfferView(views.APIView):
         },
         operation_description="Edit job offer.",
     )
-    @permission_classes([IsAuthenticated])
     def post(self, request, offer_id):
         serializer = JobOfferEditSerializer(data=request.data)
         if serializer.is_valid():
             job_offer_edit = serializer.create(serializer.validated_data)
             try:
                 instance = JobOffer.objects.get(pk=offer_id)
+                if not IsEmployer().has_object_permission(request, self, instance) \
+                        or not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+                    return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
                 fields_to_update = job_offer_edit.update_dict()
                 for field, value in fields_to_update.items():
                     setattr(instance, field, value)
@@ -164,7 +168,6 @@ class JobOfferView(views.APIView):
         },
         operation_description="Get job offer by id",
     )
-    @permission_classes([IsAuthenticated])
     def get(self, request, offer_id):
         try:
             offer = JobOffer.objects.get(pk=offer_id)
@@ -181,14 +184,17 @@ class JobOfferView(views.APIView):
             '200': sample_message_response('Offer deleted'),
             '400': sample_error_response('Offer already removed'),
             '401': 'No authorization token',
+            '403': sample_error_response('No permissions for this action'),
             '404': sample_error_response('Offer not found')
         },
         operation_description="Set offer status to removed",
     )
-    @permission_classes([IsAuthenticated])
     def delete(self, request, offer_id):
         try:
             instance = JobOffer.objects.get(pk=offer_id)
+            if not IsEmployer().has_object_permission(request, self, instance) \
+                    or not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+                return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
             if instance.removed:
                 return ErrorResponse("Offer already removed", status.HTTP_400_BAD_REQUEST)
             instance.removed = True
@@ -263,6 +269,7 @@ class CreateJobOfferApplicationView(views.APIView):
 
 
 class JobOfferApplicationView(views.APIView):
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         responses={
@@ -318,7 +325,8 @@ class JobOfferApplicationView(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': JobOfferApplicationSerializer(many=True),
-        '404': "Not found",
+        '403': "Offer does not belong to current user",
+        '404': "Offer not found"
     },
     manual_parameters=[
         Parameter('offer_id', IN_PATH, type='string($uuid)', 
@@ -333,6 +341,16 @@ class EmployerApplicationListView(ListAPIView):
     def get_queryset(self):
         id = self.kwargs['offer_id']
         return JobOfferApplication.objects.filter(job_offer=id)
+
+    def get(self, request, offer_id):
+        try:
+            offer = JobOffer.objects.get(id=offer_id)
+            if IsEmployer().has_object_permission(request, self, offer):
+                return super().get(request)
+            else:
+                return ErrorResponse("Offer does not belong to current user", status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
@@ -364,7 +382,7 @@ class UserApplicationsView(ListAPIView):
     operation_description="Returns offers list with filters for current employer"
 ))
 class EmployerJobOffersView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsEmployer]
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
 
