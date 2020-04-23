@@ -356,31 +356,6 @@ class BlogPostCommentUpdateView(views.APIView):
         manual_parameters=[
             Parameter('id', IN_PATH, type='integer')
         ],
-        request_body=sample_comment_request(required=False),
-        responses={
-            200: sample_commentid_response(),
-            403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
-        }
-    )
-    def put(self, request, id):
-        try:
-            comment = BlogPostComment.objects.get(pk=id)
-            serializer = BlogPostCommentSerializer(comment, data=request.data, partial=True)
-            if comment.author.id != request.user.id:
-                return ErrorResponse("Not a comment author", status.HTTP_403_FORBIDDEN)
-            if serializer.is_valid():
-                serializer.save()
-                return BlogPostCommentIdResponse(comment.id)
-            else:
-                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-        except ObjectDoesNotExist:
-            return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
-
-    @swagger_auto_schema(
-        manual_parameters=[
-            Parameter('id', IN_PATH, type='integer')
-        ],
         responses={
             200: "Comment was successfully deleted",
             403: 'Forbidden - no permissions',
