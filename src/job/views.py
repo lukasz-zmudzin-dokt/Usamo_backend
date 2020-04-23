@@ -137,7 +137,7 @@ class JobOfferView(views.APIView):
         },
         operation_description="Edit job offer.",
     )
-    def post(self, request, offer_id):
+    def put(self, request, offer_id):
         serializer = JobOfferEditSerializer(data=request.data)
         if serializer.is_valid():
             job_offer_edit = serializer.create(serializer.validated_data)
@@ -296,31 +296,6 @@ class JobOfferApplicationView(views.APIView):
         serializer = JobOfferApplicationSerializer(application.first())
         return Response(serializer.data, status.HTTP_200_OK)
 
-    @swagger_auto_schema(
-        responses={
-            '200': "Application successfully deleted.",
-            '403': "User is not a standard user",
-            '404': "This user has no application with given id"
-        },
-        manual_parameters=[
-            Parameter('offer_id', IN_PATH, type='string($uuid)', 
-                description='ID of an offer, for which the user has applied.')
-        ],
-        operation_description="Delete current user's application for a particular job offer.",
-    )
-    def delete(self, request, offer_id):
-        try:
-            user = DefaultAccount.objects.get(user=request.user)
-        except DefaultAccount.DoesNotExist:
-            return Response("User is not a standard user", status.HTTP_403_FORBIDDEN)
-
-        application = JobOfferApplication.objects.filter(cv__cv_user=user, job_offer__id=offer_id)
-        
-        if not application:
-             return Response("This user has no application with given id", status.HTTP_404_NOT_FOUND)
-
-        application.delete()
-        return Response("Application successfully deleted.", status.HTTP_200_OK)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
