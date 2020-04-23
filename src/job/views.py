@@ -170,10 +170,7 @@ class JobOfferView(views.APIView):
     )
     def get(self, request, offer_id):
         try:
-            instance = JobOffer.objects.get(pk=offer_id)
-            if not IsEmployer().has_object_permission(request, self, instance) \
-                     or not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
+            offer = JobOffer.objects.get(pk=offer_id)
             serializer = JobOfferSerializer(offer)
             return Response(serializer.data, status.HTTP_200_OK)
         except ObjectDoesNotExist:
@@ -328,7 +325,7 @@ class JobOfferApplicationView(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': JobOfferApplicationSerializer(many=True),
-        '403': "Offer not belongs to employer",
+        '403': "Offer does not belong to current user",
         '404': "Offer not found"
     },
     manual_parameters=[
@@ -351,7 +348,7 @@ class EmployerApplicationListView(ListAPIView):
             if IsEmployer().has_object_permission(request, self, offer):
                 return super().get(request)
             else:
-                return ErrorResponse("Offer not belongs to employer", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Offer does not belong to current user", status.HTTP_403_FORBIDDEN)
         except ObjectDoesNotExist:
             return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
 
