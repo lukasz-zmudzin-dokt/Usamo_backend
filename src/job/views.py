@@ -129,6 +129,8 @@ class JobOfferView(views.APIView):
         manual_parameters=[
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
+        operation_id='job_job-offer_edit',
+        query_serializer=JobOfferEditSerializer,
         responses={
             '200': sample_message_response("Offer edited successfully"),
             '400': 'Bad request - serializer errors',
