@@ -66,7 +66,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
 class CVSerializer(serializers.ModelSerializer):
     cv_id = serializers.UUIDField(read_only=True)
     user_id = serializers.UUIDField(source='cv_user.user.id', read_only=True)
-    date_created = serializers.DateTimeField(format='%d/%m/%Y %X', read_only=True)
+    date_created = serializers.DateTimeField(read_only=True)
     basic_info = BasicInfoSerializer()
     schools = SchoolSerializer(many=True)
     experiences = ExperienceSerializer(many=True, required=False)

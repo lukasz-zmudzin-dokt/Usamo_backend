@@ -224,9 +224,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
 class AccountListSerializer(serializers.ModelSerializer):
     type = serializers.CharField(source='get_type_display')
     status = serializers.CharField(source='get_status_display')
-    date_joined = serializers.DateTimeField(format='%d/%m/%Y %X')
-    last_login = serializers.DateTimeField(format='%d/%m/%Y %X')
-
+    
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'type',

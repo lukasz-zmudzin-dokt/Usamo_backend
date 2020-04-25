@@ -82,7 +82,7 @@ class JobOfferApplicationSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='cv.cv_user.user.first_name', read_only=True)
     last_name = serializers.CharField(source='cv.cv_user.user.last_name', read_only=True)
     email = serializers.CharField(source='cv.cv_user.user.email', read_only=True)
-    date_posted = serializers.DateTimeField(format='%d/%m/%Y %X', read_only=True)
+    date_posted = serializers.DateTimeField(read_only=True)
     
     class Meta:
         model = JobOfferApplication
