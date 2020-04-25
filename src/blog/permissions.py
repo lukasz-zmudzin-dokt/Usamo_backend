@@ -2,12 +2,7 @@ from rest_framework import permissions
 
 from account.account_type import StaffGroupType
 from account.permissions import AbstractIsAllowedStaff
-
-
-class GetRequestPublicPermission(permissions.BasePermission):
-
-    def has_permission(self, request, view):
-        return request.method == "GET"
+from account.account_status import AccountStatus
 
 
 class IsStaffBlogCreator(AbstractIsAllowedStaff):
@@ -25,4 +20,13 @@ class IsStaffBlogModerator(AbstractIsAllowedStaff):
         return StaffGroupType.STAFF_BLOG_MODERATOR
 
     def has_object_permission(self, request, view, obj):
-        return hasattr(obj, 'author')
+        return super().has_permission(request, view) and hasattr(obj, 'author')
+
+
+class IsUserCommentAuthor(permissions.BasePermission):
+    def has_permission(self, request, view):
+        user = request.user
+        return user and user.status == AccountStatus.VERIFIED.value
+
+    def has_object_permission(self, request, view, obj):
+        return obj.author.id == request.user.id if hasattr(obj, 'author') else False

@@ -12,6 +12,7 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from account.account_type import StaffGroupType
+from account.permissions import GetRequestPublicPermission
 from django.contrib.auth.models import Group
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -349,32 +350,7 @@ class BlogPostCommentCreateView(views.APIView):
 
 
 class BlogPostCommentUpdateView(views.APIView):
-    permission_classes = [IsAuthenticated]
-
-    @swagger_auto_schema(
-        manual_parameters=[
-            Parameter('id', IN_PATH, type='integer')
-        ],
-        request_body=sample_comment_request(required=False),
-        responses={
-            200: sample_commentid_response(),
-            403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
-        }
-    )
-    def put(self, request, id):
-        try:
-            comment = BlogPostComment.objects.get(pk=id)
-            serializer = BlogPostCommentSerializer(comment, data=request.data, partial=True)
-            if comment.author.id != request.user.id:
-                return ErrorResponse("Not a comment author", status.HTTP_403_FORBIDDEN)
-            if serializer.is_valid():
-                serializer.save()
-                return BlogPostCommentIdResponse(comment.id)
-            else:
-                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-        except ObjectDoesNotExist:
-            return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
+    permission_classes = [IsUserCommentAuthor | IsStaffBlogModerator]
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -392,20 +368,9 @@ class BlogPostCommentUpdateView(views.APIView):
         except ObjectDoesNotExist:
             return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
 
-        if comment.author.id == request.user.id:
+        if IsUserCommentAuthor().has_object_permission(request, self, comment) or \
+                IsStaffBlogModerator().has_object_permission(request, self, comment):
             comment.delete()
             return Response(status=status.HTTP_200_OK)
         else:
-            try:
-                author = StaffAccount.objects.get(user_id=request.user.id)
-                contains = False
-                for e in author.user.groups.all():
-                    if str(e) == StaffGroupType.STAFF_BLOG_MODERATOR.value:
-                        contains = True
-                if contains:
-                    comment.delete()
-                    return Response("Comment was successfully deleted", status.HTTP_200_OK)
-                else:
-                    return ErrorResponse("User is not an author or Blog Moderator", status.HTTP_403_FORBIDDEN)
-            except ObjectDoesNotExist:
-                return ErrorResponse("User is not an author or Blog Moderator", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("User is not an author or Blog Moderator", status.HTTP_403_FORBIDDEN)

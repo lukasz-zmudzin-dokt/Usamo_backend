@@ -35,6 +35,12 @@ class AbstractIsAllowedUser(permissions.BasePermission):
         return
 
 
+class IsStandardUser(AbstractIsAllowedUser):
+
+    def _get_allowed_user_type(self):
+        return AccountType.STANDARD
+        
+
 class IsEmployer(AbstractIsAllowedUser):
 
     def _get_allowed_user_type(self):
@@ -68,13 +74,13 @@ class AbstractCanStaffVerifyPermission(permissions.BasePermission):
         pass
 
 
-class CanStaffVerifyCV(AbstractCanStaffVerifyPermission):
-
-    def _get_staff_type(self):
-        return StaffGroupType.STAFF_CV
-
-
 class CanStaffVerifyUsers(AbstractCanStaffVerifyPermission):
 
     def _get_staff_type(self):
         return StaffGroupType.STAFF_VERIFICATION
+
+
+class GetRequestPublicPermission(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        return request.method == "GET"
