@@ -2,12 +2,12 @@ from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
 from rest_framework import serializers
 import abc
-from .validators import validate_nip
+from .validators import validate_nip, validate_postal_code, validate_street_number
 from django.contrib.auth.models import Group
 from .account_type import StaffGroupType, ACCOUNT_TYPE_CHOICES
 
 
-from .models import DefaultAccount, EmployerAccount, Account, StaffAccount
+from .models import DefaultAccount, EmployerAccount, Account, StaffAccount, Address
 
 
 class AbstractAccountSerializer(serializers.ModelSerializer):
@@ -63,8 +63,24 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         return
 
 
+class AddressSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Address
+        fields = ['city', 'street', 'street_number', 'postal_code']
+
+    def validate(self, attrs):
+        postal_code = attrs['postal_code']
+        street_number = attrs['street_number']
+        try:
+            validate_postal_code(postal_code)
+            validate_street_number(street_number)
+            return super().validate(attrs)
+        except ValidationError as err:
+            raise serializers.ValidationError(err.message)
+
+
 class DefaultAccountSerializer(AbstractAccountSerializer):
-    facility_address = serializers.CharField(source='account.facility_address')
+    facility_address = AddressSerializer(source='account.facility_address')
     facility_name = serializers.CharField(source='account.facility_name')
     phone_number = serializers.CharField(source='account.phone_number')
 
@@ -88,7 +104,9 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
         return super(DefaultAccountSerializer, self).update(instance, validated_data)
 
     def update_or_create_account(self, user, account_data):
-        return DefaultAccount.objects.update_or_create(user=user, defaults=account_data)
+        address = account_data.pop('facility_address')
+        address_created = Address.objects.create(**address)
+        return DefaultAccount.objects.update_or_create(user=user, defaults=account_data, facility_address=address_created)
 
     def perform_additional_validation(self, data):
         try:
@@ -108,7 +126,7 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
 
 
 class EmployerAccountSerializer(AbstractAccountSerializer):
-    company_address = serializers.CharField(source='employer_account.company_address')
+    company_address = AddressSerializer(source='employer_account.company_address')
     company_name = serializers.CharField(source='employer_account.company_name')
     nip = serializers.CharField(source='employer_account.nip')
     phone_number = serializers.CharField(source='employer_account.phone_number')
@@ -136,7 +154,9 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
             raise serializers.ValidationError({'nip': error.message})
 
     def update_or_create_account(self, user, account_data):
-        return EmployerAccount.objects.update_or_create(user=user, defaults=account_data)
+        address = account_data.pop('company_address')
+        address_created = Address.objects.create(**address)
+        return EmployerAccount.objects.update_or_create(user=user, defaults=account_data, company_address=address_created)
 
     def perform_additional_validation(self, data):
         try:

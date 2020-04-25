@@ -70,18 +70,25 @@ class Account(AbstractBaseUser, PermissionsMixin):
         return True
 
 
+class Address(models.Model):
+    city = models.CharField(max_length=40)
+    street = models.CharField(max_length=120)
+    street_number = models.CharField(max_length=20)
+    postal_code = models.CharField(max_length=6)
+
+
 class DefaultAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='account')
     phone_number = PhoneNumberField()
     facility_name = models.CharField(max_length=60)
-    facility_address = models.CharField(max_length=120)
+    facility_address = models.OneToOneField(Address, on_delete=models.CASCADE, null=True, blank=True)
 
 
 class EmployerAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='employer_account')
     phone_number = PhoneNumberField()
     company_name = models.CharField(max_length=60)
-    company_address = models.CharField(max_length=120)
+    company_address = models.OneToOneField(Address, on_delete=models.CASCADE)
     nip = models.CharField(max_length=10)
 
 
@@ -89,6 +96,7 @@ class StaffAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
     group_type = models.CharField(max_length=60,
         default=StaffGroupType.STAFF_VERIFICATION.value, choices=STAFF_GROUP_CHOICES)
+
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)

@@ -18,6 +18,7 @@ from .account_status import AccountStatus
 from .serializers import *
 from .models import *
 from .filters import *
+from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema
 
 
 class AbstractRegistrationView(views.APIView):
@@ -74,7 +75,7 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
     >
     """
     @swagger_auto_schema(
-        query_serializer=DefaultAccountSerializer,
+        request_body=sample_default_account_request_schema(),
         responses={
             201: sample_registration_response('Standard'),
             400: 'Serializer errors'
@@ -103,7 +104,7 @@ class EmployerRegistrationView(AbstractRegistrationView):
     >
     """
     @swagger_auto_schema(
-        query_serializer=EmployerAccountSerializer,
+        request_body=sample_employer_account_request_schema(),
         responses={
             201: sample_registration_response('Employer'),
             400: 'Serializer errors'
