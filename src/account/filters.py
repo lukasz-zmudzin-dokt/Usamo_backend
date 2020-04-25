@@ -1,6 +1,8 @@
+from django.contrib.auth.models import Group
 from django_filters import rest_framework as filters
-from drf_yasg.inspectors import CoreAPICompatInspector
+from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled
 from .models import *
+from .account_type import STAFF_GROUP_CHOICES
 
 
 class UserListFilter(filters.FilterSet):
@@ -58,13 +60,21 @@ class EmployerListFilter(AbstractTypeListFilter):
 
 
 class StaffListFilter(AbstractTypeListFilter):
-    group_type = filters.CharFilter(
-        field_name='staff_account__group_type', lookup_expr='icontains')
+
+    group_type = filters.MultipleChoiceFilter(choices=STAFF_GROUP_CHOICES,
+                                              field_name='groups',
+                                              method='filter_groups')
 
     class Meta:
         model = Account
         fields = ['id', 'username', 'first_name', 'last_name', 'group_type',
                   'email', 'date_joined', 'last_login']
+
+    def filter_groups(self, queryset, name, values):
+        if name != 'groups':
+            return queryset.none()
+        groups = Group.objects.filter(name__in=values)
+        return queryset.filter(groups__in=groups).distinct()
 
 
 class DjangoFilterDescriptionInspector(CoreAPICompatInspector):
