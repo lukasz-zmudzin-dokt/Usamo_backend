@@ -299,7 +299,7 @@
     "fields": {
 		"city": "Warszawa",
 		"street": "Miodowa",
-		"street_number": 2,
+		"street_number": "2",
 		"postal_code": "11-111"
     }
   },
@@ -309,7 +309,7 @@
     "fields": {
 		"city": "Warszawa",
 		"street": "Wolska",
-		"street_number": 1,
+		"street_number": "1/4",
 		"postal_code": "22-222"
     }
   },
@@ -320,7 +320,7 @@
     "fields": {
 		"city": "Warszawa",
 		"street": "Wolska",
-		"street_number": 1,
+		"street_number": "1c",
 		"postal_code": "22-222"
     }
   },
@@ -330,7 +330,7 @@
     "fields": {
 		"city": "Warszawa",
 		"street": "Wolska",
-		"street_number": 1,
+		"street_number": "1",
 		"postal_code": "22-222"
     }
   },
@@ -340,7 +340,7 @@
     "fields": {
 		"city": "Warszawa",
 		"street": "Wolska",
-		"street_number": 1,
+		"street_number": "1",
 		"postal_code": "22-222"
     }
   },
@@ -350,7 +350,7 @@
     "fields": {
 		"city": "Warszawa",
 		"street": "Wolska",
-		"street_number": 1,
+		"street_number": "1",
 		"postal_code": "22-222"
     }
   },
@@ -360,7 +360,7 @@
     "fields": {
 		"city": "Warszawa",
 		"street": "Wolska",
-		"street_number": 1,
+		"street_number": "1",
 		"postal_code": "22-222"
     }
   },
@@ -370,7 +370,7 @@
     "fields": {
 		"city": "Warszawa",
 		"street": "Wolska",
-		"street_number": 1,
+		"street_number": "1",
 		"postal_code": "22-222"
     }
   },

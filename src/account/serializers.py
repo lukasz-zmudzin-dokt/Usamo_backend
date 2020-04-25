@@ -2,7 +2,7 @@ from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
 from rest_framework import serializers
 import abc
-from .validators import validate_nip, validate_postal_code
+from .validators import validate_nip, validate_postal_code, validate_street_number
 from django.contrib.auth.models import Group
 from .account_type import StaffGroupType, ACCOUNT_TYPE_CHOICES
 
@@ -70,11 +70,13 @@ class AddressSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         postal_code = attrs['postal_code']
+        street_number = attrs['street_number']
         try:
             validate_postal_code(postal_code)
+            validate_street_number(street_number)
             return super().validate(attrs)
-        except ValidationError:
-            raise serializers.ValidationError({'postal_code': 'Postal code is invalid'})
+        except ValidationError as err:
+            raise serializers.ValidationError(err.message)
 
 
 class DefaultAccountSerializer(AbstractAccountSerializer):
