@@ -10,7 +10,7 @@ class AbstractIsAllowedStaff(permissions.BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        return user and user.status == AccountStatus.VERIFIED.value and self._is_allowed_staff(user)
+        return user and not user.is_anonymous and user.status == AccountStatus.VERIFIED.value and self._is_allowed_staff(user)
 
     def _is_allowed_staff(self, user) -> bool:
         staff_group_type = self._get_allowed_staff_type().value
@@ -25,7 +25,7 @@ class AbstractIsAllowedUser(permissions.BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        return user and user.status == AccountStatus.VERIFIED.value and self._is_user_allowed(user)
+        return user and not user.is_anonymous and user.status == AccountStatus.VERIFIED.value and self._is_user_allowed(user)
 
     def _is_user_allowed(self, user) -> bool:
         return user.type == (self._get_allowed_user_type()).value
@@ -59,7 +59,7 @@ class AbstractCanStaffVerifyPermission(permissions.BasePermission):
     def has_permission(self, request, view):
         allowed_type = self._get_staff_type().value
         user = request.user
-        return user and user.type == AccountType.STAFF.value \
+        return user and not user.is_anonymous and user.type == AccountType.STAFF.value \
                and user.status == AccountStatus.VERIFIED.value \
                and user.groups.filter(name=allowed_type).exists()
 
