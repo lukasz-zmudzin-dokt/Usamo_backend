@@ -350,7 +350,7 @@ class BlogPostCommentCreateView(views.APIView):
 
 
 class BlogPostCommentUpdateView(views.APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsUserCommentAuthor | IsStaffBlogModerator]
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -368,20 +368,9 @@ class BlogPostCommentUpdateView(views.APIView):
         except ObjectDoesNotExist:
             return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
 
-        if comment.author.id == request.user.id:
+        if IsUserCommentAuthor().has_object_permission(request, self, comment) or \
+                IsStaffBlogModerator().has_object_permission(request, self, comment):
             comment.delete()
             return Response(status=status.HTTP_200_OK)
         else:
-            try:
-                author = StaffAccount.objects.get(user_id=request.user.id)
-                contains = False
-                for e in author.user.groups.all():
-                    if str(e) == StaffGroupType.STAFF_BLOG_MODERATOR.value:
-                        contains = True
-                if contains:
-                    comment.delete()
-                    return Response("Comment was successfully deleted", status.HTTP_200_OK)
-                else:
-                    return ErrorResponse("User is not an author or Blog Moderator", status.HTTP_403_FORBIDDEN)
-            except ObjectDoesNotExist:
-                return ErrorResponse("User is not an author or Blog Moderator", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("User is not an author or Blog Moderator", status.HTTP_403_FORBIDDEN)
