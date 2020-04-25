@@ -167,7 +167,7 @@
       "is_admin": false,
       "is_staff": false,
       "is_superuser": false,
-      "status": 2,
+      "status": 1,
       "type": 1,
       "groups": [],
       "user_permissions": []

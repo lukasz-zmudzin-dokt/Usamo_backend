@@ -135,6 +135,7 @@ class JobOfferView(views.APIView):
             '200': sample_message_response("Offer edited successfully"),
             '400': 'Bad request - serializer errors',
             '401': 'No authorization token',
+            '403': 'No permissions for this action',
             '404': sample_error_response('Offer not found'),
         },
         operation_description="Edit job offer.",
@@ -146,7 +147,7 @@ class JobOfferView(views.APIView):
             try:
                 instance = JobOffer.objects.get(pk=offer_id)
                 if not IsEmployer().has_object_permission(request, self, instance) \
-                        or not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+                        and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
                     return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
                 fields_to_update = job_offer_edit.update_dict()
                 for field, value in fields_to_update.items():
@@ -195,7 +196,7 @@ class JobOfferView(views.APIView):
         try:
             instance = JobOffer.objects.get(pk=offer_id)
             if not IsEmployer().has_object_permission(request, self, instance) \
-                    or not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+                    and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
                 return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
             if instance.removed:
                 return ErrorResponse("Offer already removed", status.HTTP_400_BAD_REQUEST)
@@ -222,6 +223,8 @@ class JobOfferListView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
 
+    permissions_classes = [AllowAny]
+
     filter_serializer = None
 
     def get_queryset(self):
@@ -238,22 +241,25 @@ class JobOfferListView(generics.ListAPIView):
 
 
 class CreateJobOfferApplicationView(views.APIView):
+    permission_classes = [IsStandardUser]
 
     @swagger_auto_schema(
         request_body=JobOfferApplicationSerializer,
         responses={
             '201': '"id": application.id',
             '400': 'Serializer errors',
-            '403': "User is not a default user / User has already applied for this offer."
+            '403': "You do not have permission to perform this action. / User has already applied for this offer. \
+                /  CV of specified id does not belong to the current user."
         },
         operation_description="Create a job application by specyfying cv and job_offer.",
     )
     def post(self, request):
+        user = DefaultAccount.objects.get(user=request.user)
         try:
-            user = DefaultAccount.objects.get(user=request.user)
-        except DefaultAccount.DoesNotExist:
-            return Response("User is not a standard user", status.HTTP_403_FORBIDDEN)
-       
+            CV.objects.get(cv_user=user, cv_id=request.data['cv'])
+        except CV.DoesNotExist:
+            return Response("CV of specified id does not belong to the current user.", status.HTTP_403_FORBIDDEN)
+
         prev_app = JobOfferApplication.objects.filter(cv__cv_user=user, 
             job_offer__id=request.data['job_offer'])
 
@@ -271,12 +277,12 @@ class CreateJobOfferApplicationView(views.APIView):
 
 
 class JobOfferApplicationView(views.APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStandardUser]
 
     @swagger_auto_schema(
         responses={
             '200': JobOfferApplicationSerializer,
-            '403': "User is not a standard user",
+            '403': "You do not have permission to perform this action.",
             '404': "This user has no application with given id"
         },
         manual_parameters=[
@@ -286,11 +292,7 @@ class JobOfferApplicationView(views.APIView):
         operation_description="Get current user's application for a particular job offer.",
     )
     def get(self, request, offer_id):
-        try:
-            user = DefaultAccount.objects.get(user=request.user)
-        except DefaultAccount.DoesNotExist:
-            return Response("User is not a standard user", status.HTTP_403_FORBIDDEN)
-
+        user = DefaultAccount.objects.get(user=request.user)
         application = JobOfferApplication.objects.filter(cv__cv_user=user, job_offer__id=offer_id)
         if not application:
              return Response("This user has no application with given id", status.HTTP_404_NOT_FOUND)
@@ -332,13 +334,14 @@ class EmployerApplicationListView(ListAPIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': JobOfferApplicationSerializer(many=True),
+        '403': "You do not have permission to perform this action.",
         '404': "Not found",
     },
     operation_description="Returns the list of user's job applications."
 ))
 class UserApplicationsView(ListAPIView):
     serializer_class = JobOfferApplicationSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsStandardUser]
 
     def get_queryset(self):
         return JobOfferApplication.objects.filter(cv__cv_user__user=self.request.user)
@@ -353,7 +356,7 @@ class UserApplicationsView(ListAPIView):
     responses={
         '200': sample_paginated_offers_response(),
         '401': 'No authorization token',
-        '403': sample_error_response('No user or user is not employer'),
+        '403': "You do not have permission to perform this action.",
         '404': "Bad request - serializer errors",
     },
     operation_description="Returns offers list with filters for current employer"
