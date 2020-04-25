@@ -25,15 +25,21 @@ class CreateCVView(views.APIView):
     @swagger_auto_schema(
         request_body=CVSerializer,
         responses={
-            '201': 'CV successfully generated.',
+            '201': '"cv_id" : id',
             '400': 'Serializer errors',
-            '403': "You do not have permission to perform this action."
+            '403': "You do not have permission to perform this action. \
+                    / User has already created 3 CVs!"
         },
         operation_description="Create or update database object for CV generation.",
     )
     def post(self, request):
         request_data = request.data
         def_account = DefaultAccount.objects.get(user=request.user)
+        users_cvs = CV.objects.filter(cv_user=def_account)
+
+        if not users_cvs.count() < 3:
+            return Response("User has already created 3 CVs!", status.HTTP_403_FORBIDDEN)
+
         request_data['cv_user'] = def_account.id
         serializer = self.serializer_class(data=request_data)
 
@@ -65,7 +71,6 @@ class CVView(views.APIView):
         cv_id = kwargs.get('cv_id', None)
         try:
             cv = CV.objects.get(cv_id=cv_id)
-            print("test")
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
