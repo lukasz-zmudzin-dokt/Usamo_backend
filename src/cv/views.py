@@ -27,7 +27,7 @@ class CreateCVView(views.APIView):
         responses={
             '201': 'CV successfully generated.',
             '400': 'Serializer errors',
-            '403': "User type is not standard"
+            '403': "You do not have permission to perform this action."
         },
         operation_description="Create or update database object for CV generation.",
     )
@@ -65,8 +65,9 @@ class CVView(views.APIView):
         cv_id = kwargs.get('cv_id', None)
         try:
             cv = CV.objects.get(cv_id=cv_id)
+            print("test")
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    or not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return Response("CV not found. Make sure cv_id was specified in the url.", status.HTTP_404_NOT_FOUND)
@@ -90,7 +91,7 @@ class CVView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    or not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
             cv.delete()
         except CV.DoesNotExist:
@@ -120,7 +121,7 @@ class CVDataView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    or not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return Response("CV not found.", status.HTTP_404_NOT_FOUND)
@@ -201,7 +202,7 @@ class CVPictureView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    or not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return Response('CV not found.', status.HTTP_404_NOT_FOUND)
@@ -228,7 +229,7 @@ class CVPictureView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    or not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return Response('CV not found.', status.HTTP_404_NOT_FOUND)
@@ -246,7 +247,8 @@ class CVPictureView(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': CVSerializer(many=True),
-        '404': "Not found",
+        '403': "User has no permission to perfonm this action.",
+        '404': "Not found"
     },
     operation_description="Returns unverified cv list for admin"
 ))
@@ -270,7 +272,8 @@ class AdminFeedback(views.APIView):
         request_body=FeedbackSerializer,
         responses={
             '201': 'Feedback successfully created.',
-            '400': 'Serializer errors'
+            '400': 'Serializer errors',
+            '403': "User has no permission to perfonm this action."
         },
         operation_description="Lets admin create feedback for a cv.",
     )
@@ -309,7 +312,7 @@ class CVFeedback(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    or not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return Response('CV not found.', status.HTTP_404_NOT_FOUND)
@@ -330,6 +333,7 @@ class AdminCVVerificationView(views.APIView):
         responses={
             '200': 'CV was successfully verified.',
             '400': 'CV id was not specified.',
+            '403': "User has no permission to perfonm this action.",
             '404': 'CV with the given id was not found.'
         },
         manual_parameters=[
@@ -372,7 +376,7 @@ class CVStatus(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    or not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return Response('CV not found.', status.HTTP_404_NOT_FOUND)
@@ -383,6 +387,7 @@ class CVStatus(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': CVSerializer(many=True),
+        '403': 'User has no permission to perfonm this action.',
         '404': "Not found",
     },
     operation_description="Returns all CVs list for admin"
@@ -396,6 +401,7 @@ class AdminCVListView(generics.ListAPIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': CVSerializer(many=True),
+        '403': 'User has no permission to perfonm this action.',
         '404': "Not found",
     },
     operation_description="Returns users CV list"
@@ -412,6 +418,9 @@ class UserCVListView(generics.ListAPIView):
 
 
 class UserCVNameView(views.APIView):
+
+    permission_classes = [IsCVOwner]
+
     @swagger_auto_schema(
         operation_description="Changes the name of a CV",
         manual_parameters=[
@@ -431,16 +440,15 @@ class UserCVNameView(views.APIView):
     def put(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
-            if not IsCVOwner().has_object_permission(request, self, cv) \
-                    or not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+            if not IsCVOwner().has_object_permission(request, self, cv):
                 return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
 
         except CV.DoesNotExist:
             return Response('CV with the given id  does not exist', status=status.HTTP_404_NOT_FOUND)
 
         try:
-            instance.name = request.data['name']
-            instance.save()
+            cv.name = request.data['name']
+            cv.save()
             return Response(f'CV name changed to: {request.data["name"]}', status=status.HTTP_200_OK)
         except KeyError:
             return Response('New name was not specified', status=status.HTTP_400_BAD_REQUEST)

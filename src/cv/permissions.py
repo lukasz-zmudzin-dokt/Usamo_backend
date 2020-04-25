@@ -1,5 +1,5 @@
 from rest_framework import permissions
-from account.account_type import StaffGroupType
+from account.account_type import *
 from account.permissions import AbstractIsAllowedStaff, IsStandardUser
 
 
