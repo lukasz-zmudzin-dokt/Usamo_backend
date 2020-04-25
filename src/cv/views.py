@@ -37,7 +37,7 @@ class CreateCVView(views.APIView):
         def_account = DefaultAccount.objects.get(user=request.user)
         users_cvs = CV.objects.filter(cv_user=def_account)
 
-        if not users_cvs.count() < 3:
+        if not users_cvs.count() < 5:
             return Response("User has already created 3 CVs!", status.HTTP_403_FORBIDDEN)
 
         request_data['cv_user'] = def_account.id
