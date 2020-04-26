@@ -17,7 +17,7 @@ Wyłączanie: Ctrl+c lub bardziej elegancko w drugiej konsoli docker-compose dow
 ## Defaultowe dane w bazie
 
 Foldery fixtures w apkach na repo zawierają dane, którymi można wypełnić db np po jej resecie: 
- - Account: dostępnych jest 13 użytkowników: 5 kont typu standard, 5 staff (kolejno dla każdej grupy uprawnień: weryfikacja użytkowników, zarządzanie cv, zarządzanie ofertami pracy, blog - creator, blog - moderator) i 3 employer. Schemat logowania na przykładzie:
+ - Account: dostępnych jest 19 użytkowników: 8 kont typu standard, 6 staff (kolejno dla każdej grupy uprawnień: weryfikacja użytkowników, zarządzanie cv, zarządzanie ofertami pracy, blog - creator, blog - moderator + jedno konto, które ma wszystkie te uprawnienia) i 5 employer. Schemat logowania na przykładzie:
 
 {
    "username": "standard2",
@@ -31,14 +31,20 @@ lub
    "password": "staff1"
 }
 
--CV: stworzyłem jedno cv z feedbackiem (bez zdjęcia) dla użytkownika standard1. Nie ma sensu odpalać urla do niego, bo pdf fizycznie nie będzie na serwerze - zresztą heroku i tak co reset usuwa pliki statyczne. Można je natomiast wykorzystać
-do testowania endpointów do kasowania, czytania danych cv, listy cv itd. 
+Wyjątek -- konto admina ze wszystkimi uprawnieniami
 
--Job: dwie oferty pracy stworzone przez użytkownika employer1. Pierwsza z nich ma 3 aplikacje, kolejno użytkowników standard1, standard2 i standard3.
+{
+   "username": "staff_super",
+   "password": "staff_super"
+}
+
+-CV: stworzyłem jedno cv z feedbackiem (bez zdjęcia) dla użytkownika standard1 i 2 bez feedbacku dla standard 2. Nie ma sensu odpalać urli do nich, bo pdf'ów fizycznie nie będzie na serwerze - zresztą heroku i tak co reset usuwa pliki statyczne. Można je natomiast wykorzystać do testowania endpointów do kasowania, czytania danych cv, listy cv itd. 
+
+-Job: dwie oferty pracy stworzone przez użytkownika employer1 i jedna przez employera2. Pierwsza z nich ma 1 aplikacje od standard1, druga ma dwie aplikacje od standard1 i standard2.
+
+-Blog: dwa posty od użytkownika staff4, jeden z nich ma dwa komentarze.
 
 Aby załadować dane do bazy, należy użyć polecenia: *python manage.py loaddata nazwa.json* (info dla backendu)
-
-Polecenie *loaddata /nazwa_pliku_json/* powoduje przeszukanie folderów fixtures w każdej z apek i wczytanie danych z pliku o podanej nazwie. Aby wczytać wszystkie pliki, wystarczy użyć operatora \*: \*.json
 
 ## Zmienne środowiskowe i settings
 
