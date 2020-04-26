@@ -6,8 +6,8 @@ from account.permissions import AbstractIsAllowedStaff, IsStandardUser
 class IsCVOwner(IsStandardUser):
 
     def has_object_permission(self, request, view, obj):
-        if request.user.type == AccountType.STANDARD.value:
-            return obj.cv_user.user_id == request.user.id if hasattr(obj, 'cv_user') else False
+        return super().has_permission(request, view) and obj.cv_user.user_id == request.user.id \
+            and hasattr(obj, 'cv_user') 
 
 
 class IsStaffResponsibleForCVs(AbstractIsAllowedStaff):
@@ -16,4 +16,4 @@ class IsStaffResponsibleForCVs(AbstractIsAllowedStaff):
         return StaffGroupType.STAFF_CV
 
     def has_object_permission(self, request, view, obj):
-        return request.user.type == AccountType.STAFF.value and hasattr(obj, 'cv_user')
+        return super().has_permission(request, view) and hasattr(obj, 'cv_user')

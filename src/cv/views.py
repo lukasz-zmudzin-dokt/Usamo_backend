@@ -67,8 +67,7 @@ class CVView(views.APIView):
         },
         operation_description='Generate pdf url based on existing CV data.'
     )
-    def get(self, request, **kwargs):
-        cv_id = kwargs.get('cv_id', None)
+    def get(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
@@ -91,8 +90,7 @@ class CVView(views.APIView):
             '404': "CV not found. Make sure cv_id was specified in the url."
         }
     )
-    def delete(self, request, **kwargs):
-        cv_id = kwargs.get('cv_id', None)
+    def delete(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
@@ -121,8 +119,7 @@ class CVDataView(views.APIView):
             '404': "CV not found."
         }
     )
-    def get(self, request, **kwargs):
-        cv_id = kwargs.get('cv_id', None)
+    def get(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
@@ -163,8 +160,7 @@ class CVPictureView(views.APIView):
             '404': 'CV not found.'
         }
     )
-    def post(self, request, **kwargs):
-        cv_id = kwargs.get('cv_id', None)
+    def post(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv):
@@ -202,8 +198,7 @@ class CVPictureView(views.APIView):
             '404': 'CV/picture not found'
         }
     )
-    def get(self, request, **kwargs):
-        cv_id = kwargs.get('cv_id', None)
+    def get(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
@@ -229,8 +224,7 @@ class CVPictureView(views.APIView):
             '404': 'CV/picture not found.'
         }
     )
-    def delete(self, request, **kwargs):
-        cv_id = kwargs.get('cv_id', None)
+    def delete(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
@@ -309,11 +303,9 @@ class AdminFeedback(views.APIView):
     operation_description="Returns feedback for users cv"
 ))
 class CVFeedback(views.APIView):
-    
     permission_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
-    def get(self, request, **kwargs):
-        cv_id = kwargs.get('cv_id', None)
+    def get(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
@@ -376,8 +368,7 @@ class CVStatus(views.APIView):
             '404': 'Not found'
         }
     )
-    def get(self, request, **kwargs):
-        cv_id = kwargs.get('cv_id', None)
+    def get(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
