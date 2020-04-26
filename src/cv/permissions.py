@@ -16,4 +16,4 @@ class IsStaffResponsibleForCVs(AbstractIsAllowedStaff):
         return StaffGroupType.STAFF_CV
 
     def has_object_permission(self, request, view, obj):
-        return hasattr(obj, 'cv_user')
+        return request.user.type == AccountType.STAFF.value and hasattr(obj, 'cv_user')

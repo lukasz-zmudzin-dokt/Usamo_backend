@@ -57,7 +57,7 @@ class IsStaffResponsibleForJobs(AbstractIsAllowedStaff):
         return StaffGroupType.STAFF_JOBS
 
     def has_object_permission(self, request, view, obj):
-        return hasattr(obj, 'employer')
+        return request.user.type == AccountType.STAFF.value and hasattr(obj, 'employer')
 
 
 class AbstractCanStaffVerifyPermission(permissions.BasePermission):
