@@ -1,15 +1,17 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, User
+import uuid
+
+from django.conf import settings
+from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
+from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from django.conf import settings
+from django.utils import timezone
 from phonenumber_field.modelfields import PhoneNumberField
 from rest_framework.authtoken.models import Token
-from django.contrib.auth.models import Group, PermissionsMixin
-from django.utils import timezone
+
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
 from .account_type import *
-import uuid
 
 
 class AccountManager(BaseUserManager):
@@ -69,6 +71,10 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def has_module_perms(self, app_label):
         return True
 
+    @property
+    def group_type(self):
+        return list(self.groups.values_list('name', flat=True))
+
 
 class Address(models.Model):
     city = models.CharField(max_length=40)
@@ -94,8 +100,6 @@ class EmployerAccount(models.Model):
 
 class StaffAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
-    group_type = models.CharField(max_length=60,
-        default=StaffGroupType.STAFF_VERIFICATION.value, choices=STAFF_GROUP_CHOICES)
 
 
 

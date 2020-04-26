@@ -452,40 +452,35 @@
     "model": "account.staffaccount",
     "pk": 1,
     "fields": {
-      "user": "146e830b-4334-46e1-a693-0afc10ef7a24",
-      "group_type": "staff_verification"
+      "user": "146e830b-4334-46e1-a693-0afc10ef7a24"
     }
   },
   {
     "model": "account.staffaccount",
     "pk": 2,
     "fields": {
-      "user": "36424e16-1b59-4fc3-87b5-c0207c5e8a10",
-      "group_type": "staff_cv"
+      "user": "36424e16-1b59-4fc3-87b5-c0207c5e8a10"
     }
   },
   {
     "model": "account.staffaccount",
     "pk": 3,
     "fields": {
-      "user": "c5ac4f78-7972-4de3-88e7-76bb3515de92",
-      "group_type": "staff_jobs"
+      "user": "c5ac4f78-7972-4de3-88e7-76bb3515de92"
     }
   },
   {
     "model": "account.staffaccount",
     "pk": 4,
     "fields": {
-      "user": "03c92316-45e5-4ca2-b309-b028609c295b",
-      "group_type": "staff_blog_creator"
+      "user": "03c92316-45e5-4ca2-b309-b028609c295b"
     }
   },
   {
     "model": "account.staffaccount",
     "pk": 5,
     "fields": {
-      "user": "8d3830f4-0415-405d-90b8-78754193ebeb",
-      "group_type": "staff_blog_moderator"
+      "user": "8d3830f4-0415-405d-90b8-78754193ebeb"
     }
   },
   {

@@ -1,20 +1,18 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import JsonResponse, HttpRequest
+from django.http import JsonResponse
+from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from django.utils.decorators import method_decorator
 from rest_framework import status
 from rest_framework import views
-from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.decorators import permission_classes, api_view, renderer_classes
-from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
-from rest_framework.renderers import JSONRenderer
-from rest_framework.response import Response
+from rest_framework.decorators import permission_classes
 from rest_framework.generics import ListAPIView, RetrieveAPIView
-from django_filters import rest_framework as filters
-from .account_type import AccountType, ACCOUNT_TYPE_CHOICES
-from .account_status import AccountStatus
+from rest_framework.permissions import IsAuthenticated, AllowAny
+from rest_framework.response import Response
+
+from .filters import *
+from .permissions import CanStaffVerifyUsers
 from .serializers import *
 from .models import *
 from .filters import *
@@ -74,6 +72,7 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
     > - facility_address
     >
     """
+
     @swagger_auto_schema(
         request_body=sample_default_account_request_schema(),
         responses={
@@ -87,7 +86,6 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
 
 
 class EmployerRegistrationView(AbstractRegistrationView):
-
     """
     > ## Creates an account for an employer
     > Required parameters:
@@ -103,6 +101,7 @@ class EmployerRegistrationView(AbstractRegistrationView):
     > - nip
     >
     """
+
     @swagger_auto_schema(
         request_body=sample_employer_account_request_schema(),
         responses={
@@ -116,6 +115,9 @@ class EmployerRegistrationView(AbstractRegistrationView):
 
 
 class StaffRegistrationView(AbstractRegistrationView):
+
+    permission_classes = [CanStaffVerifyUsers]
+
     @swagger_auto_schema(
         query_serializer=StaffAccountSerializer,
         responses={
@@ -199,7 +201,7 @@ class DataView(views.APIView):
 
 
 class AdminUserAdmissionView(views.APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanStaffVerifyUsers]
 
     @swagger_auto_schema(
         responses={
@@ -208,8 +210,8 @@ class AdminUserAdmissionView(views.APIView):
             '404': 'User with the id given was not found.'
         },
         manual_parameters=[
-            openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this account')
+            openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
+                              description='A UUID string identifying this account')
         ],
         operation_description="Sets user's status to verified.",
     )
@@ -227,7 +229,7 @@ class AdminUserAdmissionView(views.APIView):
 
 
 class AdminUserRejectionView(views.APIView):
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanStaffVerifyUsers]
 
     @swagger_auto_schema(
         responses={
@@ -236,8 +238,8 @@ class AdminUserRejectionView(views.APIView):
             '404': 'User with the id given was not found.'
         },
         manual_parameters=[
-            openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this account')
+            openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
+                              description='A UUID string identifying this account')
         ],
         operation_description="Sets user's status to not verified.",
     )
@@ -265,7 +267,7 @@ class AdminUserRejectionView(views.APIView):
 class AdminAllAccountsListView(ListAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountListSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanStaffVerifyUsers]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = UserListFilter
 
@@ -280,7 +282,7 @@ class AdminAllAccountsListView(ListAPIView):
 ))
 class AdminDefaultAccountsListView(ListAPIView):
     serializer_class = AccountListSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanStaffVerifyUsers]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = DefaultAccountListFilter
 
@@ -298,7 +300,7 @@ class AdminDefaultAccountsListView(ListAPIView):
 ))
 class AdminEmployerListView(ListAPIView):
     serializer_class = AccountListSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanStaffVerifyUsers]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = EmployerListFilter
 
@@ -316,7 +318,7 @@ class AdminEmployerListView(ListAPIView):
 ))
 class AdminStaffListView(ListAPIView):
     serializer_class = AccountListSerializer
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanStaffVerifyUsers]
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = StaffListFilter
 
@@ -333,7 +335,7 @@ class AdminStaffListView(ListAPIView):
 ))
 class AdminUserDetailView(RetrieveAPIView):
     queryset = Account.objects.all()
-    permission_classes = [IsAdminUser]
+    permission_classes = [CanStaffVerifyUsers]
 
     def get_serializer_class(self):
         pk = self.kwargs['pk']
