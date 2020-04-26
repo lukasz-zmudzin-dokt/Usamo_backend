@@ -1,0 +1,102 @@
+[
+{
+   "model": "job.joboffercategory",
+   "pk": "IT",
+   "fields": {}
+},
+{
+   "model": "job.joboffercategory",
+   "pk": "PR",
+   "fields": {}
+},
+{
+   "model": "job.joboffertype",
+   "pk": "Praca",
+   "fields": {}
+},
+{
+   "model": "job.joboffertype",
+   "pk": "Praktyki",
+   "fields": {}
+},
+{
+   "model": "job.joboffertype",
+   "pk": "Sta\u017c",
+   "fields": {}
+},
+{
+   "model": "job.joboffer",
+   "pk": "47991e86-4b42-4507-b154-1548bf8a3bd3",
+   "fields": {
+      "offer_name": "GamePol - zostan tworca gier!",
+      "category": "IT",
+      "offer_type": "Sta\u017c",
+      "company_name": "GamePol",
+      "company_address": "Warszawa, Al. Jerzego Waszyngtona 420",
+      "voivodeship": "mazowieckie",
+      "expiration_date": "2020-05-28",
+      "description": "Po przejsciu stazu oferujemy zatrudnienie i dobra place.",
+      "removed": false,
+      "employer": 1
+   }
+},
+{
+   "model": "job.joboffer",
+   "pk": "7152613f-8bed-4a70-8258-35b1c127331d",
+   "fields": {
+      "offer_name": "Sta\u017c - webdeveloper",
+      "category": "IT",
+      "offer_type": "Sta\u017c",
+      "company_name": "Webpol",
+      "company_address": "Wo\u0142oska 9, Warszawa",
+      "voivodeship": "mazowieckie",
+      "expiration_date": "2020-05-28",
+      "description": "Pracuj w m\u0142odym, dynamicznym zespole! Licz\u0105 si\u0119 tylko ch\u0119ci!",
+      "removed": false,
+      "employer": 2
+   }
+},
+{
+   "model": "job.joboffer",
+   "pk": "fbca7511-3879-47b6-ab08-8d39ccc2b6f3",
+   "fields": {
+      "offer_name": "Administrator funpage'a",
+      "category": "PR",
+      "offer_type": "Praca",
+      "company_name": "TruthMinistry",
+      "company_address": "Wiejska 25, Gdynia",
+      "voivodeship": "pomorskie",
+      "expiration_date": "2020-05-28",
+      "description": "Szukamy osob dobrze zorientowanych w mediach spolecznosciowych. Oferujemy dobra place, karte Multisport...",
+      "removed": false,
+      "employer": 1
+   }
+},
+{
+   "model": "job.jobofferapplication",
+   "pk": 1,
+   "fields": {
+      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
+      "job_offer": "47991e86-4b42-4507-b154-1548bf8a3bd3",
+      "date_posted": "2020-04-05T23:34:27.899Z"
+   }
+},
+{
+   "model": "job.jobofferapplication",
+   "pk": 2,
+   "fields": {
+      "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+      "job_offer": "7152613f-8bed-4a70-8258-35b1c127331d",
+      "date_posted": "2020-04-26T20:32:53.604Z"
+   }
+},
+{
+   "model": "job.jobofferapplication",
+   "pk": 3,
+   "fields": {
+      "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
+      "job_offer": "7152613f-8bed-4a70-8258-35b1c127331d",
+      "date_posted": "2020-04-26T20:35:21.509Z"
+   }
+}
+]

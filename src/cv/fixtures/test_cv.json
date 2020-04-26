@@ -1,20 +1,44 @@
 [
-  {
-    "model": "cv.cv",
-    "pk": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-    "fields": {
+{
+   "model": "cv.cv",
+   "pk": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+   "fields": {
+      "cv_user": 2,
+      "name": "standard2_standard2_CV_1",
+      "is_verified": true,
+      "was_reviewed": false,
+      "document": "blank_test_cv",
+      "date_created": "2020-04-26T20:22:36.208Z"
+   }
+},
+{
+   "model": "cv.cv",
+   "pk": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
+   "fields": {
       "cv_user": 1,
-      "is_verified": false,
-      "was_reviewed": true,
       "name": "Moje CV",
+      "is_verified": true,
+      "was_reviewed": true,
       "document": "blank_test_cv",
       "date_created": "2020-04-04T11:21:19.023Z"
-    }
-  },
-  {
-    "model": "cv.basicinfo",
-    "pk": 1,
-    "fields": {
+   }
+},
+{
+   "model": "cv.cv",
+   "pk": "f995c24d-5822-4c53-8ba5-96b4542c5254",
+   "fields": {
+      "cv_user": 2,
+      "name": "standard2_standard2_CV_2",
+      "is_verified": false,
+      "was_reviewed": false,
+      "document": "blank_test_cv",
+      "date_created": "2020-04-26T20:23:36.409Z"
+   }
+},
+{
+   "model": "cv.basicinfo",
+   "pk": 1,
+   "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "first_name": "Jan",
       "last_name": "Kowalski",
@@ -22,96 +46,256 @@
       "picture": "",
       "phone_number": "123213789",
       "date_of_birth": "02-04-2005"
-    }
-  },
-  {
-    "model": "cv.school",
-    "pk": 1,
-    "fields": {
+   }
+},
+{
+   "model": "cv.basicinfo",
+   "pk": 2,
+   "fields": {
+      "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+      "first_name": "Wojciech",
+      "last_name": "Cejrowski",
+      "email": "w.cejrowski@wp.pl",
+      "picture": "",
+      "phone_number": "602416789",
+      "date_of_birth": "03-07-2001"
+   }
+},
+{
+   "model": "cv.basicinfo",
+   "pk": 3,
+   "fields": {
+      "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
+      "first_name": "Wojciech",
+      "last_name": "Cejrowski2",
+      "email": "w.cejrowski2@wp.pl",
+      "picture": "",
+      "phone_number": "602416789",
+      "date_of_birth": "03-07-2001"
+   }
+},
+{
+   "model": "cv.school",
+   "pk": 1,
+   "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "name": "CCCIII LO w Wadowicach",
       "year_start": 2015,
       "year_end": 2018,
       "additional_info": "profil mat-fiz"
-    }
-  },
-  {
-    "model": "cv.school",
-    "pk": 2,
-    "fields": {
+   }
+},
+{
+   "model": "cv.school",
+   "pk": 2,
+   "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "name": "Politechnika Warszawska",
       "year_start": 2019,
       "year_end": null,
       "additional_info": "Informatyka Niestosowna"
-    }
-  },
-  {
-    "model": "cv.experience",
-    "pk": 1,
-    "fields": {
+   }
+},
+{
+   "model": "cv.school",
+   "pk": 3,
+   "fields": {
+      "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+      "name": "XIX LO w Warszawie",
+      "year_start": 2017,
+      "year_end": 2020,
+      "additional_info": "profil mat-geo"
+   }
+},
+{
+   "model": "cv.school",
+   "pk": 4,
+   "fields": {
+      "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+      "name": "Uniwersytet Warszawski",
+      "year_start": 2020,
+      "year_end": null,
+      "additional_info": "Finanse i rachunkowo\u015b\u0107"
+   }
+},
+{
+   "model": "cv.school",
+   "pk": 5,
+   "fields": {
+      "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
+      "name": "XIX LO w Warszawie",
+      "year_start": 2017,
+      "year_end": 2020,
+      "additional_info": "profil mat-geo"
+   }
+},
+{
+   "model": "cv.school",
+   "pk": 6,
+   "fields": {
+      "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
+      "name": "Uniwersytet Warszawski",
+      "year_start": 2020,
+      "year_end": null,
+      "additional_info": "Finanse i rachunkowo\u015b\u0107"
+   }
+},
+{
+   "model": "cv.experience",
+   "pk": 1,
+   "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "title": "Tygodnik NIE",
       "description": "Admin fanpeja na fb",
       "year_start": 2019,
       "year_end": null
-    }
-  },
-  {
-    "model": "cv.experience",
-    "pk": 2,
-    "fields": {
+   }
+},
+{
+   "model": "cv.experience",
+   "pk": 2,
+   "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "title": "MON",
       "description": "Awesome Summer Internship of Fun",
       "year_start": 2018,
       "year_end": null
-    }
-  },
-  {
-    "model": "cv.skill",
-    "pk": 1,
-    "fields": {
+   }
+},
+{
+   "model": "cv.experience",
+   "pk": 3,
+   "fields": {
+      "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+      "title": "H&M",
+      "description": "Sprzedawca",
+      "year_start": 2019,
+      "year_end": null
+   }
+},
+{
+   "model": "cv.experience",
+   "pk": 4,
+   "fields": {
+      "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
+      "title": "H&M",
+      "description": "Sprzedawca",
+      "year_start": 2019,
+      "year_end": null
+   }
+},
+{
+   "model": "cv.skill",
+   "pk": 1,
+   "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "description": "Gotowanie"
-    }
-  },
-  {
-    "model": "cv.skill",
-    "pk": 2,
-    "fields": {
+   }
+},
+{
+   "model": "cv.skill",
+   "pk": 2,
+   "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "description": "Balet"
-    }
-  },
-  {
-    "model": "cv.language",
-    "pk": 1,
-    "fields": {
+   }
+},
+{
+   "model": "cv.skill",
+   "pk": 3,
+   "fields": {
+      "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+      "description": "J\u0119zyk R"
+   }
+},
+{
+   "model": "cv.skill",
+   "pk": 4,
+   "fields": {
+      "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+      "description": "Matematyka wy\u017csza i statystyka"
+   }
+},
+{
+   "model": "cv.skill",
+   "pk": 5,
+   "fields": {
+      "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
+      "description": "J\u0119zyk C"
+   }
+},
+{
+   "model": "cv.skill",
+   "pk": 6,
+   "fields": {
+      "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
+      "description": "Matematyka najwy\u017csza i \u017conglowanie no\u017cami"
+   }
+},
+{
+   "model": "cv.language",
+   "pk": 1,
+   "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "name": "polski",
       "level": "ojczysty"
-    }
-  },
-  {
-    "model": "cv.language",
-    "pk": 2,
-    "fields": {
+   }
+},
+{
+   "model": "cv.language",
+   "pk": 2,
+   "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "name": "angielski",
       "level": "A1"
-    }
-  },
-  {
-    "model": "cv.feedback",
-    "pk": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
-    "fields": {
-      "basic_info": "uwaga",
-      "schools": "uwaga",
-      "experiences": "uwaga",
-      "skills": "uwaga",
-      "languages": "uwaga",
-      "additional_info": "uwaga"
-    }
-  }
+   }
+},
+{
+   "model": "cv.language",
+   "pk": 3,
+   "fields": {
+      "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+      "name": "polski",
+      "level": "ojczysty"
+   }
+},
+{
+   "model": "cv.language",
+   "pk": 4,
+   "fields": {
+      "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
+      "name": "angielski",
+      "level": "C1"
+   }
+},
+{
+   "model": "cv.language",
+   "pk": 5,
+   "fields": {
+      "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
+      "name": "polski",
+      "level": "ojczysty"
+   }
+},
+{
+   "model": "cv.language",
+   "pk": 6,
+   "fields": {
+      "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
+      "name": "angielski",
+      "level": "C1"
+   }
+},
+{
+   "model": "cv.feedback",
+   "pk": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
+   "fields": {
+      "basic_info": "uwaga do podst. informacji",
+      "schools": "uwaga do wyksztalcenia",
+      "experiences": "uwaga do doswiadczen",
+      "skills": "uwaga do umiejetnosci",
+      "languages": "uwaga do jezykow",
+      "additional_info": "dodatkowe info"
+   }
+}
 ]

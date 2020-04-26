@@ -175,6 +175,7 @@ class LoginView(ObtainAuthToken):
 
 
 class DataView(views.APIView):
+    permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
         operation_description="Get currently logged in user's data."
@@ -184,7 +185,6 @@ class DataView(views.APIView):
             200: DefaultAccountSerializer
         }
     )
-    @permission_classes([IsAuthenticated])
     def get(self, request):
         serializer = None
         user_type = AccountType.STANDARD.value
