@@ -132,7 +132,7 @@ def sample_string_response():
 
 
 class BlogPostCreateView(views.APIView):
-    permission_classes = [IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator]
+    permission_classes = [IsAuthenticated, IsStaffBlogCreator]
 
     @swagger_auto_schema(
         request_body=sample_blogpost_request(),
@@ -373,4 +373,4 @@ class BlogPostCommentUpdateView(views.APIView):
             comment.delete()
             return Response(status=status.HTTP_200_OK)
         else:
-            return ErrorResponse("User is not an author or Blog Moderator", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("You can't delete this comment.", status.HTTP_403_FORBIDDEN)
