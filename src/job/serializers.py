@@ -1,6 +1,7 @@
 from datetime import date
 
-from account.models import DefaultAccount
+from account.models import DefaultAccount, Address
+from account.serializers import AddressSerializer
 from rest_framework import serializers
 
 from .models import *
@@ -8,6 +9,7 @@ from .models import *
 
 class JobOfferSerializer(serializers.ModelSerializer):
     voivodeship = serializers.ChoiceField(choices=Voivodeships.choices)
+    company_address = AddressSerializer(required=False)
     category = serializers.CharField(source='category.name')
     type = serializers.CharField(source='offer_type.name')
 
@@ -25,6 +27,8 @@ class JobOfferSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         validated_data['category'] = JobOfferCategory.objects.get(**validated_data['category'])
         validated_data['offer_type'] = JobOfferType.objects.get(**validated_data['offer_type'])
+        company_address = Address.objects.create(**validated_data['company_address'])
+        validated_data['company_address'] = company_address
         return JobOffer(**validated_data)
 
 
@@ -32,8 +36,8 @@ class JobOfferEditSerializer(serializers.Serializer):
     offer_name = serializers.CharField(max_length=50, required=False)
     category = serializers.CharField(max_length=30, required=False)
     type = serializers.CharField(max_length=30, required=False)
-    company_name = serializers.CharField(max_length=70, required=False)
-    company_address = serializers.CharField(max_length=200, required=False)
+    company_name = serializers.CharField(max_length=120, required=False)
+    company_address = AddressSerializer(required=False)
     voivodeship = serializers.CharField(max_length=30, required=False)
     expiration_date = serializers.DateField(required=False)
     description = serializers.CharField(max_length=1000, required=False)
@@ -46,13 +50,22 @@ class JobOfferEditSerializer(serializers.Serializer):
         return JobOfferEdit(**validated_data)
 
     def update(self, instance, validated_data):
-        if 'category' in validated_data:
-            instance.category = JobOfferCategory.objects.get(name=validated_data('category'))
-        if 'type' in validated_data:
-            instance.offer_name = JobOfferType.objects.get(name=validated_data('type'))
+        try:
+            instance.category = JobOfferCategory.objects.get(name=validated_data.get('category', None))
+        except JobOfferCategory.DoesNotExist:
+            pass
+
+        try:
+            instance.offer_type = JobOfferType.objects.get(name=validated_data.get('type', None))
+        except JobOfferType.DoesNotExist:
+            pass
+
         instance.offer_name = validated_data.get('offer_name', instance.offer_name)
         instance.company_name = validated_data.get('company_name', instance.company_name)
-        instance.company_address = validated_data.get('company_address', instance.company_address)
+        new_address = validated_data.get('company_address', instance.company_address)
+        new_address = Address.objects.create(**new_address)
+        instance.company_address.delete()
+        instance.company_address = new_address
         instance.voivodeship = validated_data.get('voivodeship', instance.voivodeship)
         instance.expiration_date = validated_data.get('expiration_date', instance.expiration_date)
         instance.description = validated_data.get('description', instance.description)

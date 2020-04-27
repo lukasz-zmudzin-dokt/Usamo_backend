@@ -143,15 +143,16 @@ class JobOfferView(views.APIView):
     def put(self, request, offer_id):
         serializer = JobOfferEditSerializer(data=request.data)
         if serializer.is_valid():
-            job_offer_edit = serializer.create(serializer.validated_data)
+            #job_offer_edit = serializer.create(serializer.validated_data)
             try:
                 instance = JobOffer.objects.get(pk=offer_id)
                 if not IsEmployer().has_object_permission(request, self, instance) \
                         and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
                     return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
-                fields_to_update = job_offer_edit.update_dict()
-                for field, value in fields_to_update.items():
-                    setattr(instance, field, value)
+                #fields_to_update = job_offer_edit.update_dict()
+                #for field, value in fields_to_update.items():
+                    #setattr(instance, field, value)
+                serializer.update(instance, serializer.validated_data)
                 instance.save()
                 return MessageResponse("Offer edited successfully")
             except ObjectDoesNotExist:

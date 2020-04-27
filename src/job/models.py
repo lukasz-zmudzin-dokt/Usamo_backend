@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import SET_NULL
 from .enums import Voivodeships
-from account.models import DefaultAccount, EmployerAccount
+from account.models import DefaultAccount, EmployerAccount, Address
 from cv.models import CV
 
 
@@ -21,7 +21,7 @@ class JobOffer(models.Model):
     category = models.ForeignKey(JobOfferCategory, on_delete=SET_NULL, null=True, db_column='category')
     offer_type = models.ForeignKey(JobOfferType, on_delete=SET_NULL, null=True, db_column='offer_type')
     company_name = models.CharField(max_length=70)
-    company_address = models.CharField(max_length=200)
+    company_address = models.OneToOneField(Address, on_delete=models.CASCADE)
     voivodeship = models.CharField(max_length=30, choices=Voivodeships.choices)
     expiration_date = models.DateField()
     description = models.CharField(max_length=1000)
