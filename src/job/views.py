@@ -68,7 +68,13 @@ def sample_offer_response():
             'category': Schema(type='string', default="offer category"),
             'type': Schema(type='string', default="offer type"),
             'company_name': Schema(type='string', default="company name"),
-            'company_address': Schema(type='string', default="company address"),
+            'company_address': Schema(type='object',
+             properties={ 
+                 'city': Schema(type='string', default="city"),
+                 'street': Schema(type='string', default="street"),
+                 'street_number': Schema(type='string', default="street number"),
+                 'postal_code': Schema(type='string', default="postal code")
+             }),
             'voivodeship': Schema(type='string', default="mazowieckie"),
             'expiration_date': Schema(type='string', default="2020-02-20"),
             'description': Schema(type='string', default="offer description")
