@@ -107,10 +107,6 @@ class CVSerializer(serializers.ModelSerializer):
         basic_info_data = validated_data.get('basic_info')
         serializer = BasicInfoSerializer()
         serializer.update(cv.basic_info, basic_info_data)
-        School.objects.filter(cv=cv).delete()
-        Experience.objects.filter(cv=cv).delete()
-        Skill.objects.filter(cv=cv).delete()
-        Language.objects.filter(cv=cv).delete()
         cv.is_verified = False
 
         validated_data['basic_info']['picture'] = cv.basic_info.picture
