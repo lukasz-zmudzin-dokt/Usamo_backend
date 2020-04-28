@@ -138,8 +138,8 @@ class BlogPostCreateView(views.APIView):
         request_body=sample_blogpost_request(),
         responses={
             200: sample_blogpostid_response(),
-            403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
+            403: 'Nie ma takiego użytkownika lub użytkownik nie należy do personelu',
+            400: 'Błędy walidacji (np. brak jakiegoś pola)'
         }
     )
     def post(self, request):
@@ -154,7 +154,7 @@ class BlogPostCreateView(views.APIView):
             else:
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return ErrorResponse("No user or user is not staff member", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Nie ma takiego użytkownika lub użytkownik nie należy do personelu", status.HTTP_403_FORBIDDEN)
 
 
 class BlogPostHeaderView(views.APIView):
@@ -169,7 +169,7 @@ class BlogPostHeaderView(views.APIView):
         ],
         responses={
             200: 'OK',
-            400: 'There is no such blog'
+            400: 'Nie istnieje taki post'
         },
     )
     def post(self, request, id):
@@ -179,7 +179,7 @@ class BlogPostHeaderView(views.APIView):
 
         blog_post = BlogPost.objects.filter(id=id).first()
         if not blog_post:
-            return ErrorResponse('There is no such blog', status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse('Nie istnieje taki post', status.HTTP_400_BAD_REQUEST)
 
         data = request.data
         data['blog_post'] = blog_post.id
@@ -196,13 +196,13 @@ class BlogPostHeaderView(views.APIView):
         ],
         responses={
             200: 'OK',
-            400: 'There is no such header'
+            400: 'Nie istnieje taki nagłówek'
         }
     )
     def delete(self, request, id):
         header = BlogPostHeader.objects.filter(blog_post_id=id)
         if not header:
-            return ErrorResponse('There is no such header', status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse('Nie istnieje taki nagłówek', status.HTTP_400_BAD_REQUEST)
         header = BlogPostHeader.objects.get(blog_post_id=id)
         header.delete()
         return Response('OK', status.HTTP_200_OK)
@@ -218,7 +218,7 @@ class BlogPostView(views.APIView):
         ],
         responses={
             200: sample_blogpost_response(),
-            400: 'No instance with given id'
+            400: 'Nie istnieje post o id: id'
         }
     )
     def get(self, request, id):
@@ -227,7 +227,7 @@ class BlogPostView(views.APIView):
             serializer = BlogPostSerializer(blog_post)
             return Response(serializer.data, status.HTTP_200_OK)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse(f"Nie istnieje post o id: {id}", status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -237,7 +237,7 @@ class BlogPostView(views.APIView):
         responses={
             200: sample_blogpostid_response(),
             403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
+            400: 'Nie istnieje post o id: id'
         }
     )
     def put(self, request, id):
@@ -250,7 +250,7 @@ class BlogPostView(views.APIView):
             else:
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse(f"Nie istnieje post o id: {id}", status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -259,7 +259,7 @@ class BlogPostView(views.APIView):
         responses={
             200: "OK",
             403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
+            400: 'Nie istnieje post o id: id'
         }
     )
     def delete(self, request, id):
@@ -268,11 +268,11 @@ class BlogPostView(views.APIView):
             instance.delete()
             return Response(status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse(f"Nie istnieje post o id: {id}", status.HTTP_400_BAD_REQUEST)
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-        operation_description="Returns list of all categories.",
+        operation_description="Zwraca listę wszystkich kategorii",
         responses={
             200: sample_string_response()
         }
@@ -284,7 +284,7 @@ class BlogPostCategoryListView(generics.ListAPIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-        operation_description="Returns list of all tags.",
+        operation_description="Zwraca listę wszystkich tagów",
         responses={
             200: sample_string_response()
         }
@@ -300,7 +300,7 @@ class BlogPostTagListView(generics.ListAPIView):
             Parameter('category', IN_QUERY, type='string'),
             Parameter('tag', IN_QUERY, type='string')
         ],
-        operation_description="Returns blog post list. Can be filtered by category and/or tag."
+        operation_description="Zwraca listę postów wszystkich lub filtrowanych po kategorii i/lub tagu"
     ))
 class BlogPostListView(generics.ListAPIView):
     serializer_class = BlogPostListSerializer
@@ -324,15 +324,15 @@ class BlogPostCommentCreateView(views.APIView):
         request_body=sample_comment_request(),
         responses={
             200: sample_commentid_response(),
-            403: 'Forbidden - no permissions',
-            400: 'No blog_post instance with given id'
+            403: 'Użytkownik nie istnieje',
+            400: 'Nie istnieje post o id: id'
         }
     )
     def post(self, request, id):
         try:
             author = Account.objects.get(id=request.user.id)
         except ObjectDoesNotExist:
-            return ErrorResponse("No user?", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Użytkownik nie istnieje", status.HTTP_403_FORBIDDEN)
         try:
             blog_post = BlogPost.objects.get(pk=id)
             request.data["blog_post"] = blog_post.pk
@@ -346,7 +346,7 @@ class BlogPostCommentCreateView(views.APIView):
             else:
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No blog with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse(f"Nie istenieje post o id: {id}", status.HTTP_400_BAD_REQUEST)
 
 
 class BlogPostCommentUpdateView(views.APIView):
@@ -357,20 +357,20 @@ class BlogPostCommentUpdateView(views.APIView):
             Parameter('id', IN_PATH, type='integer')
         ],
         responses={
-            200: "Comment was successfully deleted",
-            403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
+            200: "Komentarz usunięto pomyślnie",
+            403: 'Nie możesz usunąć tego komentarza',
+            400: 'Nie istnieje komentarz o id: id'
         }
     )
     def delete(self, request, id):
         try:
             comment = BlogPostComment.objects.get(pk=id)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse(f"Nie istnieje komentarz o id: {id}", status.HTTP_400_BAD_REQUEST)
 
         if IsUserCommentAuthor().has_object_permission(request, self, comment) or \
                 IsStaffBlogModerator().has_object_permission(request, self, comment):
             comment.delete()
-            return Response(status=status.HTTP_200_OK)
+            return Response("Komentarz usunięto pomyślnie", status=status.HTTP_200_OK)
         else:
-            return ErrorResponse("You can't delete this comment.", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Nie możesz usunąć tego komentarza", status.HTTP_403_FORBIDDEN)
