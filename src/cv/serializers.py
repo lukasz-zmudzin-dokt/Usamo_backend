@@ -124,13 +124,13 @@ class CVSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def create_lists(cv, validated_data):
-        schools_data = validated_data.pop('schools')
+        schools_data = validated_data.get('schools')
         try:
-            experiences_data = validated_data.pop('experiences')
+            experiences_data = validated_data.get('experiences')
         except KeyError:
             experiences_data = False
-        skills_data = validated_data.pop('skills')
-        languages_data = validated_data.pop('languages')
+        skills_data = validated_data.get('skills')
+        languages_data = validated_data.get('languages')
 
         for data in schools_data:
             School.objects.create(cv=cv, **data)
