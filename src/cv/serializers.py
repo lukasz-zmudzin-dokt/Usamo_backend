@@ -108,7 +108,12 @@ class CVSerializer(serializers.ModelSerializer):
         serializer = BasicInfoSerializer()
         serializer.update(cv.basic_info, basic_info_data)
         cv.is_verified = False
-
+        School.objects.filter(cv=cv).delete()
+        Experience.objects.filter(cv=cv).delete()
+        Language.objects.filter(cv=cv).delete()
+        Skill.objects.filter(cv=cv).delete()
+        self.create_lists(cv, validated_data)
+        
         validated_data['basic_info']['picture'] = cv.basic_info.picture
         pdf = generate(validated_data)
         django_file = ContentFile(pdf)
