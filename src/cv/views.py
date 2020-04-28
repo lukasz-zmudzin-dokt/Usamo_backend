@@ -9,13 +9,13 @@ from rest_framework import views
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-
 from account.permissions import IsStandardUser
 from .models import *
 from .serializers import *
 from .permissions import *
 from job.views import sample_message_response
-
+import base64
+from usamo.settings.settings import BASE_DIR
 
 class CreateCVView(views.APIView):
 
@@ -130,6 +130,37 @@ class CVDataView(views.APIView):
         serializer = CVSerializer(instance=cv)
         return Response(serializer.data, status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Lets user edit his CV",
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
+                description='A UUID string identifying this cv') 
+        ],
+        responses={
+            '200': 'message: CV edited successfully.',
+            '400': 'serializer errors',
+            '403': "User has no permission to perfonm this action.",
+            '404': "CV not found."
+        }
+    )
+    def put(self, request, cv_id):
+        try:
+            cv = CV.objects.get(cv_id=cv_id)
+            if not IsCVOwner().has_object_permission(request, self, cv) \
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+        except CV.DoesNotExist:
+            return Response("CV not found.", status.HTTP_404_NOT_FOUND)
+        serializer = CVSerializer(data=request.data)
+
+        if serializer.is_valid():
+            serializer.update(cv, serializer.validated_data)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+        response = {'message': 'CV edited successfully.'}
+        return Response(response, status.HTTP_200_OK)
+
 
 class CVPictureView(views.APIView):
 
@@ -187,13 +218,13 @@ class CVPictureView(views.APIView):
 
 
     @swagger_auto_schema(
-        operation_description="Returns picture url if it was uploaded",
+        operation_description="Returns picture encoded in base64 if it was uploaded",
         manual_parameters=[
             openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
                 description='A UUID string identifying this cv')
         ],
         responses={
-            '200': sample_message_response("/media/cv_pics/2020/04/03/file_name.png"),
+            '200': "file: base 64",
             '403': "User has no permission to perfonm this action.",
             '404': 'CV/picture not found'
         }
@@ -209,7 +240,13 @@ class CVPictureView(views.APIView):
         bi = BasicInfo.objects.get(cv=cv)
         if not bi.picture:
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
-        return Response(bi.picture.url, status.HTTP_200_OK)
+
+        with open(BASE_DIR + bi.picture.url, "rb") as image_file:
+            encoded_string = base64.b64encode(image_file.read())
+
+        response_data = {'file': encoded_string}
+
+        return Response(response_data, status.HTTP_200_OK)
 
 
     @swagger_auto_schema(
