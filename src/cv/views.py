@@ -241,8 +241,7 @@ class CVPictureView(views.APIView):
         if not bi.picture:
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
 
-        with open(BASE_DIR + bi.picture.url, "rb") as image_file:
-            encoded_string = base64.b64encode(image_file.read())
+        encoded_string = base64.b64encode(bi.picture.read())
 
         response_data = {'file': encoded_string}
 
