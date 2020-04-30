@@ -125,8 +125,7 @@ def delete_picture(sender, instance, **kwargs):
             os.remove(instance.picture.path)
 
 
-@receiver(pre_save, sender=BasicInfo)
-def delete_previous_picture_if_it_exists(sender, instance, **kwargs):
+def delete_previous_picture(instance):
     """
     Deletes old cv picture from filesystem
     when corresponding `BasicInfo` object is updated.
@@ -155,8 +154,7 @@ def delete_cv_file(sender, instance, **kwargs):
             os.remove(instance.document.path)
 
 
-@receiver(pre_save, sender=CV)
-def delete_previous_cv_file_if_it_exists(sender, instance, **kwargs):
+def delete_previous_cv_file(instance):
     """
     Deletes old cv document from filesystem
     when corresponding `CV` object is updated.

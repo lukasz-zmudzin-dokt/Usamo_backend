@@ -28,7 +28,7 @@ class CreateCVView(views.APIView):
             '201': '"cv_id" : id',
             '400': 'Serializer errors',
             '403': "You do not have permission to perform this action. \
-                    / User has already created 3 CVs!"
+                    / User has already created 5 CVs!"
         },
         operation_description="Create or update database object for CV generation.",
     )
@@ -153,6 +153,8 @@ class CVDataView(views.APIView):
             return Response("CV not found.", status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(data=request.data)
 
+        delete_previous_cv_file(cv)
+
         if serializer.is_valid():
             serializer.update(cv, serializer.validated_data)
         else:
@@ -210,6 +212,10 @@ class CVPictureView(views.APIView):
         except MultiValueDictKeyError:
             Response('Make sure the form key is "picture".', status.HTTP_400_BAD_REQUEST)
         serializer = CVSerializer(data=data)
+        
+        delete_previous_cv_file(cv)
+        delete_previous_picture(cv.basic_info)
+
         if serializer.is_valid():
             serializer.update(cv, serializer.validated_data)
             return Response('Picture added successfully.', status.HTTP_201_CREATED)
@@ -273,11 +279,13 @@ class CVPictureView(views.APIView):
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
         bi.picture.delete(save=True)
         cv_serializer = CVSerializer(instance=cv)
-        bi_serializer = BasicInfoSerializer(instance=bi)
-        cv_serializer.data['basic_info'] = bi_serializer.data
-        cv_serializer.create(cv_serializer.data)
+        
+        delete_previous_picture(bi)
+        delete_previous_cv_file(cv)
+        cv_serializer.update(cv, cv_serializer.data)
 
         return Response('Picture deleted successfully.', status.HTTP_200_OK)
+
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
