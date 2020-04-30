@@ -211,7 +211,7 @@ class AdminUserAdmissionView(views.APIView):
         },
         manual_parameters=[
             openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
-                              description='Strin uuid będący id użytkownika')
+                              description='String UUID będący id użytkownika')
         ],
         operation_description="Zmienia status użytkownika na verified",
     )
@@ -239,7 +239,7 @@ class AdminUserRejectionView(views.APIView):
         },
         manual_parameters=[
             openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
-                              description='Strin uuid będący id użytkownika')
+                              description='String UUID będący id użytkownika')
         ],
         operation_description="Zmienia status użytkownika na not verified",
     )

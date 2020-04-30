@@ -134,10 +134,10 @@ class CVDataView(views.APIView):
                 description='A UUID string identifying this cv')
         ],
         responses={
-            '200': 'message: CV edited successfully.',
-            '400': 'serializer errors',
-            '403': "User has no permission to perfonm this action.",
-            '404': "CV not found."
+            '200': 'message: CV edytowany pomyślnie',
+            '400': 'Błędy walidacji (np. brak jakiegoś pola)',
+            '403': "Użytkownik nie jest upoważniony do wykonania tej czynności",
+            '404': "Nie znaleziono cv"
         }
     )
     def put(self, request, cv_id):
@@ -145,9 +145,9 @@ class CVDataView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return Response("Użytkownik nie jest upoważniony do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response("CV not found.", status.HTTP_404_NOT_FOUND)
+            return Response("Nie znaleziono cv", status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(data=request.data)
 
         delete_previous_cv_file(cv)
@@ -157,7 +157,7 @@ class CVDataView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-        response = {'message': 'CV edited successfully.'}
+        response = {'message': 'CV edytowany pomyślnie'}
         return Response(response, status.HTTP_200_OK)
 
 

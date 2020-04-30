@@ -101,8 +101,8 @@ class JobOfferCreateView(views.APIView):
         responses={
             '200': sample_offerid_response(),
             '401': sample_error_response('No authorization token'),
-            '403': sample_error_response('No user or user is not employer'),
-            '400': 'Bad request - serializer errors'
+            '403': sample_error_response('Brak użytkownika lub użytkownik nie jest pracodawcą'),
+            '400': 'Błędy walidacji (np. brakujące pole)'
         },
         operation_description="Create job offer.",
     )
@@ -118,7 +118,7 @@ class JobOfferCreateView(views.APIView):
             else:
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except EmployerAccount.DoesNotExist:
-            return ErrorResponse("No user or user is not employer", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Brak użytkownika lub użytkownik nie jest pracodawcą", status.HTTP_403_FORBIDDEN)
 
 
 class JobOfferView(views.APIView):
@@ -132,13 +132,13 @@ class JobOfferView(views.APIView):
         operation_id='job_job-offer_edit',
         query_serializer=JobOfferEditSerializer,
         responses={
-            '200': sample_message_response("Offer edited successfully"),
-            '400': 'Bad request - serializer errors',
+            '200': sample_message_response("Pomyślnie edytowano ofertę"),
+            '400': 'Błędy walidacji (np. brakujące pole)',
             '401': 'No authorization token',
-            '403': 'No permissions for this action',
-            '404': sample_error_response('Offer not found'),
+            '403': 'Użytkownik nie jest upoważniony do wykonania tej czynności',
+            '404': sample_error_response('Nie znaleziono oferty'),
         },
-        operation_description="Edit job offer.",
+        operation_description="Edytuje ofertę pracy",
     )
     def put(self, request, offer_id):
         serializer = JobOfferEditSerializer(data=request.data)
@@ -148,14 +148,14 @@ class JobOfferView(views.APIView):
                 instance = JobOffer.objects.get(pk=offer_id)
                 if not IsEmployer().has_object_permission(request, self, instance) \
                         and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                    return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
+                    return ErrorResponse("Użytkownik nie jest upoważniony do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
                 fields_to_update = job_offer_edit.update_dict()
                 for field, value in fields_to_update.items():
                     setattr(instance, field, value)
                 instance.save()
-                return MessageResponse("Offer edited successfully")
+                return MessageResponse("Pomyślnie edytowano ofertę")
             except ObjectDoesNotExist:
-                return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
+                return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -167,9 +167,9 @@ class JobOfferView(views.APIView):
         responses={
             '200': JobOfferSerializer,
             '401': 'No authorization token',
-            '404': sample_error_response('Offer not found'),
+            '404': sample_error_response('Nie znaleziono oferty'),
         },
-        operation_description="Get job offer by id",
+        operation_description="Zwraca szczegóły oferty pracy po id",
     )
     def get(self, request, offer_id):
         try:
@@ -177,34 +177,34 @@ class JobOfferView(views.APIView):
             serializer = JobOfferSerializer(offer)
             return Response(serializer.data, status.HTTP_200_OK)
         except ObjectDoesNotExist:
-            return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
 
     @swagger_auto_schema(
         manual_parameters=[
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         responses={
-            '200': sample_message_response('Offer deleted'),
-            '400': sample_error_response('Offer already removed'),
+            '200': sample_message_response('Usunięto ofertę'),
+            '400': sample_error_response('Oferta została wcześniej usunięta'),
             '401': 'No authorization token',
-            '403': sample_error_response('No permissions for this action'),
-            '404': sample_error_response('Offer not found')
+            '403': sample_error_response('Użytkownik nie jest upoważniony do wykonania tej czynności'),
+            '404': sample_error_response('Nie znaleziono oferty')
         },
-        operation_description="Set offer status to removed",
+        operation_description="Zmienia status oferty na removed",
     )
     def delete(self, request, offer_id):
         try:
             instance = JobOffer.objects.get(pk=offer_id)
             if not IsEmployer().has_object_permission(request, self, instance) \
                     and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Użytkownik nie jest upoważniony do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
             if instance.removed:
-                return ErrorResponse("Offer already removed", status.HTTP_400_BAD_REQUEST)
+                return ErrorResponse("Oferta została wcześniej usunięta", status.HTTP_400_BAD_REQUEST)
             instance.removed = True
             instance.save()
             return MessageResponse("Offer removed successfully")
         except ObjectDoesNotExist:
-            return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
@@ -215,9 +215,9 @@ class JobOfferView(views.APIView):
     query_serializer=JobOfferFiltersSerializer,
     responses={
         '200': sample_paginated_offers_response(),
-        '400': "Bad request - serializer errors",
+        '400': "Błędy walidacji (np. brakujące pole)",
     },
-    operation_description="Returns offers list with filters"
+    operation_description="Zwraca listę ofert pracy z możliwością filtraci"
 ))
 class JobOfferListView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
@@ -247,24 +247,24 @@ class CreateJobOfferApplicationView(views.APIView):
         request_body=JobOfferApplicationSerializer,
         responses={
             '201': '"id": application.id',
-            '400': 'Serializer errors',
-            '403': "You do not have permission to perform this action. / User has already applied for this offer. \
-                /  CV of specified id does not belong to the current user."
+            '400': 'Błędy walidacji (np. brakujące pole)',
+            '403': "You do not have permission to perform this action. / Użytkownik już aplikował na tę ofertę. \
+                /  CV o podanym id nie należy do obecnego użytkownika."
         },
-        operation_description="Create a job application by specyfying cv and job_offer.",
+        operation_description="Tworzy aplikację na pracę z podaną ofertą pracy oraz id cv",
     )
     def post(self, request):
         user = DefaultAccount.objects.get(user=request.user)
         try:
             CV.objects.get(cv_user=user, cv_id=request.data['cv'])
         except CV.DoesNotExist:
-            return Response("CV of specified id does not belong to the current user.", status.HTTP_403_FORBIDDEN)
+            return Response("CV o podanym id nie należy do obecnego użytkownika.", status.HTTP_403_FORBIDDEN)
 
         prev_app = JobOfferApplication.objects.filter(cv__cv_user=user, 
             job_offer__id=request.data['job_offer'])
 
         if prev_app:
-             return Response("User has already applied for this offer", status.HTTP_403_FORBIDDEN)
+             return Response("Użytkownik już aplikował na tę ofertę", status.HTTP_403_FORBIDDEN)
 
         serializer = JobOfferApplicationSerializer(data=request.data)
         if serializer.is_valid():
@@ -283,19 +283,19 @@ class JobOfferApplicationView(views.APIView):
         responses={
             '200': JobOfferApplicationSerializer,
             '403': "You do not have permission to perform this action.",
-            '404': "This user has no application with given id"
+            '404': "Ten użytkownik nie posiada aplikacji o podanym id"
         },
         manual_parameters=[
             Parameter('offer_id', IN_PATH, type='string($uuid)', 
-                description='ID of an offer, for which the user has applied.')
+                description='ID oferty, na którą aplikował obecny użytkownik')
         ],
-        operation_description="Get current user's application for a particular job offer.",
+        operation_description="Zwraca aplikację obecnego użytkownika na daną ofertę pracy",
     )
     def get(self, request, offer_id):
         user = DefaultAccount.objects.get(user=request.user)
         application = JobOfferApplication.objects.filter(cv__cv_user=user, job_offer__id=offer_id)
         if not application:
-             return Response("This user has no application with given id", status.HTTP_404_NOT_FOUND)
+             return Response("Ten użytkownik nie posiada aplikacji o podanym id", status.HTTP_404_NOT_FOUND)
 
         serializer = JobOfferApplicationSerializer(application.first())
         return Response(serializer.data, status.HTTP_200_OK)
@@ -304,14 +304,14 @@ class JobOfferApplicationView(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': JobOfferApplicationSerializer(many=True),
-        '403': "Offer does not belong to current user",
-        '404': "Offer not found"
+        '403': "Oferta nie należy do obecnego użytkownika",
+        '404': "Nie znaleziono oferty"
     },
     manual_parameters=[
         Parameter('offer_id', IN_PATH, type='string($uuid)', 
-                description='ID of the offer, for which users have applied.')
+                description='ID oferty, na którą użytkownicy aplikowali')
     ],
-    operation_description="Returns the list of applications for a job offer."
+    operation_description="Zwraca listę aplikacji na daną ofertę pracy"
 ))
 class EmployerApplicationListView(ListAPIView):
     serializer_class = JobOfferApplicationSerializer
@@ -327,9 +327,9 @@ class EmployerApplicationListView(ListAPIView):
             if IsEmployer().has_object_permission(request, self, offer):
                 return super().get(request)
             else:
-                return ErrorResponse("Offer does not belong to current user", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Oferta nie należy do obecnego użytkownika", status.HTTP_403_FORBIDDEN)
         except ObjectDoesNotExist:
-            return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
@@ -337,7 +337,7 @@ class EmployerApplicationListView(ListAPIView):
         '403': "You do not have permission to perform this action.",
         '404': "Not found",
     },
-    operation_description="Returns the list of user's job applications."
+    operation_description="Zwraca listę aplikacji danego użytkownika"
 ))
 class UserApplicationsView(ListAPIView):
     serializer_class = JobOfferApplicationSerializer
@@ -357,9 +357,9 @@ class UserApplicationsView(ListAPIView):
         '200': sample_paginated_offers_response(),
         '401': 'No authorization token',
         '403': "You do not have permission to perform this action.",
-        '404': "Bad request - serializer errors",
+        '404': "Błędy walidacji (np. brakujące pole)",
     },
-    operation_description="Returns offers list with filters for current employer"
+    operation_description="Zwraca listę ofert pracy z możliwością filtracji dla obecnego pracodawcy"
 ))
 class EmployerJobOffersView(generics.ListAPIView):
     permission_classes = [IsEmployer]
@@ -383,7 +383,7 @@ class EmployerJobOffersView(generics.ListAPIView):
             else:
                 return Response(self.filter_serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return ErrorResponse("No user or user is not employer", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Brak użytkownika lub użytkownik nie jest pracodawcą", status.HTTP_403_FORBIDDEN)
 
 
 class VoivodeshipsEnumView(views.APIView):
@@ -395,7 +395,7 @@ class VoivodeshipsEnumView(views.APIView):
                 "voivodeships": Schema(type='array', items=Schema(type='string', default=['w1', 'w2', '...']))
             })
         },
-        operation_description="returns list of possible voivodeship values",
+        operation_description="Zwraca listę województw",
     )
     def get(self, request):
         response = {"voivodeships": Voivodeships().getKeys()}
@@ -411,7 +411,7 @@ class JobOfferCategoryListView(views.APIView):
                 "categories": Schema(type='array', items=Schema(type='string', default=['c1', 'c2', '...']))
             })
         },
-        operation_description="Returns list of all categories."
+        operation_description="Zwraca listę wszystkich kategorii"
     )
     def get(self, request):
         response = {"categories": list(JobOfferCategory.objects.values_list('name', flat=True))}
@@ -427,7 +427,7 @@ class JobOfferTypesListView(generics.ListAPIView):
                 "offer_types": Schema(type='array', items=Schema(type='string', default=['t1', 't2', '...']))
             })
         },
-        operation_description="Returns list of all types."
+        operation_description="Zwraca listę wszystkich typów"
     )
     def get(self, request):
         response = {"offer_types": list(JobOfferType.objects.values_list('name', flat=True))}
