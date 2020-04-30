@@ -174,6 +174,24 @@ class LoginView(ObtainAuthToken):
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
+class UserStatusView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    @swagger_auto_schema(
+        operation_description="Zwraca status aktualnie zalogowanego użytkownika",
+        responses={
+            200: 'is_verified: true/false'
+        }
+    )
+    def get(self, request):
+        verified = False
+        if request.user.status == 1:
+            verified = True
+
+        response_data = {'is_verified': verified}
+        return Response(response_data, status.HTTP_200_OK)
+
+
 class DataView(views.APIView):
     permission_classes = [IsAuthenticated]
 
@@ -189,12 +207,12 @@ class DataView(views.APIView):
         serializer = None
         user_type = AccountType.STANDARD.value
         if request.user.type == AccountType.STANDARD.value:
-            serializer = DefaultAccountSerializer(instance=request.user)
+            serializer = DefaultAccountDetailSerializer(instance=request.user)
         elif request.user.type == AccountType.EMPLOYER.value:
-            serializer = EmployerAccountSerializer(instance=request.user)
+            serializer = EmployerDetailSerializer(instance=request.user)
             user_type = AccountType.EMPLOYER.value
         else:
-            serializer = StaffAccountSerializer(instance=request.user)
+            serializer = StaffDetailSerializer(instance=request.user)
             user_type = AccountType.STAFF.value
 
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})

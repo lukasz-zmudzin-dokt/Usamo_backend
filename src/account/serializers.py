@@ -1,5 +1,4 @@
 import abc
-
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
@@ -8,10 +7,7 @@ import abc
 from .validators import validate_nip, validate_postal_code, validate_street_number
 from django.contrib.auth.models import Group
 from .account_type import StaffGroupType, ACCOUNT_TYPE_CHOICES
-
-
 from .models import DefaultAccount, EmployerAccount, Account, StaffAccount, Address
-
 from .account_type import STAFF_GROUP_CHOICES
 from .models import DefaultAccount, EmployerAccount, Account, StaffAccount
 from .validators import validate_nip
@@ -254,7 +250,7 @@ class StaffDetailSerializer(StaffAccountSerializer, AccountListSerializer):
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'group_type',
-                  'date_joined', 'last_login']
+                  'date_joined', 'last_login', 'status']
 
 
 class DefaultAccountDetailSerializer(DefaultAccountSerializer, AccountListSerializer):

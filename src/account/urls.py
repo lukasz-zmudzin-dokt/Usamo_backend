@@ -11,6 +11,7 @@ urlpatterns = [
     path('logout/', LogoutView.as_view(), name='logout'),
     path('login/', LoginView.as_view(), name='login'),
     path('data/', DataView.as_view(), name='data'),
+    path('status/', UserStatusView.as_view(), name='user_status'),
     url(r'^admin/user_list/all/$',
         AdminAllAccountsListView.as_view(), name='user_list_all'),
     url(r'^admin/user_list/employers/$',
