@@ -108,8 +108,13 @@ class CVSerializer(serializers.ModelSerializer):
         serializer = BasicInfoSerializer()
         serializer.update(cv.basic_info, basic_info_data)
         cv.is_verified = False
-
-        validated_data['basic_info']['picture'] = cv.basic_info.picture
+        School.objects.filter(cv=cv).delete()
+        Experience.objects.filter(cv=cv).delete()
+        Language.objects.filter(cv=cv).delete()
+        Skill.objects.filter(cv=cv).delete()
+        self.create_lists(cv, validated_data)
+        
+        validated_data['basic_info'] = cv.basic_info
         pdf = generate(validated_data)
         django_file = ContentFile(pdf)
         django_file.name = create_unique_filename('cv_docs', 'pdf')
@@ -119,13 +124,13 @@ class CVSerializer(serializers.ModelSerializer):
 
     @staticmethod
     def create_lists(cv, validated_data):
-        schools_data = validated_data.pop('schools')
+        schools_data = validated_data.get('schools')
         try:
-            experiences_data = validated_data.pop('experiences')
+            experiences_data = validated_data.get('experiences')
         except KeyError:
             experiences_data = False
-        skills_data = validated_data.pop('skills')
-        languages_data = validated_data.pop('languages')
+        skills_data = validated_data.get('skills')
+        languages_data = validated_data.get('languages')
 
         for data in schools_data:
             School.objects.create(cv=cv, **data)

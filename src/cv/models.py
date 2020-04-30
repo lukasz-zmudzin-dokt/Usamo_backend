@@ -1,4 +1,5 @@
 import datetime
+import re
 from django.utils import timezone
 import uuid
 from account.models import Account, DefaultAccount
@@ -22,7 +23,17 @@ def max_value_current_year(value):
 def validate_cv_id(cv_id):
     if not CV.objects.filter(cv_id=cv_id).exists():
         raise ValidationError('%(value)s is not a cv id', params={'value': cv_id})
-                              
+
+def get_cv_number(cv_user):
+    cvs = CV.objects.filter(cv_user=cv_user)
+    numbers = [0]
+    pattern = re.compile('.*_.*_.*_(\d+)')
+    for cv in cvs:
+        group = re.match(pattern, cv.name)
+        if group:
+            numbers.append(int(group.group(1)))
+    return max(numbers) + 1
+
 
 class CV(models.Model):
     cv_id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -35,8 +46,9 @@ class CV(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.name:
+            number = get_cv_number(self.cv_user)
             self.name = f'{self.cv_user.user.first_name}_{self.cv_user.user.last_name}' \
-                     f'_CV_{len(CV.objects.filter(cv_user=self.cv_user))+1}'
+                     f'_CV_{number}'
         super().save(*args, **kwargs)
 
 
@@ -113,8 +125,7 @@ def delete_picture(sender, instance, **kwargs):
             os.remove(instance.picture.path)
 
 
-@receiver(pre_save, sender=BasicInfo)
-def delete_previous_picture_if_it_exists(sender, instance, **kwargs):
+def delete_previous_picture(instance):
     """
     Deletes old cv picture from filesystem
     when corresponding `BasicInfo` object is updated.
@@ -143,8 +154,7 @@ def delete_cv_file(sender, instance, **kwargs):
             os.remove(instance.document.path)
 
 
-@receiver(pre_save, sender=CV)
-def delete_previous_cv_file_if_it_exists(sender, instance, **kwargs):
+def delete_previous_cv_file(instance):
     """
     Deletes old cv document from filesystem
     when corresponding `CV` object is updated.

@@ -9,13 +9,13 @@ from rest_framework import views
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
-
 from account.permissions import IsStandardUser
 from .models import *
 from .serializers import *
 from .permissions import *
 from job.views import sample_message_response
-
+import base64
+from usamo.settings.settings import BASE_DIR
 
 class CreateCVView(views.APIView):
     permission_classes = [IsStandardUser]
@@ -127,6 +127,39 @@ class CVDataView(views.APIView):
         serializer = CVSerializer(instance=cv)
         return Response(serializer.data, status.HTTP_200_OK)
 
+    @swagger_auto_schema(
+        operation_description="Lets user edit his CV",
+        manual_parameters=[
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                description='A UUID string identifying this cv')
+        ],
+        responses={
+            '200': 'message: CV edited successfully.',
+            '400': 'serializer errors',
+            '403': "User has no permission to perfonm this action.",
+            '404': "CV not found."
+        }
+    )
+    def put(self, request, cv_id):
+        try:
+            cv = CV.objects.get(cv_id=cv_id)
+            if not IsCVOwner().has_object_permission(request, self, cv) \
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+        except CV.DoesNotExist:
+            return Response("CV not found.", status.HTTP_404_NOT_FOUND)
+        serializer = CVSerializer(data=request.data)
+
+        delete_previous_cv_file(cv)
+
+        if serializer.is_valid():
+            serializer.update(cv, serializer.validated_data)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+        response = {'message': 'CV edited successfully.'}
+        return Response(response, status.HTTP_200_OK)
+
 
 class CVPictureView(views.APIView):
     permissions_classes = [IsCVOwner | IsStaffResponsibleForCVs]
@@ -175,6 +208,10 @@ class CVPictureView(views.APIView):
         except MultiValueDictKeyError:
             Response('Upewnij się, że form key to "picture"', status.HTTP_400_BAD_REQUEST)
         serializer = CVSerializer(data=data)
+
+        delete_previous_cv_file(cv)
+        delete_previous_picture(cv.basic_info)
+
         if serializer.is_valid():
             serializer.update(cv, serializer.validated_data)
             return Response('Zdjęcie dodano pomyślnie', status.HTTP_201_CREATED)
@@ -188,7 +225,7 @@ class CVPictureView(views.APIView):
                               description='String UUID będący id danego CV')
         ],
         responses={
-            '200': sample_message_response("/media/cv_pics/2020/04/03/file_name.png"),
+            '200': "file: base 64",
             '403': "Użytkownik nie jest upoważniony do wykonania tej czynności",
             '404': 'Nie znaleziono CV/zdjęcia'
         }
@@ -203,8 +240,13 @@ class CVPictureView(views.APIView):
             return Response('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
         bi = BasicInfo.objects.get(cv=cv)
         if not bi.picture:
-            return Response('Nie znaleziono zdjęcia', status.HTTP_404_NOT_FOUND)
-        return Response(bi.picture.url, status.HTTP_200_OK)
+            return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
+
+        encoded_string = base64.b64encode(bi.picture.read())
+
+        response_data = {'file': encoded_string}
+
+        return Response(response_data, status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Usuwa CV z bazy",
@@ -231,9 +273,10 @@ class CVPictureView(views.APIView):
             return Response('Nie znaleziono zdjęcia', status.HTTP_404_NOT_FOUND)
         bi.picture.delete(save=True)
         cv_serializer = CVSerializer(instance=cv)
-        bi_serializer = BasicInfoSerializer(instance=bi)
-        cv_serializer.data['basic_info'] = bi_serializer.data
-        cv_serializer.create(cv_serializer.data)
+
+        delete_previous_picture(bi)
+        delete_previous_cv_file(cv)
+        cv_serializer.update(cv, cv_serializer.data)
 
         return Response('Zdjęcie usunięto pomyślnie', status.HTTP_200_OK)
 

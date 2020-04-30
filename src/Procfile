@@ -1,1 +1,2 @@
+release: bash release-tasks.sh
 web: gunicorn usamo.wsgi --log-file -
