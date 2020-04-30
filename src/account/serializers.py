@@ -47,7 +47,7 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
             validate_international_phonenumber(phone_number)
         except ValidationError:
             raise serializers.ValidationError(
-                {'phone_number': 'Phone number is invalid'})
+                {'phone_number': 'Numer telefonu jest nieprawidłowy'})
 
     @abc.abstractmethod
     def update_or_create_account(self, user, account_data):
