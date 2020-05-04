@@ -68,7 +68,13 @@ def sample_offer_response():
             'category': Schema(type='string', default="offer category"),
             'type': Schema(type='string', default="offer type"),
             'company_name': Schema(type='string', default="company name"),
-            'company_address': Schema(type='string', default="company address"),
+            'company_address': Schema(type='object',
+             properties={ 
+                 'city': Schema(type='string', default="city"),
+                 'street': Schema(type='string', default="street"),
+                 'street_number': Schema(type='string', default="street number"),
+                 'postal_code': Schema(type='string', default="postal code")
+             }),
             'voivodeship': Schema(type='string', default="mazowieckie"),
             'expiration_date': Schema(type='string', default="2020-02-20"),
             'description': Schema(type='string', default="offer description")
@@ -143,15 +149,16 @@ class JobOfferView(views.APIView):
     def put(self, request, offer_id):
         serializer = JobOfferEditSerializer(data=request.data)
         if serializer.is_valid():
-            job_offer_edit = serializer.create(serializer.validated_data)
+            #job_offer_edit = serializer.create(serializer.validated_data)
             try:
                 instance = JobOffer.objects.get(pk=offer_id)
                 if not IsEmployer().has_object_permission(request, self, instance) \
                         and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
                     return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
-                fields_to_update = job_offer_edit.update_dict()
-                for field, value in fields_to_update.items():
-                    setattr(instance, field, value)
+                #fields_to_update = job_offer_edit.update_dict()
+                #for field, value in fields_to_update.items():
+                    #setattr(instance, field, value)
+                serializer.update(instance, serializer.validated_data)
                 instance.save()
                 return MessageResponse("Offer edited successfully")
             except ObjectDoesNotExist:

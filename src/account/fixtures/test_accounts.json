@@ -545,6 +545,36 @@
    }
 },
 {
+   "model": "account.address",
+   "pk": 14,
+   "fields": {
+      "city": "Gdynia",
+      "street": "Wiejska",
+      "street_number": "25",
+      "postal_code": "03-371"
+   }
+},
+{
+   "model": "account.address",
+   "pk": 15,
+   "fields": {
+      "city": "Warszawa",
+      "street": "Al. Jerzego Waszyngtona",
+      "street_number": "420",
+      "postal_code": "02-377"
+   }
+},
+{
+   "model": "account.address",
+   "pk": 16,
+   "fields": {
+      "city": "Warszawa",
+      "street": "Wo\u0142oska",
+      "street_number": "9",
+      "postal_code": "02-371"
+   }
+},
+{
    "model": "account.defaultaccount",
    "pk": 1,
    "fields": {
