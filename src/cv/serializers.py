@@ -77,7 +77,7 @@ class CVSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'user_id', 'name', 'date_created', 'is_verified', 'was_reviewed',  
+        fields = ['cv_id', 'user_id', 'name', 'date_created', 'is_verified', 'was_reviewed', 'has_picture',
         'cv_user', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
         
         extra_kwargs = {

@@ -41,6 +41,7 @@ class CV(models.Model):
     name = models.CharField(max_length=50, null=True)
     is_verified = models.BooleanField(default=False)
     was_reviewed = models.BooleanField(default=False)
+    has_picture = models.BooleanField(default=False)
     document = models.FileField(upload_to='cv_docs/%Y/%m/%d/')
     date_created = models.DateTimeField(default=timezone.now)
 
