@@ -209,6 +209,8 @@ class CVPictureView(views.APIView):
             ext = pict.name.split('.')[-1]
             pict.name = create_unique_filename('cv_pics', ext)
             data['basic_info']['picture'] = pict
+            cv.has_picture = True
+            cv.save()
         except MultiValueDictKeyError:
             Response('Make sure the form key is "picture".', status.HTTP_400_BAD_REQUEST)
         serializer = CVSerializer(data=data)
@@ -278,6 +280,8 @@ class CVPictureView(views.APIView):
         if not bi.picture:
             return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
         bi.picture.delete(save=True)
+        cv.has_picture = False
+        cv.save()
         cv_serializer = CVSerializer(instance=cv)
         
         delete_previous_picture(bi)
