@@ -74,6 +74,7 @@ class CVSerializer(serializers.ModelSerializer):
     languages = LanguageSerializer(many=True)
     is_verified = serializers.BooleanField(default=False, read_only=True)
     was_reviewed = serializers.BooleanField(read_only=True)
+    has_picture = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = CV

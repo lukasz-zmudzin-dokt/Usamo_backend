@@ -103,7 +103,7 @@ class JobOfferCreateView(views.APIView):
     permission_classes = [IsEmployer]
 
     @swagger_auto_schema(
-        query_serializer=JobOfferSerializer,
+        request_body=JobOfferSerializer,
         responses={
             '200': sample_offerid_response(),
             '401': sample_error_response('No authorization token'),
@@ -136,7 +136,7 @@ class JobOfferView(views.APIView):
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         operation_id='job_job-offer_edit',
-        query_serializer=JobOfferEditSerializer,
+        request_body=JobOfferEditSerializer,
         responses={
             '200': sample_message_response("Offer edited successfully"),
             '400': 'Bad request - serializer errors',
@@ -174,7 +174,7 @@ class JobOfferView(views.APIView):
         responses={
             '200': JobOfferSerializer,
             '401': 'No authorization token',
-            '404': sample_error_response('Offer not found'),
+            '404': sample_error_response('Offer not found')
         },
         operation_description="Get job offer by id",
     )

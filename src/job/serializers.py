@@ -9,7 +9,7 @@ from .models import *
 
 class JobOfferSerializer(serializers.ModelSerializer):
     voivodeship = serializers.ChoiceField(choices=Voivodeships.choices)
-    company_address = AddressSerializer(required=False)
+    company_address = AddressSerializer()
     category = serializers.CharField(source='category.name')
     type = serializers.CharField(source='offer_type.name')
 
