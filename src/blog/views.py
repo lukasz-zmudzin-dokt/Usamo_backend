@@ -1,5 +1,5 @@
 import os
-
+from django.utils.datastructures import MultiValueDictKeyError
 from account.models import StaffAccount, DefaultAccount, Account
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
@@ -169,20 +169,23 @@ class BlogPostHeaderView(views.APIView):
         ],
         responses={
             200: 'OK',
-            400: 'There is no such blog'
+            400: 'Blog o podanym id nie istnieje / Nie znaleziono pliku' 
         },
     )
     def post(self, request, id):
-
         existing_header = BlogPostHeader.objects.filter(blog_post_id=id)
         existing_header.delete()
 
         blog_post = BlogPost.objects.filter(id=id).first()
         if not blog_post:
-            return ErrorResponse('There is no such blog', status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse('Blog o podanym id nie istnieje', status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            data = {'blog_post': blog_post.id, 'file': request.FILES['file']}
+        except MultiValueDictKeyError:
+            return ErrorResponse('Nie znaleziono pliku. Upewnij się, że został on załączony pod kluczem file',
+                status.HTTP_400_BAD_REQUEST)
 
-        data = request.data
-        data['blog_post'] = blog_post.id
         serializer = BlogPostHeaderSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
@@ -206,6 +209,79 @@ class BlogPostHeaderView(views.APIView):
         header = BlogPostHeader.objects.get(blog_post_id=id)
         header.delete()
         return Response('OK', status.HTTP_200_OK)
+
+
+class BlogPostAttachmentUploadView(views.APIView):
+
+    permission_classes = [IsStaffBlogCreator]
+    parser_classes = [MultiPartParser]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('blog_id', IN_PATH, type='integer'),
+            Parameter('file', IN_FORM, type='file')
+        ],
+        responses={
+            200: '"attachment_id": uuid',
+            400: 'Blog o podanym id nie istnieje / Nie znaleziono pliku'
+        },
+    )
+    def post(self, request, blog_id):
+        blog_post = BlogPost.objects.get(pk=blog_id)
+        if not blog_post:
+            return ErrorResponse('Blog o podanym id nie istnieje', status.HTTP_400_BAD_REQUEST)
+        
+        try:
+            data = {'blog_post': blog_post.id, 'file': request.FILES['file']}
+        except MultiValueDictKeyError:
+            return ErrorResponse('Nie znaleziono pliku. Upewnij się, że został on załączony pod kluczem file',
+                status.HTTP_400_BAD_REQUEST)
+
+        serializer = BlogPostAttachmentSerializer(data=data)
+        if serializer.is_valid():
+            attachment = serializer.save()
+        else:
+            return ErrorResponse(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+        response_data = {"attachment_id": attachment.pk}
+        return Response(response_data, status.HTTP_200_OK)
+
+
+class BlogPostAttachmentDeleteView(views.APIView):
+
+    permission_classes = [IsStaffBlogCreator]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('attachment_id', IN_PATH, type='string($uuid)')
+        ],
+        responses={
+            200: '"message": "Załącznik o podanym id został usunięty"',
+            400: 'Nie znaleziono załącznika o podanym id'
+        }
+    )
+    def delete(self, request, attachment_id):
+        attachment = BlogPostAttachment.objects.get(pk=attachment_id)
+        if not attachment:
+            return ErrorResponse('Nie znaleziono załącznika o podanym id', status.HTTP_400_BAD_REQUEST)
+        attachment.delete()
+        response_data = {"message": "Załącznik o podanym id został usunięty"}
+        return Response(response_data, status.HTTP_200_OK)
+
+
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    responses={
+        '200': BlogPostAttachmentSerializer(many=True),
+        '404': "Not found",
+    }
+))
+class BlogPostAttachmentListView(generics.ListAPIView):
+    serializer_class = BlogPostAttachmentSerializer
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        id = self.kwargs['blog_id']
+        return BlogPostAttachment.objects.filter(blog_post_id=id)
 
 
 class BlogPostView(views.APIView):

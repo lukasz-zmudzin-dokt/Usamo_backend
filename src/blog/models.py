@@ -1,6 +1,7 @@
 from django.db import models
 from .utils import create_blog_attachment_file_path, create_blog_header_file_path
 import re
+import uuid
 from account.models import StaffAccount, DefaultAccount, Account
 
 
@@ -44,9 +45,13 @@ class BlogPostHeader(models.Model):
 
 
 class BlogPostAttachment(models.Model):
-    file = models.FileField(upload_to=create_blog_attachment_file_path, null=True, blank=True)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    file = models.ImageField(upload_to=create_blog_attachment_file_path)
     blog_post = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
 
+    def delete(self, **kwargs):
+        self.file.delete()
+        super().delete(**kwargs)
 
 class BlogPostComment(models.Model):
     author = models.ForeignKey(Account, null=True, on_delete=models.SET_NULL)

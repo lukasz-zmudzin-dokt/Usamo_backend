@@ -144,4 +144,11 @@ class BlogPostHeaderSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class BlogPostAttachmentSerializer(serializers.ModelSerializer):
+    
+    class Meta:
+        model = BlogPostAttachment
+        fields = '__all__'
+
+
 
