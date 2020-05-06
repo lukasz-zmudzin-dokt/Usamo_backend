@@ -15,7 +15,6 @@ from .serializers import *
 from .permissions import *
 from job.views import sample_message_response
 import base64
-from usamo.settings.settings import BASE_DIR
 
 class CreateCVView(views.APIView):
 
@@ -496,6 +495,19 @@ class UserCVNameView(views.APIView):
             return Response(f'CV name changed to: {request.data["name"]}', status=status.HTTP_200_OK)
         except KeyError:
             return Response('New name was not specified', status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserCVAvailabilityView(views.APIView):
+    permission_classes = [IsStandardUser]
+
+    def get(self, request):
+        def_account = DefaultAccount.objects.get(user=request.user)
+        users_cvs = CV.objects.filter(cv_user=def_account)
+        if users_cvs.count() < 5:
+            response_val = True
+        else:
+            response_val = False
+        return Response({"can_post_cv" : response_val}, status=status.HTTP_200_OK)
 
 
 
