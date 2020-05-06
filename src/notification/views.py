@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from notifications.models import Notification
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import views, generics, status
 
@@ -10,15 +11,23 @@ def slug2id(slug):
     return int(slug) - 110909
 
 
+class NotificationsPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 class AllNotifications(generics.ListAPIView):
     serializer_class = NotificationSerializer
+    pagination_class = NotificationsPagination
 
     def get_queryset(self):
-        return self.request.user.notifications
+        return self.request.user.notifications.all()
 
 
 class UnreadNotifications(generics.ListAPIView):
     serializer_class = NotificationSerializer
+    pagination_class = NotificationsPagination
 
     def get_queryset(self):
         return self.request.user.notifications.unread()
