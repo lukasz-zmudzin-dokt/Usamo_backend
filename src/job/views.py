@@ -425,6 +425,27 @@ class JobOfferCategoryListView(views.APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
+class JobOfferCategoryCreateView(views.APIView):
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    @swagger_auto_schema(
+        request_body=JobOfferCategorySerializer,
+        responses={
+            '201': JobOfferCategorySerializer,
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('No user or user is not employer'),
+            '400': 'Bad request'
+        },
+        operation_description="Create job offer category.",
+    )
+    def post(self, request):
+        serializer = JobOfferCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.create(serializer.validated_data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
 class JobOfferTypesListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
@@ -439,3 +460,24 @@ class JobOfferTypesListView(generics.ListAPIView):
     def get(self, request):
         response = {"offer_types": list(JobOfferType.objects.values_list('name', flat=True))}
         return Response(response, status=status.HTTP_200_OK)
+
+
+class JobOfferTypeCreateView(views.APIView):
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    @swagger_auto_schema(
+        request_body=JobOfferTypeSerializer,
+        responses={
+            '201': JobOfferTypeSerializer,
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('No user or user is not employer'),
+            '400': 'Bad request'
+        },
+        operation_description="Create job offer type.",
+    )
+    def post(self, request):
+        serializer = JobOfferTypeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.create(serializer.validated_data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
