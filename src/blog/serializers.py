@@ -145,10 +145,14 @@ class BlogPostHeaderSerializer(serializers.ModelSerializer):
 
 
 class BlogPostAttachmentSerializer(serializers.ModelSerializer):
-    
+    attachment_url = serializers.CharField(source='file.url', read_only=True)
+
     class Meta:
         model = BlogPostAttachment
-        fields = '__all__'
-
+        fields = ['id', 'blog_post', 'file', 'attachment_url']
+        extra_kwargs = {
+            'file': {'write_only': True},
+            'id': {'required': False}
+        }
 
 

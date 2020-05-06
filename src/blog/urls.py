@@ -5,8 +5,8 @@ from . import views
 urlpatterns = [
     path('blogpost/', views.BlogPostCreateView.as_view()),
     path('blogpost/<int:id>/', views.BlogPostView.as_view()),
-    path('blogpost/<int:blog_id>/attachment_list/', views.BlogPostAttachmentListView.as_view()),
-    path('blogpost/<int:blog_id>/attachment_upload/', views.BlogPostAttachmentUploadView.as_view()),
+    path('blogpost/<int:blog_id>/attachment-list/', views.BlogPostAttachmentListView.as_view()),
+    path('blogpost/<int:blog_id>/attachment-upload/', views.BlogPostAttachmentUploadView.as_view()),
     path('attachments/<uuid:attachment_id>/', views.BlogPostAttachmentDeleteView.as_view()),
     path('blogpost/<int:id>/header/', views.BlogPostHeaderView.as_view()),
     path('blogposts/', views.BlogPostListView.as_view()),
