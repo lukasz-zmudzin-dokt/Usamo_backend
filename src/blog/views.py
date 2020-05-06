@@ -169,7 +169,8 @@ class BlogPostHeaderView(views.APIView):
         ],
         responses={
             200: '"message": "Nagłówek został pomyślnie utworzony"',
-            400: '"error": "Post o podanym id nie istnieje" / "Nie znaleziono pliku"'
+            400: '"error": "Nie znaleziono pliku"',
+            404: '"error": "Post o podanym id nie istnieje"' 
         },
     )
     def post(self, request, id):
@@ -178,7 +179,7 @@ class BlogPostHeaderView(views.APIView):
 
         blog_post = BlogPost.objects.filter(id=id).first()
         if not blog_post:
-            return ErrorResponse('Post o podanym id nie istnieje', status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse('Post o podanym id nie istnieje', status.HTTP_404_NOT_FOUND)
         
         try:
             data = {'blog_post': blog_post.id, 'file': request.FILES['file']}
@@ -201,13 +202,13 @@ class BlogPostHeaderView(views.APIView):
         ],
         responses={
             200: '"message": "Nagłówek został pomyślnie usunięty"',
-            400: '"error": "Post o danym id nie ma nagłówka"'
+            404: '"error": "Post o danym id nie ma nagłówka"'
         }
     )
     def delete(self, request, id):
         header = BlogPostHeader.objects.filter(blog_post_id=id)
         if not header:
-            return ErrorResponse("Post o danym id nie ma nagłówka", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse("Post o danym id nie ma nagłówka", status.HTTP_404_NOT_FOUND)
         header = BlogPostHeader.objects.get(blog_post_id=id)
         header.delete()
         response_data = {"message": "Nagłówek został pomyślnie usunięty"}
@@ -226,13 +227,14 @@ class BlogPostAttachmentUploadView(views.APIView):
         ],
         responses={
             200: '"attachment_url": url',
-            400: '"error": "Post o podanym id nie istnieje" / "Nie znaleziono pliku"'
+            400: '"error": "Nie znaleziono pliku"',
+            404: '"error": "Post o podanym id nie istnieje"' 
         },
     )
     def post(self, request, blog_id):
         blog_post = BlogPost.objects.get(pk=blog_id)
         if not blog_post:
-            return ErrorResponse('Post o podanym id nie istnieje', status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse('Post o podanym id nie istnieje', status.HTTP_404_NOT_FOUND)
         
         try:
             data = {'blog_post': blog_post.id, 'file': request.FILES['file']}
@@ -260,13 +262,13 @@ class BlogPostAttachmentDeleteView(views.APIView):
         ],
         responses={
             200: '"message": "Załącznik o podanym id został usunięty"',
-            400: '"error": "Nie znaleziono załącznika o podanym id"'
+            404: '"error": "Nie znaleziono załącznika o podanym id"'
         }
     )
     def delete(self, request, attachment_id):
         attachment = BlogPostAttachment.objects.get(pk=attachment_id)
         if not attachment:
-            return ErrorResponse('Nie znaleziono załącznika o podanym id', status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse('Nie znaleziono załącznika o podanym id', status.HTTP_404_NOT_FOUND)
         attachment.delete()
         response_data = {"message": "Załącznik o podanym id został usunięty"}
         return Response(response_data, status.HTTP_200_OK)
