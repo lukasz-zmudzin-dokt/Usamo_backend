@@ -15,7 +15,7 @@ from .serializers import *
 from .permissions import *
 from job.views import sample_message_response
 import base64
-from usamo.settings.settings import BASE_DIR
+from notifications.signals import notify
 
 class CreateCVView(views.APIView):
 
@@ -334,6 +334,11 @@ class AdminFeedback(views.APIView):
 
         if serializer.is_valid():
             feedback = serializer.create(serializer.validated_data)
+            notify.send(request.user, recipient=cv.cv_user.user, verb=f'Osoba z fundacji skomentowała twoje CV: {cv.name}',
+                        text=f'Osoba z fundacji skomentowała twoje CV: {cv.name}',
+                        app='cv/feedback/',
+                        object_id=cv.cv_id
+                        )
             return Response('Feedback successfully created.', status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -395,6 +400,12 @@ class AdminCVVerificationView(views.APIView):
                 return Response('CV with the given id was not found.', status.HTTP_404_NOT_FOUND)
             cv.is_verified = True
             cv.save()
+            notify.send(request.user, recipient=cv.cv_user.user,
+                        verb=f'Osoba z fundacji zatwierdziła twoje CV: {cv.name}',
+                        text=f'Osoba z fundacji zatwierdziła twoje CV: {cv.name}',
+                        app='cv/generator/',
+                        object_id=cv.cv_id
+                        )
             return Response('CV successfully verified.', status.HTTP_200_OK)
 
         return Response('CV id was not specified.', status.HTTP_400_BAD_REQUEST)

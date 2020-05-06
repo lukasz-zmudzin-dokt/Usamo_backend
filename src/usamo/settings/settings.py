@@ -16,7 +16,6 @@ import subprocess
 import sys
 import pdfkit
 import platform
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -30,7 +29,6 @@ SECRET_KEY = os.getenv('SECRET_KEY')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -49,6 +47,8 @@ INSTALLED_APPS = [
     'cv.apps.CvConfig',
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
+    'notification.apps.NotificationConfig',
+    'notifications',
     'drf_yasg',
     'django_rest_passwordreset',
     'django_filters',
@@ -76,7 +76,6 @@ REST_FRAMEWORK = {
 }
 
 ROOT_URLCONF = 'usamo.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -199,5 +198,6 @@ SWAGGER_SETTINGS = {
         'post',
     ],
 }
+DJANGO_NOTIFICATIONS_CONFIG = { 'USE_JSONFIELD': True}
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
