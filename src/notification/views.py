@@ -46,8 +46,12 @@ class MarkAsRead(views.APIView):
             instance = request.user.notifications.get(id=slug2id(slug))
         except Notification.DoesNotExist:
             return Response('Nie ma takiego powiadomienia!', status=status.HTTP_404_NOT_FOUND)
-        instance.mark_as_read()
-        return Response('Oznaczono powiadomienie jako przeczytane', status=status.HTTP_200_OK)
+        if instance.unread:
+            instance.mark_as_read()
+            return Response('Oznaczono powiadomienie jako przeczytane', status=status.HTTP_200_OK)
+        else:
+            instance.mark_as_unread()
+            return Response('Oznaczono powiadomienie jako nieprzeczytane', status=status.HTTP_200_OK)
 
 
 class MarkAllAsRead(views.APIView):

@@ -9,6 +9,8 @@ from rest_framework import views
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from account.account_type import StaffGroupType
+from account.models import StaffAccount
 from account.permissions import IsStandardUser
 from .models import *
 from .serializers import *
@@ -16,6 +18,7 @@ from .permissions import *
 from job.views import sample_message_response
 import base64
 from notifications.signals import notify
+
 
 class CreateCVView(views.APIView):
 
@@ -46,6 +49,11 @@ class CreateCVView(views.APIView):
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
             response = {"cv_id" : cv.pk}
+            notify.send(request.user, recipient=Account.objects.filter(groups__name__contains='staff_cv'),
+                        verb=f'Użytkownik {def_account.user.username} utworzył_a nowe CV',
+                        app='cv/generator/',
+                        object_id=cv.cv_id
+                        )
             return Response(response, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -334,8 +342,8 @@ class AdminFeedback(views.APIView):
 
         if serializer.is_valid():
             feedback = serializer.create(serializer.validated_data)
-            notify.send(request.user, recipient=cv.cv_user.user, verb=f'Osoba z fundacji skomentowała twoje CV: {cv.name}',
-                        text=f'Osoba z fundacji skomentowała twoje CV: {cv.name}',
+            notify.send(request.user, recipient=cv.cv_user.user,
+                        verb=f'Osoba z fundacji skomentowała twoje CV: {cv.name}',
                         app='cv/feedback/',
                         object_id=cv.cv_id
                         )
