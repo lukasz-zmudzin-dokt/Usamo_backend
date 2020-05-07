@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from cv.models import CV
 from .models import *
 from .serializers import *
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, get_object_or_404
 
 
 class ErrorResponse(Response):
@@ -230,14 +230,14 @@ class JobOfferListView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
 
-    permissions_classes = [AllowAny]
+    permission_classes = [AllowAny]
 
     filter_serializer = None
 
     def get_queryset(self):
         job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
         valid_filters = job_offer_filters.get_filters()
-        return JobOffer.objects.filter(removed=False, **valid_filters)
+        return JobOffer.objects.filter(removed=False, confirmed=True, **valid_filters)
 
     def get(self, request):
         self.filter_serializer = JobOfferFiltersSerializer(data=self.request.query_params)
@@ -391,6 +391,58 @@ class EmployerJobOffersView(generics.ListAPIView):
                 return Response(self.filter_serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
             return ErrorResponse("No user or user is not employer", status.HTTP_403_FORBIDDEN)
+
+
+class AdminUnconfirmedJobOffersView(generics.ListAPIView):
+    serializer_class = JobOfferSerializer
+    pagination_class = OffersPagination
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    filter_serializer = None
+
+    def get_queryset(self):
+        job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
+        valid_filters = job_offer_filters.get_filters()
+        return JobOffer.objects.filter(removed=False, confirmed=False, **valid_filters)
+
+    def get(self, request):
+        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.data)
+        try:
+            if self.filter_serializer.is_valid():
+                return super().get(request)
+            else:
+                return Response(self.filter_serializer.errors, status.HTTP_400_BAD_REQUEST)
+        except ObjectDoesNotExist:
+            return ErrorResponse("No user or user is not staff", status.HTTP_403_FORBIDDEN)
+
+
+class AdminConfirmJobOfferView(views.APIView):
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('offer_id', IN_PATH, type='string', format='byte')
+        ],
+        responses={
+            '200': sample_message_response('Offer confirmed successfully'),
+            '400': sample_error_response('Offer is removed'),
+            '401': 'No authorization token',
+            '403': sample_error_response('No permissions for this action'),
+            '404': sample_error_response('Offer not found')
+        },
+        operation_description="Set offer status to confirmed",
+    )
+    def post(self, request, offer_id):
+        instance = get_object_or_404(JobOffer.objects.filter(pk=offer_id))
+        if instance.removed:
+            return ErrorResponse("Offer is removed", status.HTTP_400_BAD_REQUEST)
+
+        if 'confirmed' in request.data:
+            confirmed = request.data['confirmed']
+            instance.confirmed = confirmed
+            instance.save()
+            return MessageResponse(f"Offer confirmed set to: {confirmed}")
+        return ErrorResponse("Bad request", status.HTTP_400_BAD_REQUEST)
 
 
 class VoivodeshipsEnumView(views.APIView):
