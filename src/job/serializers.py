@@ -62,10 +62,11 @@ class JobOfferEditSerializer(serializers.Serializer):
 
         instance.offer_name = validated_data.get('offer_name', instance.offer_name)
         instance.company_name = validated_data.get('company_name', instance.company_name)
-        new_address = validated_data.get('company_address', instance.company_address)
-        new_address = Address.objects.create(**new_address)
-        instance.company_address.delete()
-        instance.company_address = new_address
+        new_address_data = validated_data.get('company_address')
+        if new_address_data:
+            new_address = Address.objects.create(**new_address_data)
+            instance.company_address.delete()
+            instance.company_address = new_address
         instance.voivodeship = validated_data.get('voivodeship', instance.voivodeship)
         instance.expiration_date = validated_data.get('expiration_date', instance.expiration_date)
         instance.description = validated_data.get('description', instance.description)
