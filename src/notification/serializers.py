@@ -3,7 +3,6 @@ from notifications.models import Notification
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    data = serializers.DictField(write_only=True)
     text = serializers.CharField(source='verb', required=False)
     app = serializers.CharField(source='data.app', required=False)
     object_id = serializers.CharField(source='data.object_id', required=False)
@@ -13,4 +12,4 @@ class NotificationSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Notification
-        fields = ['slug', 'data', 'text', 'app', 'object_id', 'unread', 'timestamp']
+        fields = ['slug', 'text', 'app', 'object_id', 'unread', 'timestamp']

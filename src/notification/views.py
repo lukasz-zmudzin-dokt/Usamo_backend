@@ -1,4 +1,6 @@
 from django.shortcuts import render
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
 from notifications.models import Notification
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
@@ -34,13 +36,31 @@ class UnreadNotifications(generics.ListAPIView):
 
 
 class UnreadNotificationsCount(views.APIView):
-
+    @swagger_auto_schema(
+        responses={
+            '200': '"unread_count": int',
+            '403': 'User has no permission to perform this action.',
+        },
+        operation_description='Zwraca liczbę nieprzeczytanych powiadomień danego użytkownika'
+    )
     def get(self, request):
         return Response({"unread_count": self.request.user.notifications.unread().count()}, status=status.HTTP_200_OK)
 
 
 class MarkAsRead(views.APIView):
-
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('slug', openapi.IN_PATH, type='integer',
+                              description='Liczba slug będąca identyfikatorem powiadomienia')
+        ],
+        responses={
+            '200': 'Oznaczono powiadomienie jako przeczytane/nieprzeczytane',
+            '403': 'User has no permission to perform this action.',
+            '404': 'Nie ma takiego powiadomienia!'
+        },
+        operation_description='Ustawia status powiadomienia na'
+                              ' przeczytane lub nieprzeczytane, zależnie od stanu pierwotnego'
+    )
     def post(self, request, slug):
         try:
             instance = request.user.notifications.get(id=slug2id(slug))
@@ -55,12 +75,31 @@ class MarkAsRead(views.APIView):
 
 
 class MarkAllAsRead(views.APIView):
+    @swagger_auto_schema(
+        responses={
+            '200': 'Oznaczono wszystkie powiadomienia jako przeczytane',
+            '403': 'User has no permission to perform this action.',
+        },
+        operation_description='Ustawia status wszystkich powiadomień użytkownika na przeczytane'
+    )
     def post(self, request):
         request.user.notifications.mark_all_as_read()
         return Response('Oznaczono wszystkie powiadomienia jako przeczytane', status=status.HTTP_200_OK)
 
 
 class Delete(views.APIView):
+    @swagger_auto_schema(
+        manual_parameters=[
+            openapi.Parameter('slug', openapi.IN_PATH, type='integer',
+                              description='Liczba slug będąca identyfikatorem powiadomienia')
+        ],
+        responses={
+            '200': 'Pomyślnie usunięto powiadomienie',
+            '403': 'User has no permission to perform this action.',
+            '404': 'Nie ma takiego powiadomienia!'
+        },
+        operation_description='Usuwa wybrane powiadomienie użytkownika'
+    )
     def delete(self, request, slug):
         try:
             instance = request.user.notifications.get(id=slug2id(slug))
@@ -69,7 +108,15 @@ class Delete(views.APIView):
         instance.delete()
         return Response('Pomyślnie usunięto powiadomienie!', status=status.HTTP_200_OK)
 
+
 class DeleteAll(views.APIView):
+    @swagger_auto_schema(
+        responses={
+            '200': 'Usunięto wszystkie twoje powiadomienia!',
+            '403': 'User has no permission to perform this action.',
+        },
+        operation_description='Usuwa wszystkie powiadomienia użytkownika'
+    )
     def delete(self, request):
         request.user.notifications.all().delete()
         return Response('Usunięto wszystkie twoje powiadomienia!', status=status.HTTP_200_OK)
