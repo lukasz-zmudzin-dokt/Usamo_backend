@@ -517,4 +517,25 @@ class UserCVNameView(views.APIView):
             return Response('New name was not specified', status=status.HTTP_400_BAD_REQUEST)
 
 
+class UserCVAvailabilityView(views.APIView):
+    permission_classes = [IsStandardUser]
+
+    @swagger_auto_schema(
+        operation_description="Informuje, czy użytkownik może postować dalsze CV (tzn. czy ma ich mniej niż 5)",
+
+        responses={
+            200: '"can_post_cv" : True/False',
+            403: 'User has no permission to perform this action.'
+        }
+    )
+    def get(self, request):
+        def_account = DefaultAccount.objects.get(user=request.user)
+        users_cvs = CV.objects.filter(cv_user=def_account)
+        if users_cvs.count() < 5:
+            response_val = True
+        else:
+            response_val = False
+        return Response({"can_post_cv" : response_val}, status=status.HTTP_200_OK)
+
+
 
