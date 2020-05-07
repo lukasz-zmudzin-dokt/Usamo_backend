@@ -18,6 +18,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
 from .permissions import *
 from .serializers import *
+from .models import *
 
 
 class ErrorResponse(Response):
@@ -131,30 +132,36 @@ def sample_string_response():
     )
 
 
+class BlogPostReservationView(views.APIView):
+    permission_classes = [IsStaffBlogCreator]
+
+    def post(self, request):
+        new_reservation = BlogPostReservation.objects.create()
+        response_data = {"id": new_reservation.id}
+        return Response(response_data, status.HTTP_201_CREATED) 
+
+
 class BlogPostCreateView(views.APIView):
-    permission_classes = [IsAuthenticated, IsStaffBlogCreator]
+    permission_classes = [IsStaffBlogCreator]
 
     @swagger_auto_schema(
         request_body=sample_blogpost_request(),
         responses={
-            200: sample_blogpostid_response(),
-            403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
+            200: '"message": "Post został pomyślnie utworzony"',
+            400: 'serializer errors'
         }
     )
     def post(self, request):
-        try:
-            author = StaffAccount.objects.get(user_id=request.user.id)
-            serializer = BlogPostSerializer(data=request.data)
-            if serializer.is_valid():
-                instance = serializer.create(serializer.validated_data)
-                instance.author = author
-                instance.save()
-                return BlogPostIdResponse(instance.id)
-            else:
-                return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-        except ObjectDoesNotExist:
-            return ErrorResponse("No user or user is not staff member", status.HTTP_403_FORBIDDEN)
+        author = StaffAccount.objects.get(user_id=request.user.id)
+        serializer = BlogPostSerializer(data=request.data)
+        if serializer.is_valid():
+            instance = serializer.create(serializer.validated_data)
+            instance.author = author
+            instance.save()
+            response_data = {"message": "Post został pomyślnie utworzony"}
+            return Response(response_data, status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class BlogPostHeaderView(views.APIView):
@@ -164,7 +171,7 @@ class BlogPostHeaderView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('id', IN_PATH, type='integer'),
+            Parameter('post_id', IN_PATH, type='string($uuid)'),
             Parameter('file', IN_FORM, type='file')
         ],
         responses={
@@ -173,16 +180,16 @@ class BlogPostHeaderView(views.APIView):
             404: '"error": "Post o podanym id nie istnieje"' 
         },
     )
-    def post(self, request, id):
-        existing_header = BlogPostHeader.objects.filter(blog_post_id=id)
+    def post(self, request, post_id):
+        existing_header = BlogPostHeader.objects.filter(blog_post_id=post_id)
         existing_header.delete()
 
-        blog_post = BlogPost.objects.filter(id=id).first()
+        blog_post = BlogPost.objects.filter(id=post_id).first()
         if not blog_post:
             return ErrorResponse('Post o podanym id nie istnieje', status.HTTP_404_NOT_FOUND)
         
         try:
-            data = {'blog_post': blog_post.id, 'file': request.FILES['file']}
+            data = {'blog_post': post_id, 'file': request.FILES['file']}
         except MultiValueDictKeyError:
             return ErrorResponse('Nie znaleziono pliku. Upewnij się, że został on załączony pod kluczem file',
                 status.HTTP_400_BAD_REQUEST)
@@ -198,18 +205,18 @@ class BlogPostHeaderView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('id', IN_PATH, type='integer')
+            Parameter('post_id', IN_PATH, type='string($uuid)'),
         ],
         responses={
             200: '"message": "Nagłówek został pomyślnie usunięty"',
             404: '"error": "Post o danym id nie ma nagłówka"'
         }
     )
-    def delete(self, request, id):
-        header = BlogPostHeader.objects.filter(blog_post_id=id)
+    def delete(self, request, post_id):
+        header = BlogPostHeader.objects.filter(blog_post_id=post_id)
         if not header:
             return ErrorResponse("Post o danym id nie ma nagłówka", status.HTTP_404_NOT_FOUND)
-        header = BlogPostHeader.objects.get(blog_post_id=id)
+        header = BlogPostHeader.objects.get(blog_post_id=post_id)
         header.delete()
         response_data = {"message": "Nagłówek został pomyślnie usunięty"}
         return Response(response_data, status.HTTP_200_OK)
@@ -222,22 +229,23 @@ class BlogPostAttachmentUploadView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('blog_id', IN_PATH, type='integer'),
+            Parameter('post_id', IN_PATH, type='string($uuid)'),
             Parameter('file', IN_FORM, type='file')
         ],
         responses={
             200: '"attachment_url": url',
             400: '"error": "Nie znaleziono pliku"',
-            404: '"error": "Post o podanym id nie istnieje"' 
+            404: '"error": "Rezerwacja o podanym id nie istnieje"' 
         },
     )
-    def post(self, request, blog_id):
-        blog_post = BlogPost.objects.get(pk=blog_id)
-        if not blog_post:
-            return ErrorResponse('Post o podanym id nie istnieje', status.HTTP_404_NOT_FOUND)
+    def post(self, request, post_id):
+        try:
+            reservation = BlogPostReservation.objects.get(pk=post_id)
+        except BlogPostReservation.DoesNotExist:
+            return ErrorResponse("Rezerwacja o podanym id nie istnieje", status.HTTP_404_NOT_FOUND)
         
         try:
-            data = {'blog_post': blog_post.id, 'file': request.FILES['file']}
+            data = {'blog_post': post_id, 'file': request.FILES['file']}
         except MultiValueDictKeyError:
             return ErrorResponse('Nie znaleziono pliku. Upewnij się, że został on załączony pod kluczem file',
                 status.HTTP_400_BAD_REQUEST)
@@ -275,6 +283,9 @@ class BlogPostAttachmentDeleteView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    manual_parameters=[
+        Parameter('post_id', IN_PATH, type='string($uuid)')
+    ],
     responses={
         '200': BlogPostAttachmentSerializer(many=True),
         '404': "Not found",
@@ -285,7 +296,7 @@ class BlogPostAttachmentListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        id = self.kwargs['blog_id']
+        id = self.kwargs['post_id']
         return BlogPostAttachment.objects.filter(blog_post_id=id)
 
 
@@ -295,61 +306,63 @@ class BlogPostView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('id', IN_PATH, type='integer')
+            Parameter('post_id', IN_PATH, type='string($uuid)')
         ],
         responses={
             200: sample_blogpost_response(),
-            400: 'No instance with given id'
+            404: '"error": "Nie znaleziono posta o podanym id"'
         }
     )
-    def get(self, request, id):
+    def get(self, request, post_id):
         try:
-            blog_post = BlogPost.objects.get(pk=id)
+            blog_post = BlogPost.objects.get(id=post_id)
             serializer = BlogPostSerializer(blog_post)
             return Response(serializer.data, status.HTTP_200_OK)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse("Nie znaleziono posta o podanym id", status.HTTP_404_NOT_FOUND)
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('id', IN_PATH, type='integer')
+            Parameter('post_id', IN_PATH, type='string($uuid)')
         ],
         request_body=sample_blogpost_request(required=False),
         responses={
-            200: sample_blogpostid_response(),
+            200: '"message": "Post o podanym id został zaktualizowany"',
             403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
+            404: '"error": "Nie znaleziono posta o podanym id"'
         }
     )
-    def put(self, request, id):
+    def put(self, request, post_id):
         try:
-            instance = BlogPost.objects.get(pk=id)
+            instance = BlogPost.objects.get(id=post_id)
             serializer = BlogPostSerializer(instance, data=request.data, partial=True)
             if serializer.is_valid():
-                serializer.save()
-                return BlogPostIdResponse(instance.id)
+                serializer.update(instance, serializer.validated_data)
+                response_data = {"message": "Post o podanym id został zaktualizowany"}
+                return Response(response_data, status.HTTP_200_OK)
             else:
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse("Nie znaleziono posta o podanym id", status.HTTP_404_NOT_FOUND)
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('id', IN_PATH, type='integer')
+            Parameter('post_id', IN_PATH, type='string($uuid)')
         ],
         responses={
-            200: "OK",
+            200: "Post o podanym id został usunięty",
             403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
+            404: '"error": "Nie znaleziono posta o podanym id"'
         }
     )
-    def delete(self, request, id):
+    def delete(self, request, post_id):
         try:
-            instance = BlogPost.objects.get(pk=id)
+            instance = BlogPostReservation.objects.get(pk=post_id)
             instance.delete()
-            return Response(status=status.HTTP_200_OK)
+            response_data = {"message": "Post o podanym id został usunięty"}
+            return Response(response_data, status=status.HTTP_200_OK)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No instance with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse("Nie znaleziono posta o podanym id", status.HTTP_400_BAD_REQUEST)
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
@@ -403,20 +416,21 @@ class BlogPostCommentCreateView(views.APIView):
 
     @swagger_auto_schema(
         request_body=sample_comment_request(),
+        manual_parameters=[
+            Parameter('post_id', IN_PATH, type='string($uuid)')
+        ],
         responses={
             200: sample_commentid_response(),
             403: 'Forbidden - no permissions',
-            400: 'No blog_post instance with given id'
+            404: '"error": "Nie znaleziono posta o podanym id"'
         }
     )
-    def post(self, request, id):
+    def post(self, request, post_id):
+        author = request.user
+        
         try:
-            author = Account.objects.get(id=request.user.id)
-        except ObjectDoesNotExist:
-            return ErrorResponse("No user?", status.HTTP_403_FORBIDDEN)
-        try:
-            blog_post = BlogPost.objects.get(pk=id)
-            request.data["blog_post"] = blog_post.pk
+            blog_post = BlogPost.objects.get(pk=post_id)
+            request.data["blog_post"] = post_id
             serializer = BlogPostCommentSerializer(data=request.data)
             if serializer.is_valid():
                 instance = serializer.create(serializer.validated_data)
@@ -427,7 +441,7 @@ class BlogPostCommentCreateView(views.APIView):
             else:
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No blog with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse("Nie znaleziono posta o podanym id", status.HTTP_404_NOT_FOUND)
 
 
 class BlogPostCommentUpdateView(views.APIView):
@@ -435,23 +449,23 @@ class BlogPostCommentUpdateView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('id', IN_PATH, type='integer')
+            Parameter('comment_id', IN_PATH, type='integer')
         ],
         responses={
-            200: "Comment was successfully deleted",
-            403: 'Forbidden - no permissions',
-            400: 'No instance with given id'
+            200: "Komentarz o podanym id został usunięty",
+            403: "Nie masz uprawnień, by usunąć ten komentarz",
+            400: "Nie znaleziono komentarza o podanym id"
         }
     )
-    def delete(self, request, id):
+    def delete(self, request, comment_id):
         try:
-            comment = BlogPostComment.objects.get(pk=id)
+            comment = BlogPostComment.objects.get(pk=comment_id)
         except ObjectDoesNotExist:
-            return ErrorResponse(f"No comment with id: {id}", status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse("Nie znaleziono komentarza o podanym id", status.HTTP_404_NOT_FOUND)
 
         if IsUserCommentAuthor().has_object_permission(request, self, comment) or \
                 IsStaffBlogModerator().has_object_permission(request, self, comment):
             comment.delete()
-            return Response(status=status.HTTP_200_OK)
+            return Response("Komentarz o podanym id został usunięty", status=status.HTTP_200_OK)
         else:
-            return ErrorResponse("You can't delete this comment.", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Nie masz uprawnień, by usunąć ten komentarz", status.HTTP_403_FORBIDDEN)

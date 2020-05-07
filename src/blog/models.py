@@ -1,6 +1,9 @@
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from .utils import create_blog_attachment_file_path, create_blog_header_file_path
 import re
+import os
 import uuid
 from account.models import StaffAccount, DefaultAccount, Account
 
@@ -18,7 +21,13 @@ class BlogPostCategory(models.Model):
     name = models.CharField(max_length=60)
 
 
+class BlogPostReservation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    date_created = models.DateTimeField(auto_now_add=True)
+
+
 class BlogPost(models.Model):
+    id = models.OneToOneField(BlogPostReservation, primary_key=True, on_delete=models.CASCADE)
     author = models.ForeignKey(StaffAccount, null=True, on_delete=models.SET_NULL)
     category = models.ForeignKey(BlogPostCategory, on_delete=models.CASCADE)
     tags = models.ManyToManyField(BlogPostTag, blank=True)
@@ -36,7 +45,7 @@ class BlogPost(models.Model):
 
 class BlogPostHeader(models.Model):
     file = models.ImageField(upload_to=create_blog_header_file_path)
-    blog_post = models.OneToOneField(BlogPost, on_delete=models.CASCADE, null=True)
+    blog_post = models.OneToOneField(BlogPost, on_delete=models.CASCADE)
 
     def delete(self, **kwargs):
         self.file.delete()
@@ -47,14 +56,37 @@ class BlogPostHeader(models.Model):
 class BlogPostAttachment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     file = models.ImageField(upload_to=create_blog_attachment_file_path)
-    blog_post = models.ForeignKey(BlogPost, on_delete=models.CASCADE)
+    blog_post = models.ForeignKey(BlogPostReservation, on_delete=models.CASCADE)
 
     def delete(self, **kwargs):
         self.file.delete()
         super().delete(**kwargs)
 
+
 class BlogPostComment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     author = models.ForeignKey(Account, null=True, on_delete=models.SET_NULL)
     content = models.TextField()
     blog_post = models.ForeignKey(BlogPost, related_name='comments', on_delete=models.CASCADE)
     date_created = models.DateTimeField(auto_now_add=True)
+
+
+@receiver(models.signals.post_delete, sender=BlogPostAttachment)
+def delete_attachment_file(sender, instance, **kwargs):
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
+
+
+@receiver(models.signals.post_delete, sender=BlogPostHeader)
+def delete_header_file(sender, instance, **kwargs):
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
+
+
+@receiver(models.signals.pre_save, sender=BlogPostHeader)
+def delete_previous_header_file(sender, instance, **kwargs):
+    if instance.file:
+        if os.path.isfile(instance.file.path):
+            os.remove(instance.file.path)
