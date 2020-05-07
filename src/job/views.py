@@ -2,7 +2,7 @@ from account.models import EmployerAccount, DefaultAccount
 from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
-from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema
+from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema, IN_BODY
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, serializers
 from rest_framework import status
@@ -423,6 +423,9 @@ class AdminConfirmJobOfferView(views.APIView):
         manual_parameters=[
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
+        request_body=Schema(type='object', properties={
+            'confirmed': Schema(type='boolean')
+        }),
         responses={
             '200': sample_message_response('Offer confirmed successfully'),
             '400': sample_error_response('Offer is removed'),
