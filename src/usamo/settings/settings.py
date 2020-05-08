@@ -40,12 +40,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'phonenumber_field',
     'rest_framework',
     'rest_framework.authtoken',
     'whitenoise.runserver_nostatic',
     'corsheaders',
     'job.apps.JobConfig',
+    'chat',
     'cv.apps.CvConfig',
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
@@ -94,6 +96,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'usamo.wsgi.application'
+ASGI_APPLICATION = "usamo.routing.application"
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
