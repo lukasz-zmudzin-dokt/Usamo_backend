@@ -392,7 +392,20 @@ class EmployerJobOffersView(generics.ListAPIView):
         except ObjectDoesNotExist:
             return ErrorResponse("No user or user is not employer", status.HTTP_403_FORBIDDEN)
 
-
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    query_serializer=JobOfferFiltersSerializer,
+    manual_parameters=[
+        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
+        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
+    ],
+    responses={
+        '200': sample_paginated_offers_response(),
+        '401': 'No authorization token',
+        '403': sample_error_response('Brak uprawnień do tej czynności'),
+        '400': sample_error_response('Błędy walidacji (np. brakujące pole)'),
+    },
+    operation_description="Zwraca listę niepotwierdzonych ofert pracy z możliwością filtracji"
+))
 class AdminUnconfirmedJobOffersView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
@@ -407,13 +420,10 @@ class AdminUnconfirmedJobOffersView(generics.ListAPIView):
 
     def get(self, request):
         self.filter_serializer = JobOfferFiltersSerializer(data=self.request.data)
-        try:
-            if self.filter_serializer.is_valid():
-                return super().get(request)
-            else:
-                return Response(self.filter_serializer.errors, status.HTTP_400_BAD_REQUEST)
-        except ObjectDoesNotExist:
-            return ErrorResponse("No user or user is not staff", status.HTTP_403_FORBIDDEN)
+        if self.filter_serializer.is_valid():
+            return super().get(request)
+        else:
+            return Response(self.filter_serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class AdminConfirmJobOfferView(views.APIView):
@@ -427,25 +437,27 @@ class AdminConfirmJobOfferView(views.APIView):
             'confirmed': Schema(type='boolean')
         }),
         responses={
-            '200': sample_message_response('Offer confirmed successfully'),
-            '400': sample_error_response('Offer is removed'),
+            '200': sample_message_response('Ustawiono potwierdzenie oferty pracy'),
+            '400': sample_error_response('Oferta jest usunięta'),
             '401': 'No authorization token',
-            '403': sample_error_response('No permissions for this action'),
-            '404': sample_error_response('Offer not found')
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '404': sample_error_response('Nie znaleziono oferty')
         },
-        operation_description="Set offer status to confirmed",
+        operation_description="Ustawianie potwierdzenia ofert pracy",
     )
     def post(self, request, offer_id):
-        instance = get_object_or_404(JobOffer.objects.filter(pk=offer_id))
+        try:
+            instance = JobOffer.objects.get(pk=offer_id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
         if instance.removed:
-            return ErrorResponse("Offer is removed", status.HTTP_400_BAD_REQUEST)
-
+            return ErrorResponse("Oferta jest usunięta", status.HTTP_400_BAD_REQUEST)
         if 'confirmed' in request.data:
             confirmed = request.data['confirmed']
             instance.confirmed = confirmed
             instance.save()
-            return MessageResponse(f"Offer confirmed set to: {confirmed}")
-        return ErrorResponse("Bad request", status.HTTP_400_BAD_REQUEST)
+            return MessageResponse("Ustawiono potwierdzenie oferty pracy")
+        return ErrorResponse("Błędy walidacji (np. brakujące pole)", status.HTTP_400_BAD_REQUEST)
 
 
 class VoivodeshipsEnumView(views.APIView):
