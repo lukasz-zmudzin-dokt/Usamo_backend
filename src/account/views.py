@@ -1,12 +1,13 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import login
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from knox.views import LoginView as KnoxLoginView
+from knox.views import LogoutView as KnoxLogoutView
 from rest_framework import status
 from rest_framework import views
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.decorators import permission_classes
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -14,8 +15,6 @@ from rest_framework.response import Response
 from .filters import *
 from .permissions import CanStaffVerifyUsers
 from .serializers import *
-from .models import *
-from .filters import *
 from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema
 
 
@@ -115,7 +114,6 @@ class EmployerRegistrationView(AbstractRegistrationView):
 
 
 class StaffRegistrationView(AbstractRegistrationView):
-
     permission_classes = [CanStaffVerifyUsers]
 
     @swagger_auto_schema(
@@ -130,28 +128,22 @@ class StaffRegistrationView(AbstractRegistrationView):
         return self.perform_registration(serializer=serializer)
 
 
-class LogoutView(views.APIView):
-    permission_classes = [IsAuthenticated]
+class LogoutView(KnoxLogoutView):
 
     @swagger_auto_schema(
         operation_description="Logout currently logged in user.",
         responses={
-            status.HTTP_200_OK: 'success: Successfully deleted the old token'
+            status.HTTP_200_OK: 'message: Successfully logged out'
         }
     )
     def post(self, request):
-        return self.logout(request)
-
-    def logout(self, request):
-        try:
-            request.user.auth_token.delete()
-        except (AttributeError, ObjectDoesNotExist):
-            pass
-
-        return Response({'success': 'Successfully deleted the old token'}, status.HTTP_200_OK)
+        response = super(LogoutView, self).post(request)
+        return Response({'success': 'Successfully logged out'},
+                        status.HTTP_200_OK) if response.data is None else response
 
 
-class LoginView(ObtainAuthToken):
+class LoginView(KnoxLoginView):
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(
         operation_description="Obtain auth token by specifying username and password",
@@ -160,18 +152,14 @@ class LoginView(ObtainAuthToken):
             400: 'Serializer errors/ Unable to login with given credentials'
         }
     )
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                           context={'request': request})
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({
-                'token': token.key,
-                'type': dict(ACCOUNT_TYPE_CHOICES)[user.type]
-            }, status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        response = super(LoginView, self).post(request, format=None)
+        response.data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
+        return response
 
 
 class UserStatusView(views.APIView):
