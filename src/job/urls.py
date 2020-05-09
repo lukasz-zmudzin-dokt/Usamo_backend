@@ -18,9 +18,9 @@ urlpatterns = [
      # enums
      path('enums/voivodeships/', views.VoivodeshipsEnumView.as_view()),
      path('enums/categories/', views.JobOfferCategoryListView.as_view()),
-     path('enums/category/', views.JobOfferCategoryCreateView.as_view()),
+     path('enums/category/', views.JobOfferCategoryView.as_view()),
      path('enums/types/', views.JobOfferTypesListView.as_view()),
-     path('enums/type/', views.JobOfferTypeCreateView.as_view())
+     path('enums/type/', views.JobOfferTypeView.as_view())
 ]
 
 
