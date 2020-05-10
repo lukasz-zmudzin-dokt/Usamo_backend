@@ -15,6 +15,9 @@ urlpatterns = [
      # job offers for employers
      path('employer/job-offers/', views.EmployerJobOffersView.as_view()),
      path('employer/application_list/<uuid:offer_id>/', views.EmployerApplicationListView.as_view()),
+     # job offers for admins
+     path('admin/job-offers/unconfirmed/', views.AdminUnconfirmedJobOffersView.as_view()),
+     path('admin/confirm/<uuid:offer_id>/', views.AdminConfirmJobOfferView.as_view()),
      # enums
      path('enums/voivodeships/', views.VoivodeshipsEnumView.as_view()),
      path('enums/categories/', views.JobOfferCategoryListView.as_view()),

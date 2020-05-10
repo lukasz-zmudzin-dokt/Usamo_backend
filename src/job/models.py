@@ -26,6 +26,7 @@ class JobOffer(models.Model):
     expiration_date = models.DateField()
     description = models.CharField(max_length=1000)
     removed = models.BooleanField(editable=False, default=False)
+    confirmed = models.BooleanField(default=False)
     employer = models.ForeignKey(EmployerAccount, on_delete=models.SET_NULL, null=True, default=None)
 
     def __str__(self):
