@@ -1,6 +1,5 @@
 from datetime import date, timedelta
 from unittest.mock import MagicMock
-
 from django.core.files import File
 from django.contrib.auth.models import Group
 from rest_framework import status
@@ -12,7 +11,7 @@ from account.models import *
 from account.account_type import StaffGroupType
 from account.account_status import AccountStatus
 
-# Create your tests here.
+
 def create_test_offer_data(name="OFERTA TESTOWA", voivodeship="mazowieckie", expiration_date=date.today() + timedelta(days=10),
                            description="TEST TEST", category='IT', offer_type='Praca'):
     category, _ = JobOfferCategory.objects.get_or_create(name=category)
@@ -96,6 +95,13 @@ def create_employer(user, verified=True):
     )
     return EmployerAccount.objects.create(user=user, phone_number='+48123456789', company_name='TESTOWA FIRMA',
                                           company_address=address, nip='1234567890')
+
+
+def create_staff(user, for_jobs=True):
+    if for_jobs:
+        group, _ = Group.objects.get_or_create(name=StaffGroupType.STAFF_JOBS.value)
+        user.groups.add(group)
+    return StaffAccount.objects.create(user=user)
 
 
 def create_staff(user, for_jobs=True):
@@ -386,7 +392,7 @@ class VoivodeshipEnumTestCase(APITestCase):
         self.assertEquals(len(response.data['voivodeships']), 16)
         self.assertEquals(sorted(response.data['voivodeships']), sorted(Voivodeships().getKeys()))
 
-
+        
 class OfferAdminConfirmTestCase(APITestCase):
 
     @classmethod
@@ -434,3 +440,85 @@ class OfferAdminUnconfirmedListTestCase(APITestCase):
         results = response.data.get('results')
         self.assertNotEquals(results, None)
         self.assertEquals(len(results), 2)
+
+        
+class OfferTypesListTestCase(APITestCase):
+
+    @classmethod
+    def setUp(cls):
+        cls.url = '/job/enums/types/'
+        cls.user = create_user()
+
+    def test_offer_type_list_success(self):
+        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        response = self.client.get(self.url)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(sorted(response.data['offer_types']), sorted(list(JobOfferType.objects.values_list('name', flat=True))))
+
+
+class OfferTypeCreateTestCase(APITestCase):
+
+    @classmethod
+    def setUp(cls):
+        cls.url = '/job/enums/type/'
+        cls.user = create_user()
+        cls.test_type_data = {'name': 'TESTTYPE'}
+
+    def test_offer_type_add_not_admin(self):
+        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        count = JobOfferType.objects.count()
+        response = self.client.post(self.url, self.test_type_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEquals(JobOfferType.objects.count(), count)
+
+
+    def test_offer_type_add_success(self):
+        staff = create_staff(self.user)
+        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        count = JobOfferType.objects.count()
+        response = self.client.post(self.url, self.test_type_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(JobOfferType.objects.count(), count+1)
+        self.assertTrue(JobOfferType.objects.filter(name='TESTTYPE').exists())
+
+
+class OfferCategoriesListTestCase(APITestCase):
+
+    @classmethod
+    def setUp(cls):
+        cls.url = '/job/enums/categories/'
+        cls.user = create_user()
+
+    def test_offer_category_list_success(self):
+        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        response = self.client.get(self.url)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(sorted(response.data['categories']), sorted(list(JobOfferCategory.objects.values_list('name', flat=True))))
+
+
+class OfferCategoryCreateTestCase(APITestCase):
+
+    @classmethod
+    def setUp(cls):
+        cls.url = '/job/enums/category/'
+        cls.user = create_user()
+        cls.test_category_data = {'name': 'TESTCATEGORY'}
+
+    def test_offer_category_add_not_admin(self):
+        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        count = JobOfferCategory.objects.count()
+        response = self.client.post(self.url, self.test_category_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEquals(JobOfferCategory.objects.count(), count)
+
+
+    def test_offer_category_add_success(self):
+        staff = create_staff(self.user)
+        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        count = JobOfferCategory.objects.count()
+        response = self.client.post(self.url, self.test_category_data, format='json')
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(JobOfferCategory.objects.count(), count+1)
+        self.assertTrue(JobOfferCategory.objects.filter(name='TESTCATEGORY').exists())
+
+

@@ -492,6 +492,50 @@ class JobOfferCategoryListView(views.APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
+class JobOfferCategoryView(views.APIView):
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    @swagger_auto_schema(
+        request_body=JobOfferCategorySerializer,
+        responses={
+            '200': 'Branża ofert pracy utworzona',
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': 'Błędy walidacji (np. brakujące pole)'
+        },
+        operation_description="Tworzenie branży ofert pracy",
+    )
+    def post(self, request):
+        serializer = JobOfferCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.create(serializer.validated_data)
+            return MessageResponse('Branża ofert pracy dodana')
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        request_body=JobOfferCategorySerializer,
+        responses={
+            '200': "Branża ofert pracy usunięta",
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': 'Błędy walidacji (np. brakujące pole)',
+            '404': sample_error_response('Nie znaleziono takiej branży ofert pracy')
+        },
+        operation_description="Usuwanie branży ofert pracy",
+    )
+    def delete(self, request):
+        serializer = JobOfferCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data['name']
+            try:
+                JobOfferCategory.objects.get(pk=name).delete()
+            except ObjectDoesNotExist:
+                return ErrorResponse("Nie znaleziono takiej branży ofert pracy", status.HTTP_404_NOT_FOUND)
+            return MessageResponse("Branża ofert pracy usunięta")
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+
 class JobOfferTypesListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
@@ -506,3 +550,46 @@ class JobOfferTypesListView(generics.ListAPIView):
     def get(self, request):
         response = {"offer_types": list(JobOfferType.objects.values_list('name', flat=True))}
         return Response(response, status=status.HTTP_200_OK)
+
+
+class JobOfferTypeView(views.APIView):
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    @swagger_auto_schema(
+        request_body=JobOfferTypeSerializer,
+        responses={
+            '200': 'Typ oferty pracy utworzony',
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': 'Błędy walidacji (np. brakujące pole)'
+        },
+        operation_description="Tworzenie typu oferty pracy",
+    )
+    def post(self, request):
+        serializer = JobOfferTypeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.create(serializer.validated_data)
+            return MessageResponse('Typ oferty pracy dodany')
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        request_body=JobOfferTypeSerializer,
+        responses={
+            '200': "Typ oferty pracy usunięty",
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': 'Błędy walidacji (np. brakujące pole)',
+            '404': sample_error_response('Nie znaleziono takiego typu oferty pracy')
+        },
+        operation_description="Usuwanie typu oferty pracy",
+    )
+    def delete(self, request):
+        serializer = JobOfferTypeSerializer(data=request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data['name']
+            try:
+                JobOfferType.objects.get(pk=name).delete()
+            except ObjectDoesNotExist:
+                return ErrorResponse("Nie znaleziono takiego typu oferty pracy", status.HTTP_404_NOT_FOUND)
+            return MessageResponse("Typ oferty pracy usunięty")
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
