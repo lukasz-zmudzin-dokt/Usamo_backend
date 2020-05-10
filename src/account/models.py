@@ -41,9 +41,17 @@ class AccountManager(BaseUserManager):
         return user
 
 
+class EmailLowerCaseField(models.EmailField):
+    def get_prep_value(self, value):
+        value = super(EmailLowerCaseField, self).get_prep_value(value)
+        if value is not None:
+            value = value.lower()
+        return value
+
+
 class Account(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name='id')
-    email = models.EmailField(verbose_name='email', max_length=60, unique=True)
+    email = EmailLowerCaseField(verbose_name='email', max_length=60, unique=True)
     username = models.CharField(max_length=30, unique=True)
     first_name = models.CharField(max_length=30, verbose_name='first_name')
     last_name = models.CharField(max_length=30, verbose_name='last_name')
@@ -100,7 +108,6 @@ class EmployerAccount(models.Model):
 
 class StaffAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
-
 
 
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
