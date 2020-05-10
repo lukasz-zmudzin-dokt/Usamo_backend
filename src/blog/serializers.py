@@ -33,6 +33,7 @@ class BlogPostCategorySerializer(serializers.ModelSerializer):
 
 
 class BlogAuthorSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
     email = serializers.CharField(source='user.email')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
@@ -40,17 +41,14 @@ class BlogAuthorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StaffAccount
-        fields = ['email', 'first_name', 'last_name', 'id']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
 
 class CommentAuthorSerializer(serializers.ModelSerializer):
-    email = serializers.CharField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-
+    
     class Meta:
         model = Account
-        fields = ['email', 'first_name', 'last_name', 'id']
+        fields = ['id', 'username', 'email']
 
 
 class BlogPostCommentSerializer(serializers.ModelSerializer):
