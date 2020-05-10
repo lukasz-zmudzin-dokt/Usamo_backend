@@ -90,7 +90,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def get_header(self, obj):
         header = BlogPostHeader.objects.filter(blog_post_id=obj.id.id).first()
-        return header.file.url if header else ""
+        return header.file.url if header else None
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
@@ -129,14 +129,11 @@ class BlogPostSerializer(serializers.ModelSerializer):
         return instance
 
 
-class BlogPostListSerializer(serializers.ModelSerializer):
-    category = BlogPostTagSerializer(read_only=True)
-    tags = BlogPostTagSerializer(many=True, read_only=True)
-    author = BlogAuthorSerializer(read_only=True)
+class BlogPostListSerializer(BlogPostSerializer):
 
     class Meta:
         model = BlogPost
-        fields = ['id', 'title', 'author', 'category', 'tags', 'summary']
+        fields = ['id', 'title', 'author', 'category', 'tags', 'summary', 'date_created', 'header']
 
 
 class BlogPostHeaderSerializer(serializers.ModelSerializer):
