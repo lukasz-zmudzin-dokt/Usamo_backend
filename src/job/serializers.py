@@ -7,6 +7,18 @@ from rest_framework import serializers
 from .models import *
 
 
+class JobOfferCategorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobOfferCategory
+        fields = ['name']
+
+
+class JobOfferTypeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = JobOfferType
+        fields = ['name']
+
+
 class JobOfferSerializer(serializers.ModelSerializer):
     voivodeship = serializers.ChoiceField(choices=Voivodeships.choices)
     company_address = AddressSerializer()
