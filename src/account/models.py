@@ -127,7 +127,5 @@ def set_employer_account_type(sender, instance, created, **kwargs):
 @receiver(post_save, sender=StaffAccount)
 def set_admin_status(sender, instance, created, **kwargs):
     if created:
-        instance.user.is_admin = True
-        instance.user.is_staff = True
         instance.user.type = AccountType.STAFF.value
         instance.user.status = AccountStatus.VERIFIED.value
