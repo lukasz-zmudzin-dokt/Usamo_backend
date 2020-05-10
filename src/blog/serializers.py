@@ -86,10 +86,10 @@ class BlogPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
         fields = ['id', 'category', 'tags', 'content', 'date_created', 'author', 'comments', 'summary', 'title', 'header']
-        read_only_fields = ['id', 'date_created', 'author', 'comments']
+        read_only_fields = ['date_created', 'author', 'comments']
 
     def get_header(self, obj):
-        header = BlogPostHeader.objects.filter(blog_post_id=obj.id).first()
+        header = BlogPostHeader.objects.filter(blog_post_id=obj.id.id).first()
         return header.file.url if header else ""
 
     def to_representation(self, instance):
@@ -121,13 +121,15 @@ class BlogPostSerializer(serializers.ModelSerializer):
         if 'content' in validated_data:
             instance.content = validated_data.get('content', instance.content)
 
+        if 'title' in validated_data:
+            instance.title = validated_data.get('title', instance.title)
+
         instance.date_modified = timezone.now()
         instance.save()
         return instance
 
 
 class BlogPostListSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk', read_only=True)
     category = BlogPostTagSerializer(read_only=True)
     tags = BlogPostTagSerializer(many=True, read_only=True)
     author = BlogAuthorSerializer(read_only=True)
