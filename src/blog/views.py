@@ -309,7 +309,7 @@ class BlogPostView(views.APIView):
             Parameter('post_id', IN_PATH, type='string($uuid)')
         ],
         responses={
-            200: sample_blogpost_response(),
+            200: BlogPostSerializer,
             404: '"error": "Nie znaleziono posta o podanym id"'
         }
     )
@@ -394,6 +394,9 @@ class BlogPostTagListView(generics.ListAPIView):
             Parameter('category', IN_QUERY, type='string'),
             Parameter('tag', IN_QUERY, type='string')
         ],
+        responses={
+        '200': BlogPostListSerializer(many=True)
+        },
         operation_description="Returns blog post list. Can be filtered by category and/or tag."
     ))
 class BlogPostListView(generics.ListAPIView):
@@ -449,7 +452,7 @@ class BlogPostCommentUpdateView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('comment_id', IN_PATH, type='integer')
+            Parameter('comment_id', IN_PATH, type='string($uuid)')
         ],
         responses={
             200: "Komentarz o podanym id został usunięty",
