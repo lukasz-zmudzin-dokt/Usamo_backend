@@ -49,3 +49,14 @@ def sample_address_schema():
         },
         required=['city', 'street', 'street_number', 'postal_code']
     )
+
+
+def sample_login_response(account_type):
+    response = Schema(properties={
+        'expiry': Schema(type='string', default='2020-05-14T08:10:46.354741+02:00'),
+        'token': Schema(type='string', default='e9127a24c2e1300acb0afd8f4776343c59f2b9450369317086f421ce6c897ed6'),
+        'type': Schema(type='string', default=account_type)
+    },
+        type='object'
+    )
+    return response

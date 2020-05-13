@@ -15,7 +15,7 @@ from rest_framework.response import Response
 from .filters import *
 from .permissions import CanStaffVerifyUsers
 from .serializers import *
-from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema
+from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_login_response
 
 
 class AbstractRegistrationView(views.APIView):
@@ -145,7 +145,7 @@ class LoginView(KnoxLoginView):
     @swagger_auto_schema(
         operation_description="Obtain auth token by specifying username and password",
         responses={
-            201: 'Generated token and user type',
+            201: sample_login_response(AccountType.STANDARD.value),
             400: 'Serializer errors/ Unable to login with given credentials'
         }
     )
