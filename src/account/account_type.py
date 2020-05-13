@@ -13,6 +13,17 @@ ACCOUNT_TYPE_CHOICES = [
     (AccountType.EMPLOYER.value, 'Employer')
 ]
 
+TYPE_CHOICES_VERBOSE = [
+    ('Standard', 'Standard'),
+    ('Staff', 'Staff'),
+    ('Employer', 'Employer')
+]
+
+TYPE_TO_INT_MAP = {
+    'Standard': 1,
+    'Staff': 2,
+    'Employer': 3
+}
 
 class StaffGroupType(Enum):
     STAFF_VERIFICATION = 'staff_verification'
