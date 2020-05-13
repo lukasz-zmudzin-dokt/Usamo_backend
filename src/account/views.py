@@ -36,8 +36,6 @@ class AbstractRegistrationView(views.APIView):
         response_data['response_message'] = "Successfully registered a new user"
         response_data['email'] = user.email
         response_data['username'] = user.username
-        token = Token.objects.get(user=user).key
-        response_data['token'] = token
         response_data['status'] = AccountStatus(user.status).name.lower()
         response_data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
 
@@ -47,7 +45,6 @@ def sample_registration_response(account_type):
         'response_message': openapi.Schema(type='string', default='Successfully registered a new user'),
         'email': openapi.Schema(type='string', format='email', default='example@domain.com'),
         'username': openapi.Schema(type='string', default='sample_user'),
-        'token': openapi.Schema(type='string', default='8f67f4a7e4c79f720ea82e6008f2f6e8a9661af7'),
         'status': openapi.Schema(type='string', default='Waiting for verification'),
         'type': openapi.Schema(type='string', default=account_type)
     },
