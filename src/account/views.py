@@ -11,10 +11,20 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-
-from .filters import *
+from rest_framework.filters import OrderingFilter
+from django_filters.rest_framework import DjangoFilterBackend
 from .permissions import CanStaffVerifyUsers
 from .serializers import *
+from .models import *
+from .filters import *
+from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema
+from rest_framework.pagination import PageNumberPagination
+
+
+class UserListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_login_response
 
 
@@ -271,8 +281,11 @@ class AdminAllAccountsListView(ListAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountListSerializer
     permission_classes = [CanStaffVerifyUsers]
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = UserListFilter
+    ordering_fields = ['username', 'date_joined', 'last_login']
+    ordering = ['-date_joined']
+    pagination_class = UserListPagination
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
@@ -286,8 +299,11 @@ class AdminAllAccountsListView(ListAPIView):
 class AdminDefaultAccountsListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [CanStaffVerifyUsers]
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = DefaultAccountListFilter
+    ordering_fields = ['username', 'date_joined', 'last_login']
+    ordering = ['-date_joined']
+    pagination_class = UserListPagination
 
     def get_queryset(self):
         return Account.objects.filter(type=AccountType.STANDARD.value)
@@ -304,8 +320,11 @@ class AdminDefaultAccountsListView(ListAPIView):
 class AdminEmployerListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [CanStaffVerifyUsers]
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = EmployerListFilter
+    ordering_fields = ['username', 'date_joined', 'last_login']
+    ordering = ['-date_joined']
+    pagination_class = UserListPagination
 
     def get_queryset(self):
         return Account.objects.filter(type=AccountType.EMPLOYER.value)
@@ -322,8 +341,11 @@ class AdminEmployerListView(ListAPIView):
 class AdminStaffListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [CanStaffVerifyUsers]
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = StaffListFilter
+    ordering_fields = ['username', 'date_joined', 'last_login']
+    ordering = ['-date_joined']
+    pagination_class = UserListPagination
 
     def get_queryset(self):
         return Account.objects.filter(type=AccountType.STAFF.value)

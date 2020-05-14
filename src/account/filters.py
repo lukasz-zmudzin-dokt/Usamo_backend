@@ -1,8 +1,10 @@
 from django.contrib.auth.models import Group
 from django_filters import rest_framework as filters
 from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled
+from usamo.settings.settings import PASS_RESET_URL
 from .models import *
-from .account_type import STAFF_GROUP_CHOICES
+from .account_type import *
+from .account_status import *
 
 
 class UserListFilter(filters.FilterSet):
@@ -10,56 +12,54 @@ class UserListFilter(filters.FilterSet):
     email = filters.CharFilter(field_name='email', lookup_expr='icontains')
     date_joined = filters.DateFromToRangeFilter(field_name='date_joined')
     last_login = filters.DateFromToRangeFilter(field_name='last_login')
+    status = filters.ChoiceFilter(choices=STATUS_CHOICES_VERBOSE, method='filter_status')
+    type = filters.ChoiceFilter(choices=TYPE_CHOICES_VERBOSE, method='filter_type')
+
+    def filter_status(self, queryset, name, value):
+        value = STATUS_TO_INT_MAP[value]
+        return queryset.filter(status=value)
+
+
+    def filter_type(self, queryset, name, value):
+        value = TYPE_TO_INT_MAP[value]
+        return queryset.filter(type=value)
 
     class Meta:
         model = Account
-        fields = ['id', 'status', 'type', 'username',
+        fields = ['status', 'type', 'username',
                   'email', 'date_joined', 'last_login']
 
 
-class AbstractTypeListFilter(filters.FilterSet):
-    id = filters.UUIDFilter(field_name='id', lookup_expr='icontains')
-    username = filters.CharFilter(field_name='username', lookup_expr='icontains')
-    email = filters.CharFilter(field_name='email', lookup_expr='icontains')
-    first_name = filters.CharFilter(field_name='first_name', lookup_expr='icontains')
-    last_name = filters.CharFilter(field_name='last_name', lookup_expr='icontains')
-    date_joined = filters.DateFromToRangeFilter(field_name='user__date_joined')
-    last_login = filters.DateFromToRangeFilter(field_name='user__last_login')
-    status = filters.NumberFilter(field_name='status', lookup_expr='icontains')
-    type = filters.NumberFilter(field_name='type', lookup_expr='icontains')
-
-
-class DefaultAccountListFilter(AbstractTypeListFilter):
+class DefaultAccountListFilter(UserListFilter):
     phone_number = filters.CharFilter(
         field_name='account__phone_number', lookup_expr='icontains')
     facility_name = filters.CharFilter(
         field_name='account__facility_name', lookup_expr='icontains')
-    facility_address = filters.CharFilter(
-        field_name='account__facility_adress', lookup_expr='icontains')
+    city = filters.CharFilter(
+        field_name='account__facility_address__city', lookup_expr='icontains')
 
     class Meta:
         model = Account
-        fields = ['id', 'status', 'username', 'first_name', 'last_name', 'email',
-                  'phone_number', 'facility_name', 'facility_address', 
-                  'date_joined', 'last_login']
+        fields = ['id', 'status', 'username', 'email','phone_number', 'facility_name', 'city', 
+                    'date_joined', 'last_login']
 
 
-class EmployerListFilter(AbstractTypeListFilter):
+class EmployerListFilter(UserListFilter):
     phone_number = filters.CharFilter(
         field_name='employer_account__phone_number', lookup_expr='icontains')
     company_name = filters.CharFilter(
         field_name='employer_account__company_name', lookup_expr='icontains')
-    company_address = filters.CharFilter(
-        field_name='employer_account__company_adress', lookup_expr='icontains')
-    nip = filters.CharFilter(field_name='nip', lookup_expr='icontains')
+    city = filters.CharFilter(
+        field_name='employer_account__company_address__city', lookup_expr='icontains')
+    nip = filters.CharFilter(field_name='employer_account__nip', lookup_expr='icontains')
 
     class Meta:
         model = Account
-        fields = ['id', 'status', 'username', 'first_name', 'last_name', 'email', 'phone_number',
-                  'company_name', 'company_address', 'nip', 'date_joined', 'last_login']
+        fields = ['id', 'status', 'username', 'email', 'phone_number',
+                  'company_name', 'city', 'nip', 'date_joined', 'last_login']
 
 
-class StaffListFilter(AbstractTypeListFilter):
+class StaffListFilter(UserListFilter):
 
     group_type = filters.MultipleChoiceFilter(choices=STAFF_GROUP_CHOICES,
                                               field_name='groups',
@@ -67,8 +67,7 @@ class StaffListFilter(AbstractTypeListFilter):
 
     class Meta:
         model = Account
-        fields = ['id', 'username', 'first_name', 'last_name', 'group_type',
-                  'email', 'date_joined', 'last_login']
+        fields = ['id', 'username', 'group_type','email', 'date_joined', 'last_login']
 
     def filter_groups(self, queryset, name, values):
         if name != 'groups':
