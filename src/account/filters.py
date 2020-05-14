@@ -1,6 +1,7 @@
 from django.contrib.auth.models import Group
 from django_filters import rest_framework as filters
 from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled
+from usamo.settings.settings import PASS_RESET_URL
 from .models import *
 from .account_type import *
 from .account_status import *

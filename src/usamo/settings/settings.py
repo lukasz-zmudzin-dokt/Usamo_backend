@@ -25,6 +25,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
+PASS_RESET_URL = os.getenv('PASS_RESET_URL')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -156,6 +157,8 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',
 )
+
+DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
 
 AUTH_USER_MODEL = 'account.Account'
 
