@@ -14,15 +14,15 @@ ACCOUNT_TYPE_CHOICES = [
 ]
 
 TYPE_CHOICES_VERBOSE = [
-    ('Standard', 'Standard'),
-    ('Staff', 'Staff'),
-    ('Employer', 'Employer')
+    ('standard', 'Standard'),
+    ('staff', 'Staff'),
+    ('employer', 'Employer')
 ]
 
 TYPE_TO_INT_MAP = {
-    'Standard': 1,
-    'Staff': 2,
-    'Employer': 3
+    'standard': 1,
+    'staff': 2,
+    'employer': 3
 }
 
 class StaffGroupType(Enum):
