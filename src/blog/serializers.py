@@ -33,6 +33,7 @@ class BlogPostCategorySerializer(serializers.ModelSerializer):
 
 
 class BlogAuthorSerializer(serializers.ModelSerializer):
+    username = serializers.CharField(source='user.username')
     email = serializers.CharField(source='user.email')
     first_name = serializers.CharField(source='user.first_name')
     last_name = serializers.CharField(source='user.last_name')
@@ -40,17 +41,14 @@ class BlogAuthorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = StaffAccount
-        fields = ['email', 'first_name', 'last_name', 'id']
+        fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
 
 class CommentAuthorSerializer(serializers.ModelSerializer):
-    email = serializers.CharField()
-    first_name = serializers.CharField()
-    last_name = serializers.CharField()
-
+    
     class Meta:
         model = Account
-        fields = ['email', 'first_name', 'last_name', 'id']
+        fields = ['id', 'username', 'email']
 
 
 class BlogPostCommentSerializer(serializers.ModelSerializer):
@@ -86,11 +84,11 @@ class BlogPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPost
         fields = ['id', 'category', 'tags', 'content', 'date_created', 'author', 'comments', 'summary', 'title', 'header']
-        read_only_fields = ['id', 'date_created', 'author', 'comments']
+        read_only_fields = ['date_created', 'author', 'comments']
 
     def get_header(self, obj):
-        header = BlogPostHeader.objects.filter(blog_post_id=obj.id).first()
-        return header.file.url if header else ""
+        header = BlogPostHeader.objects.filter(blog_post_id=obj.id.id).first()
+        return header.file.url if header else None
 
     def to_representation(self, instance):
         response = super().to_representation(instance)
@@ -121,20 +119,19 @@ class BlogPostSerializer(serializers.ModelSerializer):
         if 'content' in validated_data:
             instance.content = validated_data.get('content', instance.content)
 
+        if 'title' in validated_data:
+            instance.title = validated_data.get('title', instance.title)
+
         instance.date_modified = timezone.now()
         instance.save()
         return instance
 
 
-class BlogPostListSerializer(serializers.ModelSerializer):
-    id = serializers.IntegerField(source='pk', read_only=True)
-    category = BlogPostTagSerializer(read_only=True)
-    tags = BlogPostTagSerializer(many=True, read_only=True)
-    author = BlogAuthorSerializer(read_only=True)
+class BlogPostListSerializer(BlogPostSerializer):
 
     class Meta:
         model = BlogPost
-        fields = ['id', 'title', 'author', 'category', 'tags', 'summary']
+        fields = ['id', 'title', 'author', 'category', 'tags', 'summary', 'date_created', 'header']
 
 
 class BlogPostHeaderSerializer(serializers.ModelSerializer):
@@ -143,5 +140,16 @@ class BlogPostHeaderSerializer(serializers.ModelSerializer):
         model = BlogPostHeader
         fields = '__all__'
 
+
+class BlogPostAttachmentSerializer(serializers.ModelSerializer):
+    attachment_url = serializers.CharField(source='file.url', read_only=True)
+
+    class Meta:
+        model = BlogPostAttachment
+        fields = ['id', 'blog_post', 'file', 'attachment_url']
+        extra_kwargs = {
+            'file': {'write_only': True},
+            'id': {'required': False}
+        }
 
 

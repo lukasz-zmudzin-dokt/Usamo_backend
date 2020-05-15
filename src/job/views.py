@@ -2,7 +2,7 @@ from account.models import EmployerAccount, DefaultAccount
 from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
-from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema
+from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema, IN_BODY
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, serializers
 from rest_framework import status
@@ -14,7 +14,7 @@ from rest_framework.response import Response
 from cv.models import CV
 from .models import *
 from .serializers import *
-from rest_framework.generics import ListAPIView
+from rest_framework.generics import ListAPIView, get_object_or_404
 
 
 class ErrorResponse(Response):
@@ -68,7 +68,13 @@ def sample_offer_response():
             'category': Schema(type='string', default="offer category"),
             'type': Schema(type='string', default="offer type"),
             'company_name': Schema(type='string', default="company name"),
-            'company_address': Schema(type='string', default="company address"),
+            'company_address': Schema(type='object',
+             properties={
+                 'city': Schema(type='string', default="city"),
+                 'street': Schema(type='string', default="street"),
+                 'street_number': Schema(type='string', default="street number"),
+                 'postal_code': Schema(type='string', default="postal code")
+             }),
             'voivodeship': Schema(type='string', default="mazowieckie"),
             'expiration_date': Schema(type='string', default="2020-02-20"),
             'description': Schema(type='string', default="offer description")
@@ -97,7 +103,7 @@ class JobOfferCreateView(views.APIView):
     permission_classes = [IsEmployer]
 
     @swagger_auto_schema(
-        query_serializer=JobOfferSerializer,
+        request_body=JobOfferSerializer,
         responses={
             '200': sample_offerid_response(),
             '401': sample_error_response('No authorization token'),
@@ -130,7 +136,7 @@ class JobOfferView(views.APIView):
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         operation_id='job_job-offer_edit',
-        query_serializer=JobOfferEditSerializer,
+        request_body=JobOfferEditSerializer,
         responses={
             '200': sample_message_response("Pomyślnie edytowano ofertę"),
             '400': 'Błędy walidacji (np. brakujące pole)',
@@ -143,15 +149,13 @@ class JobOfferView(views.APIView):
     def put(self, request, offer_id):
         serializer = JobOfferEditSerializer(data=request.data)
         if serializer.is_valid():
-            job_offer_edit = serializer.create(serializer.validated_data)
+            #job_offer_edit = serializer.create(serializer.validated_data)
             try:
                 instance = JobOffer.objects.get(pk=offer_id)
                 if not IsEmployer().has_object_permission(request, self, instance) \
                         and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
                     return ErrorResponse("Użytkownik nie jest upoważniony do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
-                fields_to_update = job_offer_edit.update_dict()
-                for field, value in fields_to_update.items():
-                    setattr(instance, field, value)
+                serializer.update(instance, serializer.validated_data)
                 instance.save()
                 return MessageResponse("Pomyślnie edytowano ofertę")
             except ObjectDoesNotExist:
@@ -223,14 +227,14 @@ class JobOfferListView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
 
-    permissions_classes = [AllowAny]
+    permission_classes = [AllowAny]
 
     filter_serializer = None
 
     def get_queryset(self):
         job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
         valid_filters = job_offer_filters.get_filters()
-        return JobOffer.objects.filter(removed=False, **valid_filters)
+        return JobOffer.objects.filter(removed=False, confirmed=True, **valid_filters)
 
     def get(self, request):
         self.filter_serializer = JobOfferFiltersSerializer(data=self.request.query_params)
@@ -385,6 +389,73 @@ class EmployerJobOffersView(generics.ListAPIView):
         except ObjectDoesNotExist:
             return ErrorResponse("Brak użytkownika lub użytkownik nie jest pracodawcą", status.HTTP_403_FORBIDDEN)
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    query_serializer=JobOfferFiltersSerializer,
+    manual_parameters=[
+        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
+        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
+    ],
+    responses={
+        '200': sample_paginated_offers_response(),
+        '401': 'No authorization token',
+        '403': sample_error_response('Brak uprawnień do tej czynności'),
+        '400': sample_error_response('Błędy walidacji (np. brakujące pole)'),
+    },
+    operation_description="Zwraca listę niepotwierdzonych ofert pracy z możliwością filtracji"
+))
+class AdminUnconfirmedJobOffersView(generics.ListAPIView):
+    serializer_class = JobOfferSerializer
+    pagination_class = OffersPagination
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    filter_serializer = None
+
+    def get_queryset(self):
+        job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
+        valid_filters = job_offer_filters.get_filters()
+        return JobOffer.objects.filter(removed=False, confirmed=False, **valid_filters)
+
+    def get(self, request):
+        self.filter_serializer = JobOfferFiltersSerializer(data=self.request.data)
+        if self.filter_serializer.is_valid():
+            return super().get(request)
+        else:
+            return Response(self.filter_serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class AdminConfirmJobOfferView(views.APIView):
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('offer_id', IN_PATH, type='string', format='byte')
+        ],
+        request_body=Schema(type='object', properties={
+            'confirmed': Schema(type='boolean')
+        }),
+        responses={
+            '200': sample_message_response('Ustawiono potwierdzenie oferty pracy'),
+            '400': sample_error_response('Oferta jest usunięta'),
+            '401': 'No authorization token',
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '404': sample_error_response('Nie znaleziono oferty')
+        },
+        operation_description="Ustawianie potwierdzenia ofert pracy",
+    )
+    def post(self, request, offer_id):
+        try:
+            instance = JobOffer.objects.get(pk=offer_id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+        if instance.removed:
+            return ErrorResponse("Oferta jest usunięta", status.HTTP_400_BAD_REQUEST)
+        if 'confirmed' in request.data:
+            confirmed = request.data['confirmed']
+            instance.confirmed = confirmed
+            instance.save()
+            return MessageResponse("Ustawiono potwierdzenie oferty pracy")
+        return ErrorResponse("Błędy walidacji (np. brakujące pole)", status.HTTP_400_BAD_REQUEST)
+
 
 class VoivodeshipsEnumView(views.APIView):
     permission_classes = [AllowAny]
@@ -418,6 +489,50 @@ class JobOfferCategoryListView(views.APIView):
         return Response(response, status=status.HTTP_200_OK)
 
 
+class JobOfferCategoryView(views.APIView):
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    @swagger_auto_schema(
+        request_body=JobOfferCategorySerializer,
+        responses={
+            '200': 'Branża ofert pracy utworzona',
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': 'Błędy walidacji (np. brakujące pole)'
+        },
+        operation_description="Tworzenie branży ofert pracy",
+    )
+    def post(self, request):
+        serializer = JobOfferCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.create(serializer.validated_data)
+            return MessageResponse('Branża ofert pracy dodana')
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        request_body=JobOfferCategorySerializer,
+        responses={
+            '200': "Branża ofert pracy usunięta",
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': 'Błędy walidacji (np. brakujące pole)',
+            '404': sample_error_response('Nie znaleziono takiej branży ofert pracy')
+        },
+        operation_description="Usuwanie branży ofert pracy",
+    )
+    def delete(self, request):
+        serializer = JobOfferCategorySerializer(data=request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data['name']
+            try:
+                JobOfferCategory.objects.get(pk=name).delete()
+            except ObjectDoesNotExist:
+                return ErrorResponse("Nie znaleziono takiej branży ofert pracy", status.HTTP_404_NOT_FOUND)
+            return MessageResponse("Branża ofert pracy usunięta")
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+
 class JobOfferTypesListView(generics.ListAPIView):
     permission_classes = [AllowAny]
 
@@ -432,3 +547,46 @@ class JobOfferTypesListView(generics.ListAPIView):
     def get(self, request):
         response = {"offer_types": list(JobOfferType.objects.values_list('name', flat=True))}
         return Response(response, status=status.HTTP_200_OK)
+
+
+class JobOfferTypeView(views.APIView):
+    permission_classes = [IsStaffResponsibleForJobs]
+
+    @swagger_auto_schema(
+        request_body=JobOfferTypeSerializer,
+        responses={
+            '200': 'Typ oferty pracy utworzony',
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': 'Błędy walidacji (np. brakujące pole)'
+        },
+        operation_description="Tworzenie typu oferty pracy",
+    )
+    def post(self, request):
+        serializer = JobOfferTypeSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.create(serializer.validated_data)
+            return MessageResponse('Typ oferty pracy dodany')
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        request_body=JobOfferTypeSerializer,
+        responses={
+            '200': "Typ oferty pracy usunięty",
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': 'Błędy walidacji (np. brakujące pole)',
+            '404': sample_error_response('Nie znaleziono takiego typu oferty pracy')
+        },
+        operation_description="Usuwanie typu oferty pracy",
+    )
+    def delete(self, request):
+        serializer = JobOfferTypeSerializer(data=request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data['name']
+            try:
+                JobOfferType.objects.get(pk=name).delete()
+            except ObjectDoesNotExist:
+                return ErrorResponse("Nie znaleziono takiego typu oferty pracy", status.HTTP_404_NOT_FOUND)
+            return MessageResponse("Typ oferty pracy usunięty")
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)

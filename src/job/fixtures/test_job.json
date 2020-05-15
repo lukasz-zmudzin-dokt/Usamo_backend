@@ -32,11 +32,12 @@
       "category": "IT",
       "offer_type": "Sta\u017c",
       "company_name": "GamePol",
-      "company_address": "Warszawa, Al. Jerzego Waszyngtona 420",
+      "company_address": 15,
       "voivodeship": "mazowieckie",
       "expiration_date": "2020-05-28",
       "description": "Po przejsciu stazu oferujemy zatrudnienie i dobra place.",
       "removed": false,
+      "confirmed": true,
       "employer": 1
    }
 },
@@ -48,11 +49,11 @@
       "category": "IT",
       "offer_type": "Sta\u017c",
       "company_name": "Webpol",
-      "company_address": "Wo\u0142oska 9, Warszawa",
+      "company_address": 16,
       "voivodeship": "mazowieckie",
       "expiration_date": "2020-05-28",
       "description": "Pracuj w m\u0142odym, dynamicznym zespole! Licz\u0105 si\u0119 tylko ch\u0119ci!",
-      "removed": false,
+      "confirmed": true,
       "employer": 2
    }
 },
@@ -64,11 +65,12 @@
       "category": "PR",
       "offer_type": "Praca",
       "company_name": "TruthMinistry",
-      "company_address": "Wiejska 25, Gdynia",
+      "company_address": 14,
       "voivodeship": "pomorskie",
       "expiration_date": "2020-05-28",
       "description": "Szukamy osob dobrze zorientowanych w mediach spolecznosciowych. Oferujemy dobra place, karte Multisport...",
       "removed": false,
+      "confirmed": false,
       "employer": 1
    }
 },

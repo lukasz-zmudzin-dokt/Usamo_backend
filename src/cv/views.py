@@ -15,7 +15,6 @@ from .serializers import *
 from .permissions import *
 from job.views import sample_message_response
 import base64
-from usamo.settings.settings import BASE_DIR
 
 class CreateCVView(views.APIView):
     permission_classes = [IsStandardUser]
@@ -205,6 +204,8 @@ class CVPictureView(views.APIView):
             ext = pict.name.split('.')[-1]
             pict.name = create_unique_filename('cv_pics', ext)
             data['basic_info']['picture'] = pict
+            cv.has_picture = True
+            cv.save()
         except MultiValueDictKeyError:
             Response('Upewnij się, że form key to "picture"', status.HTTP_400_BAD_REQUEST)
         serializer = CVSerializer(data=data)
@@ -272,6 +273,8 @@ class CVPictureView(views.APIView):
         if not bi.picture:
             return Response('Nie znaleziono zdjęcia', status.HTTP_404_NOT_FOUND)
         bi.picture.delete(save=True)
+        cv.has_picture = False
+        cv.save()
         cv_serializer = CVSerializer(instance=cv)
 
         delete_previous_picture(bi)
@@ -482,3 +485,27 @@ class UserCVNameView(views.APIView):
             return Response(f'Nazwa CV zmieniona na: {request.data["name"]}', status=status.HTTP_200_OK)
         except KeyError:
             return Response('Nie podano nowej nazwy CV', status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserCVAvailabilityView(views.APIView):
+    permission_classes = [IsStandardUser]
+
+    @swagger_auto_schema(
+        operation_description="Informuje, czy użytkownik może postować dalsze CV (tzn. czy ma ich mniej niż 5)",
+
+        responses={
+            200: '"can_post_cv" : True/False',
+            403: 'User has no permission to perform this action.'
+        }
+    )
+    def get(self, request):
+        def_account = DefaultAccount.objects.get(user=request.user)
+        users_cvs = CV.objects.filter(cv_user=def_account)
+        if users_cvs.count() < 5:
+            response_val = True
+        else:
+            response_val = False
+        return Response({"can_post_cv" : response_val}, status=status.HTTP_200_OK)
+
+
+

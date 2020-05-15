@@ -1,90 +1,67 @@
 [
 {
-   "model": "blog.blogposttag",
-   "pk": 1,
-   "fields": {
-      "name": "test"
-   }
+  "model": "blog.blogposttag",
+  "pk": 1,
+  "fields": {
+    "name": "start"
+  }
 },
 {
-   "model": "blog.blogposttag",
-   "pk": 2,
-   "fields": {
-      "name": "sport"
-   }
+  "model": "blog.blogposttag",
+  "pk": 2,
+  "fields": {
+    "name": "oneday"
+  }
 },
 {
-   "model": "blog.blogposttag",
-   "pk": 3,
-   "fields": {
-      "name": "gotowanie"
-   }
+  "model": "blog.blogpostcategory",
+  "pk": 1,
+  "fields": {
+    "name": "Aktualno\u015bci"
+  }
 },
 {
-   "model": "blog.blogpostcategory",
-   "pk": 1,
-   "fields": {
-      "name": "Aktualnosci"
-   }
+  "model": "blog.blogpostreservation",
+  "pk": "fa79346d-44b0-4921-8e56-29362cabe9d7",
+  "fields": {
+    "date_created": "2020-05-07T20:34:49.740Z"
+  }
 },
 {
-   "model": "blog.blogpostcategory",
-   "pk": 2,
-   "fields": {
-      "name": "Hobby"
-   }
+  "model": "blog.blogpost",
+  "pk": "fa79346d-44b0-4921-8e56-29362cabe9d7",
+  "fields": {
+    "author": 6,
+    "category": 1,
+    "content": "Czo\u0142em Usamodzielnieni! Na tej stronie znajdziecie mn\u00f3stwo przydatnych informacji, kt\u00f3re pomog\u0105 wam zrealizowa\u0107 marzenia.",
+    "title": "Witajcie!",
+    "date_created": "2020-05-07T20:35:09.915Z",
+    "date_modified": "2020-05-07T20:35:09.921Z",
+    "_summary": null,
+    "tags": [
+      1,
+      2
+    ]
+  }
 },
 {
-   "model": "blog.blogpost",
-   "pk": 1,
-   "fields": {
-      "author": 4,
-      "category": 1,
-      "content": "Drodzy Usamodzielnieni! Specjalnie dla was przygotowalismy znizke 30% na karnety miesieczne!",
-      "title": "Zacznij cwiczyc razem z Polfitem!.",
-      "date_created": "2020-04-06T22:21:55.747Z",
-      "date_modified": "2020-04-06T22:21:55.758Z",
-      "_summary": null,
-      "tags": [
-         1,
-         2
-      ]
-   }
+  "model": "blog.blogpostcomment",
+  "pk": "0a967783-4a76-4ff1-96b3-02c76cd35113",
+  "fields": {
+    "author": "b582b042-d6d8-4e57-9447-564a6748b4f7",
+    "content": "Super! Nie mog\u0119 si\u0119 doczeka\u0107 nowych post\u00f3w!",
+    "blog_post": "fa79346d-44b0-4921-8e56-29362cabe9d7",
+    "date_created": "2020-05-07T20:38:46.507Z"
+  }
 },
 {
-   "model": "blog.blogpost",
-   "pk": 2,
-   "fields": {
-      "author": 4,
-      "category": 2,
-      "content": "Razem z Panem Robertem przygotowalismy dla was cos specjalnego -- warsztaty kulinarne! Odbeda sie one za tydzien, na ulicy...",
-      "title": "Warsztaty kulinarne z Robertem Maklowiczem",
-      "date_created": "2020-04-06T22:25:16.903Z",
-      "date_modified": "2020-04-06T22:25:16.908Z",
-      "_summary": null,
-      "tags": [
-         3
-      ]
-   }
-},
-{
-   "model": "blog.blogpostcomment",
-   "pk": 1,
-   "fields": {
-      "author": "b582b042-d6d8-4e57-9447-564a6748b4f7",
-      "content": "Super silownia. Tanio, czysto, swietna atmosfera.",
-      "blog_post": 1,
-      "date_created": "2020-04-06T22:33:41.670Z"
-   }
-},
-{
-   "model": "blog.blogpostcomment",
-   "pk": 2,
-   "fields": {
-      "author": "8b58d6b2-51d1-4fb7-9c36-7bfc5f46f75d",
-      "content": "Dzieki! Super oferta!",
-      "blog_post": 1,
-      "date_created": "2020-04-06T22:35:12.499Z"
-   }
+  "model": "blog.blogpostcomment",
+  "pk": "bc9622a5-09c3-4533-85b6-e4f5f26b3359",
+  "fields": {
+    "author": "8b58d6b2-51d1-4fb7-9c36-7bfc5f46f75d",
+    "content": "Keep up the good work!",
+    "blog_post": "fa79346d-44b0-4921-8e56-29362cabe9d7",
+    "date_created": "2020-05-07T20:39:44.243Z"
+  }
 }
 ]

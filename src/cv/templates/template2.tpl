@@ -114,11 +114,11 @@
                 {% if basic_info.picture %}<img class="picture" src="{{"../../usamo" + basic_info.picture.url}}"/>{% endif %}
             </div>
             <div id="info">
-                <h1 id="name" class="resize">{{basic_info.first_name}} {{basic_info.last_name}}</h1>
+                <h1 id="name" class="resize">{{basic_info.first_name | escape}} {{basic_info.last_name | escape}}</h1>
                 <div id="contact">
-                    <p><b>Data urodzenia: </b></br>ur. {{basic_info.date_of_birth}}</p>
-                    <p><b>Telefon: </b></br>{{basic_info.phone_number}}</p>
-                    <p><b>E-mail: </b></br>{{basic_info.email}}</p>
+                    <p><b>Data urodzenia: </b></br>ur. {{basic_info.date_of_birth | escape}}</p>
+                    <p><b>Telefon: </b></br>{{basic_info.phone_number | escape}}</p>
+                    <p><b>E-mail: </b></br>{{basic_info.email | escape}}</p>
                 </div>
             </div>
         </header>
@@ -127,9 +127,9 @@
             <h2>Wykształcenie</h2>
             {% for item in schools %}
             <div class="item">
-                <h4>{{item.year_start}} - {% if item.year_end %}{{item.year_end}}{% else %}...{% endif %}</h4>
-                <h3>{{item.name}}</h3>
-                <p>{{item.additional_info}}</p>
+                <h4>{{item.year_start | escape}} - {% if item.year_end %}{{item.year_end | escape}}{% else %}...{% endif %}</h4>
+                <h3>{{item.name | escape}}</h3>
+                <p>{{item.additional_info | escape}}</p>
             </div>
             {% endfor %}
         </div>
@@ -138,9 +138,9 @@
             <h2>Doświadczenie</h2>
             {% for item in experiences %}
             <div class="item">
-                <h4>{{item.year_start}} - {% if item.year_end %}{{item.year_end}}{% else %}...{% endif %}</h4>
-                <h3>{{item.title}}</h3>
-                <p>{{item.description}}</p>
+                <h4>{{item.year_start | escape}} - {% if item.year_end %}{{item.year_end | escape}}{% else %}...{% endif %}</h4>
+                <h3>{{item.title | escape}}</h3>
+                <p>{{item.description | escape}}</p>
             </div>
             {% endfor %}
         </div> {% endif %}
@@ -149,7 +149,7 @@
             <h2>Umiejętności</h2>
             <p class="item">
                 {% for item in skills %}
-                {{item.description}},
+                {{item.description | escape}},
                 {% endfor %}
             </p>
         </div>
@@ -158,7 +158,7 @@
             <h2>Języki</h2>
             <p class="item">
                 {% for item in languages %}
-                {{item.name}} - {{item.level}},
+                {{item.name | escape}} - {{item.level | escape}},
                 {% endfor %}
             </p>
         </div>

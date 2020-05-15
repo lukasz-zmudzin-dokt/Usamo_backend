@@ -1,5 +1,4 @@
 import abc
-
 from django.contrib.auth.models import Group
 from django.core.exceptions import ValidationError
 from phonenumber_field.validators import validate_international_phonenumber
@@ -7,11 +6,9 @@ from rest_framework import serializers
 import abc
 from .validators import validate_nip, validate_postal_code, validate_street_number
 from django.contrib.auth.models import Group
+from django.contrib.auth.password_validation import validate_password
 from .account_type import StaffGroupType, ACCOUNT_TYPE_CHOICES
-
-
 from .models import DefaultAccount, EmployerAccount, Account, StaffAccount, Address
-
 from .account_type import STAFF_GROUP_CHOICES
 from .models import DefaultAccount, EmployerAccount, Account, StaffAccount
 from .validators import validate_nip
@@ -22,6 +19,14 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         password = validated_data.pop('password')
         account_data = self.get_account_data(validated_data)
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            errors = {}
+            errors['password'] = list(e.messages)
+            raise serializers.ValidationError(errors)
+        
         try:
             self.perform_additional_validation(account_data)
         except serializers.ValidationError as error:
@@ -254,7 +259,7 @@ class StaffDetailSerializer(StaffAccountSerializer, AccountListSerializer):
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'group_type',
-                  'date_joined', 'last_login']
+                  'date_joined', 'last_login', 'status']
 
 
 class DefaultAccountDetailSerializer(DefaultAccountSerializer, AccountListSerializer):
