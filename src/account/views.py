@@ -18,6 +18,7 @@ from .models import *
 from .filters import *
 from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema
 from rest_framework.pagination import PageNumberPagination
+from job.views import ErrorResponse, MessageResponse
 
 
 class UserListPagination(PageNumberPagination):
@@ -258,28 +259,55 @@ class AdminUserRejectionView(views.APIView):
 
     @swagger_auto_schema(
         responses={
-            '200': 'User status successfully set to not verified.',
-            '400': 'User id was not specified.',
-            '404': 'User with the id given was not found.'
+            '200': 'message: Użytkownik został pomyślnie odrzucony',
+            '400': 'error: ID użytkownika nie zostało podane',
+            '404': 'error: Użytkownik o podanym id nie został znaleziony.'
         },
         manual_parameters=[
             openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
-                              description='A UUID string identifying this account')
+                              description='String UUID będący id danego użytkownika')
         ],
-        operation_description="Sets user's status to not verified.",
+        operation_description="Ustawia status użytkownika na rejected.",
     )
     def post(self, request, user_id):
         if user_id is not None:
             try:
                 user = Account.objects.get(pk=user_id)
             except Account.DoesNotExist:
-                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
-            user.status = AccountStatus.NOT_VERIFIED.value
+                return ErrorResponse('Użytkownik o podanym ID nie został znaleziony', status.HTTP_404_NOT_FOUND)
+            user.status = AccountStatus.REJECTED.value
             user.save()
-            return Response('User status successfully set to not verified.', status.HTTP_200_OK)
+            return MessageResponse('Użytkownik został pomyślnie odrzucony')
 
-        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
+        return ErrorResponse('ID użytkownika nie zostało podane', status.HTTP_400_BAD_REQUEST)
 
+
+class AdminUserBlockView(views.APIView):
+    permission_classes = [CanStaffVerifyUsers]
+
+    @swagger_auto_schema(
+        responses={
+            '200': 'message: Użytkownik został pomyślnie zablokowany',
+            '400': 'error: ID użytkownika nie zostało podane',
+            '404': 'error: Użytkownik o podanym ID nie został znaleziony'
+        },
+        manual_parameters=[
+            openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego użytkownika')
+        ],
+        operation_description="Ustawia status użytkownika na blocked.",
+    )
+    def post(self, request, user_id):
+        if user_id is not None:
+            try:
+                user = Account.objects.get(pk=user_id)
+            except Account.DoesNotExist:
+                return ErrorResponse('Użytkownik o podanym ID nie został znaleziony', status.HTTP_404_NOT_FOUND)
+            user.status = AccountStatus.BLOCKED.value
+            user.save()
+            return MessageResponse('Użytkownik został pomyślnie zablokowany')
+
+        return ErrorResponse('ID użytkownika nie zostało podane', status.HTTP_400_BAD_REQUEST)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
