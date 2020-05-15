@@ -258,7 +258,7 @@ class AdminUserRejectionView(views.APIView):
 
     @swagger_auto_schema(
         responses={
-            '200': 'User status successfully set to not verified.',
+            '200': 'User status successfully set to Rejected.',
             '400': 'User id was not specified.',
             '404': 'User with the id given was not found.'
         },
@@ -266,7 +266,7 @@ class AdminUserRejectionView(views.APIView):
             openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
                               description='A UUID string identifying this account')
         ],
-        operation_description="Sets user's status to not verified.",
+        operation_description="Sets user's status to Rejected.",
     )
     def post(self, request, user_id):
         if user_id is not None:
@@ -274,12 +274,39 @@ class AdminUserRejectionView(views.APIView):
                 user = Account.objects.get(pk=user_id)
             except Account.DoesNotExist:
                 return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
-            user.status = AccountStatus.NOT_VERIFIED.value
+            user.status = AccountStatus.REJECTED.value
             user.save()
-            return Response('User status successfully set to not verified.', status.HTTP_200_OK)
+            return Response('User status successfully set to Rejected.', status.HTTP_200_OK)
 
         return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
 
+
+class AdminUserBlockView(views.APIView):
+    permission_classes = [CanStaffVerifyUsers]
+
+    @swagger_auto_schema(
+        responses={
+            '200': 'User status successfully set to Blocked.',
+            '400': 'User id was not specified.',
+            '404': 'User with the id given was not found.'
+        },
+        manual_parameters=[
+            openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
+                              description='A UUID string identifying this account')
+        ],
+        operation_description="Sets user's status to Blocked.",
+    )
+    def post(self, request, user_id):
+        if user_id is not None:
+            try:
+                user = Account.objects.get(pk=user_id)
+            except Account.DoesNotExist:
+                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
+            user.status = AccountStatus.BLOCKED.value
+            user.save()
+            return Response('User status successfully set to Blocked.', status.HTTP_200_OK)
+
+        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
