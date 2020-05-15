@@ -421,7 +421,7 @@ class CVStatus(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': CVSerializer(many=True),
-        '403': 'User has no permission to perform this action.',
+        '403': "Nie masz uprawnień, by wykonać tę czynność.",
         '404': "Not found",
     },
     operation_description="Zwraca listę wszystkich CV dla admina"
@@ -435,7 +435,7 @@ class AdminCVListView(generics.ListAPIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': CVSerializer(many=True),
-        '403': 'User has no permission to perform this action.',
+        '403': "Nie masz uprawnień, by wykonać tę czynność.",
         '404': "Not found",
     },
     operation_description="Zwraca listę wszystkich CV zalogowanego użytkownika"
