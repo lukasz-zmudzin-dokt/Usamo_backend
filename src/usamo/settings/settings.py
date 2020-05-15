@@ -96,7 +96,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'usamo.wsgi.application'
+#WSGI_APPLICATION = 'usamo.wsgi.application'
 ASGI_APPLICATION = "usamo.routing.application"
 
 # Database
@@ -111,11 +111,21 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432'
     }
-}
+} 
 
 db_from_env = dj_database_url.config(conn_max_age=600)
 DATABASES['default'].update(db_from_env)
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
+
+CHANNEL_LAYERS['default']["hosts"] = [os.environ.get('REDIS_URL', 'redis://localhost:6379')]
 
 def _get_pdfkit_config():
     if platform.system() == 'Windows':
