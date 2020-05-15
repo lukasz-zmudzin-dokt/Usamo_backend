@@ -177,7 +177,7 @@ class BlogPostHeaderView(views.APIView):
         responses={
             200: '"message": "Nagłówek został pomyślnie utworzony"',
             400: '"error": "Nie znaleziono pliku"',
-            404: '"error": "Post o podanym id nie istnieje"'
+            404: '"error": "Nie znaleziono podanego posta"'
         },
     )
     def post(self, request, post_id):
@@ -186,7 +186,7 @@ class BlogPostHeaderView(views.APIView):
 
         blog_post = BlogPost.objects.filter(id=post_id).first()
         if not blog_post:
-            return ErrorResponse('Post o podanym id nie istnieje', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono podanego posta', status.HTTP_404_NOT_FOUND)
 
         try:
             data = {'blog_post': post_id, 'file': request.FILES['file']}
@@ -235,14 +235,14 @@ class BlogPostAttachmentUploadView(views.APIView):
         responses={
             200: '"attachment_url": url',
             400: '"error": "Nie znaleziono pliku"',
-            404: '"error": "Rezerwacja o podanym id nie istnieje"'
+            404: '"error": "Nie znaleziono podanej rezerwacji"'
         },
     )
     def post(self, request, post_id):
         try:
             reservation = BlogPostReservation.objects.get(pk=post_id)
         except BlogPostReservation.DoesNotExist:
-            return ErrorResponse("Rezerwacja o podanym id nie istnieje", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono podanej rezerwacji", status.HTTP_404_NOT_FOUND)
 
         try:
             data = {'blog_post': post_id, 'file': request.FILES['file']}
@@ -424,7 +424,6 @@ class BlogPostCommentCreateView(views.APIView):
         ],
         responses={
             200: sample_commentid_response(),
-            403: 'Użytkownik nie istnieje',
             404: '"error": "Nie znaleziono posta o podanym id"'
         }
     )

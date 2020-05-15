@@ -141,7 +141,7 @@ class JobOfferView(views.APIView):
             '200': sample_message_response("Pomyślnie edytowano ofertę"),
             '400': 'Błędy walidacji (np. brakujące pole)',
             '401': 'No authorization token',
-            '403': 'Użytkownik nie jest upoważniony do wykonania tej czynności',
+            '403': 'Nie masz uprawnień do wykonania tej czynności',
             '404': sample_error_response('Nie znaleziono oferty'),
         },
         operation_description="Edytuje ofertę pracy",
@@ -154,7 +154,7 @@ class JobOfferView(views.APIView):
                 instance = JobOffer.objects.get(pk=offer_id)
                 if not IsEmployer().has_object_permission(request, self, instance) \
                         and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                    return ErrorResponse("Użytkownik nie jest upoważniony do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                    return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
                 serializer.update(instance, serializer.validated_data)
                 instance.save()
                 return MessageResponse("Pomyślnie edytowano ofertę")
@@ -191,7 +191,7 @@ class JobOfferView(views.APIView):
             '200': sample_message_response('Usunięto ofertę'),
             '400': sample_error_response('Oferta została wcześniej usunięta'),
             '401': 'No authorization token',
-            '403': sample_error_response('Użytkownik nie jest upoważniony do wykonania tej czynności'),
+            '403': sample_error_response('Nie masz uprawnień do wykonania tej czynności'),
             '404': sample_error_response('Nie znaleziono oferty')
         },
         operation_description="Zmienia status oferty na removed",
@@ -201,7 +201,7 @@ class JobOfferView(views.APIView):
             instance = JobOffer.objects.get(pk=offer_id)
             if not IsEmployer().has_object_permission(request, self, instance) \
                     and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                return ErrorResponse("Użytkownik nie jest upoważniony do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
             if instance.removed:
                 return ErrorResponse("Oferta została wcześniej usunięta", status.HTTP_400_BAD_REQUEST)
             instance.removed = True
@@ -221,7 +221,7 @@ class JobOfferView(views.APIView):
         '200': sample_paginated_offers_response(),
         '400': "Błędy walidacji (np. brakujące pole)",
     },
-    operation_description="Zwraca listę ofert pracy z możliwością filtraci"
+    operation_description="Zwraca listę ofert pracy z możliwością filtracji"
 ))
 class JobOfferListView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
@@ -252,8 +252,8 @@ class CreateJobOfferApplicationView(views.APIView):
         responses={
             '201': '"id": application.id',
             '400': 'Błędy walidacji (np. brakujące pole)',
-            '403': "You do not have permission to perform this action. / Użytkownik już aplikował na tę ofertę. \
-                /  CV o podanym id nie należy do obecnego użytkownika."
+            '403': "You do not have permission to perform this action. / Aplikowałeś_aś już na tę ofertę \
+                /  CV o podanym id nie należy do Ciebie"
         },
         operation_description="Tworzy aplikację na pracę z podaną ofertą pracy oraz id cv",
     )
@@ -262,13 +262,13 @@ class CreateJobOfferApplicationView(views.APIView):
         try:
             CV.objects.get(cv_user=user, cv_id=request.data['cv'])
         except CV.DoesNotExist:
-            return Response("CV o podanym id nie należy do obecnego użytkownika.", status.HTTP_403_FORBIDDEN)
+            return Response("CV o podanym id nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
 
         prev_app = JobOfferApplication.objects.filter(cv__cv_user=user, 
             job_offer__id=request.data['job_offer'])
 
         if prev_app:
-             return Response("Użytkownik już aplikował na tę ofertę", status.HTTP_403_FORBIDDEN)
+             return Response("Aplikowałeś_aś już na tę ofertę", status.HTTP_403_FORBIDDEN)
 
         serializer = JobOfferApplicationSerializer(data=request.data)
         if serializer.is_valid():
@@ -287,7 +287,7 @@ class JobOfferApplicationView(views.APIView):
         responses={
             '200': JobOfferApplicationSerializer,
             '403': "You do not have permission to perform this action.",
-            '404': "Ten użytkownik nie posiada aplikacji o podanym id"
+            '404': "Nie posiadasz takiej aplikacji"
         },
         manual_parameters=[
             Parameter('offer_id', IN_PATH, type='string($uuid)', 
@@ -299,7 +299,7 @@ class JobOfferApplicationView(views.APIView):
         user = DefaultAccount.objects.get(user=request.user)
         application = JobOfferApplication.objects.filter(cv__cv_user=user, job_offer__id=offer_id)
         if not application:
-             return Response("Ten użytkownik nie posiada aplikacji o podanym id", status.HTTP_404_NOT_FOUND)
+             return Response("Nie posiadasz takiej aplikacji", status.HTTP_404_NOT_FOUND)
 
         serializer = JobOfferApplicationSerializer(application.first())
         return Response(serializer.data, status.HTTP_200_OK)
@@ -308,7 +308,7 @@ class JobOfferApplicationView(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': JobOfferApplicationSerializer(many=True),
-        '403': "Oferta nie należy do obecnego użytkownika",
+        '403': "Oferta nie należy do Ciebie",
         '404': "Nie znaleziono oferty"
     },
     manual_parameters=[
@@ -331,7 +331,7 @@ class EmployerApplicationListView(ListAPIView):
             if IsEmployer().has_object_permission(request, self, offer):
                 return super().get(request)
             else:
-                return ErrorResponse("Oferta nie należy do obecnego użytkownika", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Oferta nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
         except ObjectDoesNotExist:
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
 

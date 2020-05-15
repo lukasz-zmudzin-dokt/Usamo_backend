@@ -1,25 +1,25 @@
 from datetime import date
 
-from account.models import DefaultAccount, Address
+from usamo.serializers import PolishModelSerializer
 from account.serializers import AddressSerializer
 from rest_framework import serializers
 
 from .models import *
 
 
-class JobOfferCategorySerializer(serializers.ModelSerializer):
+class JobOfferCategorySerializer(PolishModelSerializer):
     class Meta:
         model = JobOfferCategory
         fields = ['name']
 
 
-class JobOfferTypeSerializer(serializers.ModelSerializer):
+class JobOfferTypeSerializer(PolishModelSerializer):
     class Meta:
         model = JobOfferType
         fields = ['name']
 
 
-class JobOfferSerializer(serializers.ModelSerializer):
+class JobOfferSerializer(PolishModelSerializer):
     voivodeship = serializers.ChoiceField(choices=Voivodeships.choices)
     company_address = AddressSerializer()
     category = serializers.CharField(source='category.name')
@@ -102,7 +102,7 @@ class JobOfferFiltersSerializer(serializers.Serializer):
         return instance
 
 
-class JobOfferApplicationSerializer(serializers.ModelSerializer):
+class JobOfferApplicationSerializer(PolishModelSerializer):
     cv_url = serializers.CharField(source='cv.document.url', read_only=True)
     user_id = serializers.UUIDField(source='cv.cv_user.user.id', read_only=True)
     first_name = serializers.CharField(source='cv.cv_user.user.first_name', read_only=True)

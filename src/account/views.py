@@ -41,7 +41,7 @@ class AbstractRegistrationView(views.APIView):
 
     @staticmethod
     def set_response_params(user, response_data):
-        response_data['response_message'] = "Pomyślnie zarejestrowano nowego użytkownika"
+        response_data['response_message'] = "Rejestracja powiodła się"
         response_data['email'] = user.email
         response_data['username'] = user.username
         token = Token.objects.get(user=user).key
@@ -52,7 +52,7 @@ class AbstractRegistrationView(views.APIView):
 
 def sample_registration_response(account_type):
     response = openapi.Schema(properties={
-        'response_message': openapi.Schema(type='string', default='Pomyślnie zarejestrowano nowego użytkownika'),
+        'response_message': openapi.Schema(type='string', default='Rejestracja powiodła się'),
         'email': openapi.Schema(type='string', format='email', default='example@domain.com'),
         'username': openapi.Schema(type='string', default='sample_user'),
         'token': openapi.Schema(type='string', default='8f67f4a7e4c79f720ea82e6008f2f6e8a9661af7'),
@@ -143,7 +143,7 @@ class LogoutView(views.APIView):
     @swagger_auto_schema(
         operation_description="Wylogowuje obecnego użytkownika",
         responses={
-            status.HTTP_200_OK: 'success: Pomyślnie usunięto stary token'
+            status.HTTP_200_OK: 'message: Wylogowanie powiodło się'
         }
     )
     def post(self, request):
@@ -155,7 +155,7 @@ class LogoutView(views.APIView):
         except (AttributeError, ObjectDoesNotExist):
             pass
 
-        return Response({'success': 'Pomyślnie usunięto stary token'}, status.HTTP_200_OK)
+        return Response({'message': 'Wylogowanie powiodło się'}, status.HTTP_200_OK)
 
 
 class LoginView(ObtainAuthToken):
@@ -170,6 +170,11 @@ class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
+        for field in serializer.fields:
+            serializer.fields[field].error_messages = {
+                'required': 'To pole jest wymagane',
+                'blank': 'To pole nie może być puste'
+            }
         if serializer.is_valid():
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)

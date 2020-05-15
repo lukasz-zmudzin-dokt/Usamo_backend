@@ -1,39 +1,35 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from phonenumber_field.validators import validate_international_phonenumber
-from django.core.exceptions import ValidationError
-from rest_framework.relations import PrimaryKeyRelatedField
 from django.core.files.base import ContentFile
 from .utilities import *
 from .models import *
-from account.models import DefaultAccount
+from usamo.serializers import PolishModelSerializer
 
 
-class SchoolSerializer(serializers.ModelSerializer):
+class SchoolSerializer(PolishModelSerializer):
     class Meta:
         model = School
         fields = ['name', 'year_start', 'year_end', 'additional_info']
 
 
-class ExperienceSerializer(serializers.ModelSerializer):
+class ExperienceSerializer(PolishModelSerializer):
     class Meta:
         model = Experience
         fields = ['title', 'description', 'year_start', 'year_end']
 
 
-class SkillSerializer(serializers.ModelSerializer):
+class SkillSerializer(PolishModelSerializer):
     class Meta:
         model = Skill
         fields = ['description']
 
 
-class LanguageSerializer(serializers.ModelSerializer):
+class LanguageSerializer(PolishModelSerializer):
     class Meta:
         model = Language
         fields = ['name', 'level']
 
 
-class BasicInfoSerializer(serializers.ModelSerializer):
+class BasicInfoSerializer(PolishModelSerializer):
     picture = serializers.ImageField(required=False)
 
     class Meta:
@@ -42,7 +38,7 @@ class BasicInfoSerializer(serializers.ModelSerializer):
                   'date_of_birth', 'phone_number', 'picture']
 
 
-class FeedbackSerializer(serializers.ModelSerializer):
+class FeedbackSerializer(PolishModelSerializer):
     cv_id = serializers.UUIDField()
 
     class Meta:
@@ -63,7 +59,7 @@ class FeedbackSerializer(serializers.ModelSerializer):
         return fb
 
 
-class CVSerializer(serializers.ModelSerializer):
+class CVSerializer(PolishModelSerializer):
     cv_id = serializers.UUIDField(read_only=True)
     user_id = serializers.UUIDField(source='cv_user.user.id', read_only=True)
     date_created = serializers.DateTimeField(read_only=True)

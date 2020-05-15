@@ -12,9 +12,10 @@ from .models import DefaultAccount, EmployerAccount, Account, StaffAccount, Addr
 from .account_type import STAFF_GROUP_CHOICES
 from .models import DefaultAccount, EmployerAccount, Account, StaffAccount
 from .validators import validate_nip
+from usamo.serializers import PolishModelSerializer
 
 
-class AbstractAccountSerializer(serializers.ModelSerializer):
+class AbstractAccountSerializer(PolishModelSerializer):
 
     def create(self, validated_data):
         password = validated_data.pop('password')
@@ -75,7 +76,7 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         return
 
 
-class AddressSerializer(serializers.ModelSerializer):
+class AddressSerializer(PolishModelSerializer):
     class Meta:
         model = Address
         fields = ['city', 'street', 'street_number', 'postal_code']
@@ -107,7 +108,7 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
             'phone_number': {'required': True},
             'first_name': {'required': True},
             'facility_name': {'required': True},
-            'facility_address': {'required': True}
+            'facility_address': {'required': True},
         }
 
     def update(self, instance, validated_data):
@@ -235,7 +236,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
         return attrs
 
 
-class AccountListSerializer(serializers.ModelSerializer):
+class AccountListSerializer(PolishModelSerializer):
     type = serializers.CharField(source='get_type_display')
     status = serializers.CharField(source='get_status_display')
     
