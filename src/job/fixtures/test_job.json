@@ -37,6 +37,7 @@
       "expiration_date": "2020-05-28",
       "description": "Po przejsciu stazu oferujemy zatrudnienie i dobra place.",
       "removed": false,
+      "confirmed": true,
       "employer": 1
    }
 },
@@ -52,7 +53,7 @@
       "voivodeship": "mazowieckie",
       "expiration_date": "2020-05-28",
       "description": "Pracuj w m\u0142odym, dynamicznym zespole! Licz\u0105 si\u0119 tylko ch\u0119ci!",
-      "removed": false,
+      "confirmed": true,
       "employer": 2
    }
 },
@@ -69,6 +70,7 @@
       "expiration_date": "2020-05-28",
       "description": "Szukamy osob dobrze zorientowanych w mediach spolecznosciowych. Oferujemy dobra place, karte Multisport...",
       "removed": false,
+      "confirmed": false,
       "employer": 1
    }
 },
