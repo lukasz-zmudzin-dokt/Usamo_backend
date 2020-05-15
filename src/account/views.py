@@ -170,11 +170,6 @@ class LoginView(ObtainAuthToken):
     def post(self, request, *args, **kwargs):
         serializer = self.serializer_class(data=request.data,
                                            context={'request': request})
-        for field in serializer.fields:
-            serializer.fields[field].error_messages = {
-                'required': 'To pole jest wymagane',
-                'blank': 'To pole nie może być puste'
-            }
         if serializer.is_valid():
             user = serializer.validated_data['user']
             token, created = Token.objects.get_or_create(user=user)

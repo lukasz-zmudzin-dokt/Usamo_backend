@@ -2,34 +2,33 @@ from rest_framework import serializers
 from django.core.files.base import ContentFile
 from .utilities import *
 from .models import *
-from usamo.serializers import PolishModelSerializer
 
 
-class SchoolSerializer(PolishModelSerializer):
+class SchoolSerializer(serializers.ModelSerializer):
     class Meta:
         model = School
         fields = ['name', 'year_start', 'year_end', 'additional_info']
 
 
-class ExperienceSerializer(PolishModelSerializer):
+class ExperienceSerializer(serializers.ModelSerializer):
     class Meta:
         model = Experience
         fields = ['title', 'description', 'year_start', 'year_end']
 
 
-class SkillSerializer(PolishModelSerializer):
+class SkillSerializer(serializers.ModelSerializer):
     class Meta:
         model = Skill
         fields = ['description']
 
 
-class LanguageSerializer(PolishModelSerializer):
+class LanguageSerializer(serializers.ModelSerializer):
     class Meta:
         model = Language
         fields = ['name', 'level']
 
 
-class BasicInfoSerializer(PolishModelSerializer):
+class BasicInfoSerializer(serializers.ModelSerializer):
     picture = serializers.ImageField(required=False)
 
     class Meta:
@@ -38,7 +37,7 @@ class BasicInfoSerializer(PolishModelSerializer):
                   'date_of_birth', 'phone_number', 'picture']
 
 
-class FeedbackSerializer(PolishModelSerializer):
+class FeedbackSerializer(serializers.ModelSerializer):
     cv_id = serializers.UUIDField()
 
     class Meta:
@@ -59,7 +58,7 @@ class FeedbackSerializer(PolishModelSerializer):
         return fb
 
 
-class CVSerializer(PolishModelSerializer):
+class CVSerializer(serializers.ModelSerializer):
     cv_id = serializers.UUIDField(read_only=True)
     user_id = serializers.UUIDField(source='cv_user.user.id', read_only=True)
     date_created = serializers.DateTimeField(read_only=True)

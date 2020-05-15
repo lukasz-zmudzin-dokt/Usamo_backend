@@ -1,12 +1,10 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from usamo.serializers import PolishModelSerializer
-
 from .models import *
 
 
-class BlogPostTagSerializer(PolishModelSerializer):
+class BlogPostTagSerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPostTag
         fields = ['name']
@@ -19,7 +17,7 @@ class BlogPostTagSerializer(PolishModelSerializer):
         return instance.name
 
 
-class BlogPostCategorySerializer(PolishModelSerializer):
+class BlogPostCategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = BlogPostCategory
         fields = ['name']
@@ -32,7 +30,7 @@ class BlogPostCategorySerializer(PolishModelSerializer):
         return instance.name
 
 
-class BlogAuthorSerializer(PolishModelSerializer):
+class BlogAuthorSerializer(serializers.ModelSerializer):
     username = serializers.CharField(source='user.username')
     email = serializers.CharField(source='user.email')
     first_name = serializers.CharField(source='user.first_name')
@@ -44,14 +42,14 @@ class BlogAuthorSerializer(PolishModelSerializer):
         fields = ['id', 'username', 'email', 'first_name', 'last_name']
 
 
-class CommentAuthorSerializer(PolishModelSerializer):
+class CommentAuthorSerializer(serializers.ModelSerializer):
     
     class Meta:
         model = Account
         fields = ['id', 'username', 'email']
 
 
-class BlogPostCommentSerializer(PolishModelSerializer):
+class BlogPostCommentSerializer(serializers.ModelSerializer):
     author = CommentAuthorSerializer(read_only=True)
     date_created = serializers.DateTimeField(read_only=True)
 
@@ -72,7 +70,7 @@ class BlogPostCommentSerializer(PolishModelSerializer):
         return instance
 
 
-class BlogPostSerializer(PolishModelSerializer):
+class BlogPostSerializer(serializers.ModelSerializer):
     category = BlogPostTagSerializer()
     tags = BlogPostTagSerializer(many=True)
     author = BlogAuthorSerializer(read_only=True)
@@ -134,14 +132,14 @@ class BlogPostListSerializer(BlogPostSerializer):
         fields = ['id', 'title', 'author', 'category', 'tags', 'summary', 'date_created', 'header']
 
 
-class BlogPostHeaderSerializer(PolishModelSerializer):
+class BlogPostHeaderSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BlogPostHeader
         fields = '__all__'
 
 
-class BlogPostAttachmentSerializer(PolishModelSerializer):
+class BlogPostAttachmentSerializer(serializers.ModelSerializer):
     attachment_url = serializers.CharField(source='file.url', read_only=True)
 
     class Meta:
