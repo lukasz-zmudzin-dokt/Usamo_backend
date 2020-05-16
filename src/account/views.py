@@ -138,7 +138,7 @@ class LoginView(KnoxLoginView):
         operation_description="Zwraca token, jego datę ważności oraz typ użytkownika w oparciu o "
                               "username i hasło",
         responses={
-            201: sample_login_response(AccountType.STANDARD.value),
+            200: sample_login_response(AccountType.STANDARD.value),
             400: 'Błędy walidacji (np. brakujące pole) '
                  '/ Podane dane uwierzytelniające nie pozwalają na zalogowanie.'
         }
