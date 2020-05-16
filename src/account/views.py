@@ -1,12 +1,14 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import login
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from knox.views import LoginView as KnoxLoginView
+from knox.views import LogoutView as KnoxLogoutView
+from knox.views import LogoutAllView as KnoxLogoutAllView
 from rest_framework import status
 from rest_framework import views
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.decorators import permission_classes
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -16,7 +18,7 @@ from .permissions import CanStaffVerifyUsers
 from .serializers import *
 from .models import *
 from .filters import *
-from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema
+from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_registration_response, sample_login_response
 from rest_framework.pagination import PageNumberPagination
 from job.views import ErrorResponse, MessageResponse
 
@@ -27,10 +29,10 @@ class UserListPagination(PageNumberPagination):
     max_page_size = 100
 
 
-class AbstractRegistrationView(views.APIView):
+class AbstractRegistrationView(KnoxLoginView):
     permission_classes = [AllowAny]
 
-    def perform_registration(self, serializer):
+    def perform_registration(self, serializer, request):
         response_data = {}
         if serializer.is_valid():
             user = serializer.create(serializer.validated_data)
@@ -38,31 +40,24 @@ class AbstractRegistrationView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        token_data = self.__create_token(request)
+        response_data['token_data'] = token_data
+        return Response(response_data, status.HTTP_201_CREATED)
+
+    def __create_token(self, request):
+        token_serializer = AuthTokenSerializer(data=request.data)
+        token_serializer.is_valid(raise_exception=True)
+        user = token_serializer.validated_data['user']
+        login(request, user)
+        return super(AbstractRegistrationView, self).post(request, format=None).data
 
     @staticmethod
     def set_response_params(user, response_data):
         response_data['response_message'] = "Successfully registered a new user"
         response_data['email'] = user.email
         response_data['username'] = user.username
-        token = Token.objects.get(user=user).key
-        response_data['token'] = token
         response_data['status'] = AccountStatus(user.status).name.lower()
         response_data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
-
-
-def sample_registration_response(account_type):
-    response = openapi.Schema(properties={
-        'response_message': openapi.Schema(type='string', default='Successfully registered a new user'),
-        'email': openapi.Schema(type='string', format='email', default='example@domain.com'),
-        'username': openapi.Schema(type='string', default='sample_user'),
-        'token': openapi.Schema(type='string', default='8f67f4a7e4c79f720ea82e6008f2f6e8a9661af7'),
-        'status': openapi.Schema(type='string', default='Waiting for verification'),
-        'type': openapi.Schema(type='string', default=account_type)
-    },
-        type='object'
-    )
-    return response
 
 
 class DefaultAccountRegistrationView(AbstractRegistrationView):
@@ -84,13 +79,13 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
     @swagger_auto_schema(
         request_body=sample_default_account_request_schema(),
         responses={
-            201: sample_registration_response('Standard'),
+            201: sample_registration_response('standard'),
             400: 'Serializer errors'
         }
     )
     def post(self, request):
         serializer = DefaultAccountSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer)
+        return self.perform_registration(serializer, request)
 
 
 class EmployerRegistrationView(AbstractRegistrationView):
@@ -113,73 +108,75 @@ class EmployerRegistrationView(AbstractRegistrationView):
     @swagger_auto_schema(
         request_body=sample_employer_account_request_schema(),
         responses={
-            201: sample_registration_response('Employer'),
+            201: sample_registration_response('employer'),
             400: 'Serializer errors'
         }
     )
     def post(self, request):
         serializer = EmployerAccountSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer)
+        return self.perform_registration(serializer, request)
 
 
 class StaffRegistrationView(AbstractRegistrationView):
-
     permission_classes = [CanStaffVerifyUsers]
 
     @swagger_auto_schema(
         query_serializer=StaffAccountSerializer,
         responses={
-            201: sample_registration_response('Staff'),
+            201: sample_registration_response('staff'),
             400: 'Serializer errors'
         }
     )
     def post(self, request):
         serializer = StaffAccountSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer)
+        return self.perform_registration(serializer, request)
 
 
-class LogoutView(views.APIView):
-    permission_classes = [IsAuthenticated]
+class LogoutView(KnoxLogoutView):
 
     @swagger_auto_schema(
         operation_description="Logout currently logged in user.",
         responses={
-            status.HTTP_200_OK: 'success: Successfully deleted the old token'
+            status.HTTP_200_OK: 'message: Successfully logged out'
         }
     )
     def post(self, request):
-        return self.logout(request)
-
-    def logout(self, request):
-        try:
-            request.user.auth_token.delete()
-        except (AttributeError, ObjectDoesNotExist):
-            pass
-
-        return Response({'success': 'Successfully deleted the old token'}, status.HTTP_200_OK)
+        response = super(LogoutView, self).post(request)
+        return Response({'message': 'Successfully logged out'},
+                        status.HTTP_200_OK) if response.data is None else response
 
 
-class LoginView(ObtainAuthToken):
+class LogoutAllView(KnoxLogoutAllView):
+
+    @swagger_auto_schema(
+        operation_description="Logout on all devices currently logged in user",
+        responses={
+            status.HTTP_200_OK: 'message: Successfully logged out on all devices'
+        }
+    )
+    def post(self, request, format=None):
+        super(LogoutAllView, self).post(request)
+        return Response({'message': 'Successfully logged out on all devices'})
+
+
+class LoginView(KnoxLoginView):
+    permission_classes = [AllowAny]
 
     @swagger_auto_schema(
         operation_description="Obtain auth token by specifying username and password",
         responses={
-            201: 'Generated token and user type',
+            201: sample_login_response(AccountType.STANDARD.value),
             400: 'Serializer errors/ Unable to login with given credentials'
         }
     )
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                           context={'request': request})
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({
-                'token': token.key,
-                'type': dict(ACCOUNT_TYPE_CHOICES)[user.type]
-            }, status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        response = super(LoginView, self).post(request, format=None)
+        response.data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
+        return response
 
 
 class UserStatusView(views.APIView):
