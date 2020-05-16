@@ -3,22 +3,26 @@ from enum import Enum
 class AccountStatus(Enum):
     VERIFIED = 1
     WAITING_FOR_VERIFICATION = 2
-    NOT_VERIFIED = 3
+    REJECTED = 3
+    BLOCKED = 4
 
 ACCOUNT_STATUS_CHOICES = [
-    (AccountStatus.VERIFIED.value, 'Verified'),
-    (AccountStatus.WAITING_FOR_VERIFICATION.value, 'Waiting for verification'),
-    (AccountStatus.NOT_VERIFIED.value, 'Not verified')
+    (AccountStatus.VERIFIED.value, 'verified'),
+    (AccountStatus.WAITING_FOR_VERIFICATION.value, 'waiting_for_verification'),
+    (AccountStatus.REJECTED.value, 'rejected'),
+    (AccountStatus.BLOCKED.value, 'blocked')
 ]
 
 STATUS_CHOICES_VERBOSE = [
-    ('Verified', 'Verified'),
-    ('Waiting for verification', 'Waiting for verification'),
-    ('Not verified', 'Not verified')
+    ('verified', 'verified'),
+    ('waiting_for_verification', 'waiting_for_verification'),
+    ('rejected', 'rejected'),
+    ('blocked', 'blocked')
 ]
 
 STATUS_TO_INT_MAP = {
-    'Verified': 1,
-    'Waiting for verification': 2,
-    'Not verified': 3
+    'verified': 1,
+    'waiting_for_verification': 2,
+    'rejected': 3,
+    'blocked': 4
 }

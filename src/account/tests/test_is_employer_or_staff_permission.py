@@ -42,7 +42,7 @@ class IsEmployerOrAdminPermissionTest(unittest.TestCase):
     def test_user_not_verified(self):
         for i in AccountType:
             self.request.user.reset_mock()
-            self.request.user.configure_mock(type=i.value, status=AccountStatus.NOT_VERIFIED.value)
+            self.request.user.configure_mock(type=i.value, status=AccountStatus.REJECTED.value)
             self.assertFalse(self.employer_permission.has_permission(self.request, self.view))
             self.assertFalse(self.staff_permission.has_permission(self.request, self.view))
 

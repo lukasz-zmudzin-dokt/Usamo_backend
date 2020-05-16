@@ -1,12 +1,14 @@
-from django.core.exceptions import ObjectDoesNotExist
+from django.contrib.auth import login
 from django.http import JsonResponse
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
+from knox.views import LoginView as KnoxLoginView
+from knox.views import LogoutView as KnoxLogoutView
+from knox.views import LogoutAllView as KnoxLogoutAllView
 from rest_framework import status
 from rest_framework import views
-from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.decorators import permission_classes
+from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -16,8 +18,9 @@ from .permissions import CanStaffVerifyUsers
 from .serializers import *
 from .models import *
 from .filters import *
-from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema
+from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_registration_response, sample_login_response
 from rest_framework.pagination import PageNumberPagination
+from job.views import ErrorResponse, MessageResponse
 
 
 class UserListPagination(PageNumberPagination):
@@ -26,10 +29,10 @@ class UserListPagination(PageNumberPagination):
     max_page_size = 100
 
 
-class AbstractRegistrationView(views.APIView):
+class AbstractRegistrationView(KnoxLoginView):
     permission_classes = [AllowAny]
 
-    def perform_registration(self, serializer):
+    def perform_registration(self, serializer, request):
         response_data = {}
         if serializer.is_valid():
             user = serializer.create(serializer.validated_data)
@@ -37,37 +40,30 @@ class AbstractRegistrationView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        token_data = self.__create_token(request)
+        response_data['token_data'] = token_data
+        return Response(response_data, status.HTTP_201_CREATED)
+
+    def __create_token(self, request):
+        token_serializer = AuthTokenSerializer(data=request.data)
+        token_serializer.is_valid(raise_exception=True)
+        user = token_serializer.validated_data['user']
+        login(request, user)
+        return super(AbstractRegistrationView, self).post(request, format=None).data
 
     @staticmethod
     def set_response_params(user, response_data):
-        response_data['response_message'] = "Rejestracja powiodła się"
+        response_data['response_message'] = "Successfully registered a new user"
         response_data['email'] = user.email
         response_data['username'] = user.username
-        token = Token.objects.get(user=user).key
-        response_data['token'] = token
         response_data['status'] = AccountStatus(user.status).name.lower()
         response_data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
 
 
-def sample_registration_response(account_type):
-    response = openapi.Schema(properties={
-        'response_message': openapi.Schema(type='string', default='Rejestracja powiodła się'),
-        'email': openapi.Schema(type='string', format='email', default='example@domain.com'),
-        'username': openapi.Schema(type='string', default='sample_user'),
-        'token': openapi.Schema(type='string', default='8f67f4a7e4c79f720ea82e6008f2f6e8a9661af7'),
-        'status': openapi.Schema(type='string', default='Waiting for verification'),
-        'type': openapi.Schema(type='string', default=account_type)
-    },
-        type='object'
-    )
-    return response
-
-
 class DefaultAccountRegistrationView(AbstractRegistrationView):
     """
-    > ## Tworzy konto domyślnego użytkownika
-    > Wymagane parametry:
+    > ## Creates a default account
+    > Required parameters:
     >
     > - username
     > - email
@@ -83,19 +79,19 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
     @swagger_auto_schema(
         request_body=sample_default_account_request_schema(),
         responses={
-            201: sample_registration_response('Standard'),
-            400: 'Błędy walidacji (np. brakujące pole)'
+            201: sample_registration_response('standard'),
+            400: 'Serializer errors'
         }
     )
     def post(self, request):
         serializer = DefaultAccountSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer)
+        return self.perform_registration(serializer, request)
 
 
 class EmployerRegistrationView(AbstractRegistrationView):
     """
-    > ## Tworzy konto pracodawcy
-    > Wymagane parametry:
+    > ## Creates an account for an employer
+    > Required parameters:
     >
     > - username
     > - email
@@ -112,73 +108,75 @@ class EmployerRegistrationView(AbstractRegistrationView):
     @swagger_auto_schema(
         request_body=sample_employer_account_request_schema(),
         responses={
-            201: sample_registration_response('Employer'),
-            400: 'Błędy walidacji (np. brakujące pole)'
+            201: sample_registration_response('employer'),
+            400: 'Serializer errors'
         }
     )
     def post(self, request):
         serializer = EmployerAccountSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer)
+        return self.perform_registration(serializer, request)
 
 
 class StaffRegistrationView(AbstractRegistrationView):
-
     permission_classes = [CanStaffVerifyUsers]
 
     @swagger_auto_schema(
         query_serializer=StaffAccountSerializer,
         responses={
-            201: sample_registration_response('Staff'),
-            400: 'Błędy walidacji (np. brakujące pole)'
+            201: sample_registration_response('staff'),
+            400: 'Serializer errors'
         }
     )
     def post(self, request):
         serializer = StaffAccountSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer)
+        return self.perform_registration(serializer, request)
 
 
-class LogoutView(views.APIView):
-    permission_classes = [IsAuthenticated]
+class LogoutView(KnoxLogoutView):
 
     @swagger_auto_schema(
-        operation_description="Wylogowuje obecnego użytkownika",
+        operation_description="Logout currently logged in user.",
         responses={
-            status.HTTP_200_OK: 'message: Wylogowanie powiodło się'
+            status.HTTP_200_OK: 'message: Successfully logged out'
         }
     )
     def post(self, request):
-        return self.logout(request)
-
-    def logout(self, request):
-        try:
-            request.user.auth_token.delete()
-        except (AttributeError, ObjectDoesNotExist):
-            pass
-
-        return Response({'message': 'Wylogowanie powiodło się'}, status.HTTP_200_OK)
+        response = super(LogoutView, self).post(request)
+        return Response({'message': 'Successfully logged out'},
+                        status.HTTP_200_OK) if response.data is None else response
 
 
-class LoginView(ObtainAuthToken):
+class LogoutAllView(KnoxLogoutAllView):
 
     @swagger_auto_schema(
-        operation_description="Zwraca token na podstawie nazwy użytkownika i hasła",
+        operation_description="Logout on all devices currently logged in user",
         responses={
-            201: 'Token, typ użytkownika',
-            400: 'Błędy walidacji (np. brakujące pole)/ Unable to login with given credentials'
+            status.HTTP_200_OK: 'message: Successfully logged out on all devices'
         }
     )
-    def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data,
-                                           context={'request': request})
-        if serializer.is_valid():
-            user = serializer.validated_data['user']
-            token, created = Token.objects.get_or_create(user=user)
-            return Response({
-                'token': token.key,
-                'type': dict(ACCOUNT_TYPE_CHOICES)[user.type]
-            }, status.HTTP_201_CREATED)
-        else:
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+    def post(self, request, format=None):
+        super(LogoutAllView, self).post(request)
+        return Response({'message': 'Successfully logged out on all devices'})
+
+
+class LoginView(KnoxLoginView):
+    permission_classes = [AllowAny]
+
+    @swagger_auto_schema(
+        operation_description="Obtain auth token by specifying username and password",
+        responses={
+            201: sample_login_response(AccountType.STANDARD.value),
+            400: 'Serializer errors/ Unable to login with given credentials'
+        }
+    )
+    def post(self, request, format=None):
+        serializer = AuthTokenSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.validated_data['user']
+        login(request, user)
+        response = super(LoginView, self).post(request, format=None)
+        response.data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
+        return response
 
 
 class UserStatusView(views.APIView):
@@ -203,8 +201,8 @@ class DataView(views.APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_description="Zwraca dane obecnie zalogowanego użytkownika"
-                              "Przykład jest dla użytkownika domyślnego.",
+        operation_description="Get currently logged in user's data."
+                              "Example response is for default user.",
 
         responses={
             200: DefaultAccountSerializer
@@ -230,27 +228,27 @@ class AdminUserAdmissionView(views.APIView):
 
     @swagger_auto_schema(
         responses={
-            '200': 'Użytkownik pomyślnie zweryfikowany',
-            '400': 'Nie podano id użytkownika',
-            '404': 'Nie znaleziono użytkownika o podanym id'
+            '200': 'User successfully verified.',
+            '400': 'User id was not specified.',
+            '404': 'User with the id given was not found.'
         },
         manual_parameters=[
             openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
-                              description='String UUID będący id użytkownika')
+                              description='A UUID string identifying this account')
         ],
-        operation_description="Zmienia status użytkownika na verified",
+        operation_description="Sets user's status to verified.",
     )
     def post(self, request, user_id):
         if user_id is not None:
             try:
                 user = Account.objects.get(pk=user_id)
             except Account.DoesNotExist:
-                return Response('Nie znaleziono użytkownika o podanym id', status.HTTP_404_NOT_FOUND)
+                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
             user.status = AccountStatus.VERIFIED.value
             user.save()
-            return Response('Użytkownik pomyślnie zweryfikowany', status.HTTP_200_OK)
+            return Response('User successfully verified.', status.HTTP_200_OK)
 
-        return Response('Nie podano id użytkownika', status.HTTP_400_BAD_REQUEST)
+        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
 
 
 class AdminUserRejectionView(views.APIView):
@@ -258,28 +256,55 @@ class AdminUserRejectionView(views.APIView):
 
     @swagger_auto_schema(
         responses={
-            '200': 'Użytkownik pomyślnie odrzucony',
-            '400': 'Nie podano id użytkownika',
-            '404': 'Nie znaleziono użytkownika o podanym id'
+            '200': 'message: Użytkownik został pomyślnie odrzucony',
+            '400': 'error: ID użytkownika nie zostało podane',
+            '404': 'error: Użytkownik o podanym id nie został znaleziony.'
         },
         manual_parameters=[
             openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
-                              description='String UUID będący id użytkownika')
+                              description='String UUID będący id danego użytkownika')
         ],
-        operation_description="Zmienia status użytkownika na not verified",
+        operation_description="Ustawia status użytkownika na rejected.",
     )
     def post(self, request, user_id):
         if user_id is not None:
             try:
                 user = Account.objects.get(pk=user_id)
             except Account.DoesNotExist:
-                return Response('Nie znaleziono użytkownika o podanym id', status.HTTP_404_NOT_FOUND)
-            user.status = AccountStatus.NOT_VERIFIED.value
+                return ErrorResponse('Użytkownik o podanym ID nie został znaleziony', status.HTTP_404_NOT_FOUND)
+            user.status = AccountStatus.REJECTED.value
             user.save()
-            return Response('Użytkownik pomyślnie odrzucony', status.HTTP_200_OK)
+            return MessageResponse('Użytkownik został pomyślnie odrzucony')
 
-        return Response('Nie podano id użytkownika', status.HTTP_400_BAD_REQUEST)
+        return ErrorResponse('ID użytkownika nie zostało podane', status.HTTP_400_BAD_REQUEST)
 
+
+class AdminUserBlockView(views.APIView):
+    permission_classes = [CanStaffVerifyUsers]
+
+    @swagger_auto_schema(
+        responses={
+            '200': 'message: Użytkownik został pomyślnie zablokowany',
+            '400': 'error: ID użytkownika nie zostało podane',
+            '404': 'error: Użytkownik o podanym ID nie został znaleziony'
+        },
+        manual_parameters=[
+            openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego użytkownika')
+        ],
+        operation_description="Ustawia status użytkownika na blocked.",
+    )
+    def post(self, request, user_id):
+        if user_id is not None:
+            try:
+                user = Account.objects.get(pk=user_id)
+            except Account.DoesNotExist:
+                return ErrorResponse('Użytkownik o podanym ID nie został znaleziony', status.HTTP_404_NOT_FOUND)
+            user.status = AccountStatus.BLOCKED.value
+            user.save()
+            return MessageResponse('Użytkownik został pomyślnie zablokowany')
+
+        return ErrorResponse('ID użytkownika nie zostało podane', status.HTTP_400_BAD_REQUEST)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
@@ -287,7 +312,7 @@ class AdminUserRejectionView(views.APIView):
         '404': "Not found",
     },
     filter_inspectors=[DjangoFilterDescriptionInspector],
-    operation_description="Zwraca listę wszystkich kont dla admina"
+    operation_description="Returns all accounts list for admin"
 ))
 class AdminAllAccountsListView(ListAPIView):
     queryset = Account.objects.all()
@@ -306,7 +331,7 @@ class AdminAllAccountsListView(ListAPIView):
         '404': "Not found",
     },
     filter_inspectors=[DjangoFilterDescriptionInspector],
-    operation_description="Zwraca listę domyślnych kont dla admina"
+    operation_description="Returns standard accounts list for admin"
 ))
 class AdminDefaultAccountsListView(ListAPIView):
     serializer_class = AccountListSerializer
@@ -327,7 +352,7 @@ class AdminDefaultAccountsListView(ListAPIView):
         '404': "Not found",
     },
     filter_inspectors=[DjangoFilterDescriptionInspector],
-    operation_description="Zwraca listę kont pracodawców dla admina"
+    operation_description="Returns employer accounts list for admin"
 ))
 class AdminEmployerListView(ListAPIView):
     serializer_class = AccountListSerializer
@@ -348,7 +373,7 @@ class AdminEmployerListView(ListAPIView):
         '404': "Not found",
     },
     filter_inspectors=[DjangoFilterDescriptionInspector],
-    operation_description="Zwraca listę kont pracowników dla admina"
+    operation_description="Returns staff accounts list for admin"
 ))
 class AdminStaffListView(ListAPIView):
     serializer_class = AccountListSerializer
@@ -368,7 +393,7 @@ class AdminStaffListView(ListAPIView):
         '200': DefaultAccountDetailSerializer,
         '404': "Not found",
     },
-    operation_description="Zwraca pełne dane użytkownika po jego id. Przykład podano dla domyślnego użytkownika"
+    operation_description="Get user's data by specifying his/her id (for admin). Example response is for standard user."
 ))
 class AdminUserDetailView(RetrieveAPIView):
     queryset = Account.objects.all()
