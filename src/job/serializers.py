@@ -33,8 +33,9 @@ class JobOfferSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JobOffer
-        fields = ['id', 'offer_name', 'category', 'type', 'company_name', 'company_address', 'voivodeship', 'expiration_date',
+        fields = ['id', 'offer_name', 'offer_image', 'category', 'type', 'company_name', 'company_address', 'voivodeship', 'expiration_date',
                   'description']
+        read_only_fields = ['offer_image']
 
     def create(self, validated_data):
         validated_data['category'] = JobOfferCategory.objects.get(**validated_data['category'])

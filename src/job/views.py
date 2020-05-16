@@ -1,8 +1,9 @@
 from account.models import EmployerAccount, DefaultAccount
 from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
-from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema, IN_BODY
+from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema, IN_BODY, IN_FORM
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import generics, serializers
 from rest_framework import status
@@ -212,6 +213,62 @@ class JobOfferView(views.APIView):
             return MessageResponse("Offer removed successfully")
         except ObjectDoesNotExist:
             return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
+
+
+class JobOfferImageView(views.APIView):
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('offer_id', IN_PATH, type='string($uuid)'),
+            Parameter('file', IN_FORM, type='file')
+        ],
+        responses={
+            '200': sample_message_response('Poprawnie dodano zdjęcie do oferty pracy'),
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': 'Bad request - serializer errors'
+        },
+        operation_description="Upload job offer image.",
+    )
+    def post(self, request, offer_id):
+        try:
+            image = request.FILES['file']
+        except MultiValueDictKeyError:
+            return ErrorResponse('Nie znaleziono pliku. Upewnij się, że został on załączony pod kluczem file',
+                status.HTTP_400_BAD_REQUEST)
+        try:
+            instance = JobOffer.objects.get(pk=offer_id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+        message = 'Poprawnie dodano zdjęcie do oferty pracy'
+        if instance.offer_image:
+            message = 'Poprawnie zmieniono zdjęcie do oferty pracy'
+        instance.offer_image = image
+        instance.save()
+        return MessageResponse(message)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('offer_id', IN_PATH, type='string', format='byte')
+        ],
+        responses={
+            '200': "Usunięto zdjęcie z oferty pracy",
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '404': sample_error_response('Nie znaleziono oferty/Brak zdjęcia dla tej oferty')
+        },
+        operation_description="Usuwanie typu oferty pracy",
+    )
+    def delete(self, request, offer_id):
+        try:
+            instance = JobOffer.objects.get(pk=offer_id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+        if not instance.offer_image:
+            return ErrorResponse('Brak zdjęcia dla tej oferty', status.HTTP_404_NOT_FOUND)
+        instance.offer_image = None
+        instance.save()
+        return MessageResponse('Usunięto zdjęcie z oferty pracy')
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
