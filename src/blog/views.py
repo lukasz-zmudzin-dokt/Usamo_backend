@@ -16,6 +16,8 @@ from account.permissions import GetRequestPublicPermission
 from django.contrib.auth.models import Group
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
+
+from job.views import MessageResponse
 from .permissions import *
 from .serializers import *
 from .models import *
@@ -138,7 +140,7 @@ class BlogPostReservationView(views.APIView):
     def post(self, request):
         new_reservation = BlogPostReservation.objects.create()
         response_data = {"id": new_reservation.id}
-        return Response(response_data, status.HTTP_201_CREATED) 
+        return Response(response_data, status.HTTP_201_CREATED)
 
 
 class BlogPostCreateView(views.APIView):
@@ -148,7 +150,7 @@ class BlogPostCreateView(views.APIView):
         request_body=sample_blogpost_request(),
         responses={
             200: '"message": "Post został pomyślnie utworzony"',
-            400: 'serializer errors'
+            400: 'Błędy walidacji (np. brak jakiegoś pola)'
         }
     )
     def post(self, request):
@@ -177,7 +179,7 @@ class BlogPostHeaderView(views.APIView):
         responses={
             200: '"message": "Nagłówek został pomyślnie utworzony"',
             400: '"error": "Nie znaleziono pliku"',
-            404: '"error": "Post o podanym id nie istnieje"' 
+            404: '"error": "Nie znaleziono podanego posta"'
         },
     )
     def post(self, request, post_id):
@@ -186,8 +188,8 @@ class BlogPostHeaderView(views.APIView):
 
         blog_post = BlogPost.objects.filter(id=post_id).first()
         if not blog_post:
-            return ErrorResponse('Post o podanym id nie istnieje', status.HTTP_404_NOT_FOUND)
-        
+            return ErrorResponse('Nie znaleziono podanego posta', status.HTTP_404_NOT_FOUND)
+
         try:
             data = {'blog_post': post_id, 'file': request.FILES['file']}
         except MultiValueDictKeyError:
@@ -199,7 +201,7 @@ class BlogPostHeaderView(views.APIView):
             serializer.save()
         else:
             return ErrorResponse(serializer.errors, status.HTTP_400_BAD_REQUEST)
-        
+
         response_data = {"message": "Nagłówek został pomyślnie utworzony"}
         return Response(response_data, status.HTTP_200_OK)
 
@@ -235,15 +237,15 @@ class BlogPostAttachmentUploadView(views.APIView):
         responses={
             200: '"attachment_url": url',
             400: '"error": "Nie znaleziono pliku"',
-            404: '"error": "Rezerwacja o podanym id nie istnieje"' 
+            404: '"error": "Nie znaleziono podanej rezerwacji"'
         },
     )
     def post(self, request, post_id):
         try:
             reservation = BlogPostReservation.objects.get(pk=post_id)
         except BlogPostReservation.DoesNotExist:
-            return ErrorResponse("Rezerwacja o podanym id nie istnieje", status.HTTP_404_NOT_FOUND)
-        
+            return ErrorResponse("Nie znaleziono podanej rezerwacji", status.HTTP_404_NOT_FOUND)
+
         try:
             data = {'blog_post': post_id, 'file': request.FILES['file']}
         except MultiValueDictKeyError:
@@ -366,7 +368,7 @@ class BlogPostView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-        operation_description="Returns list of all categories.",
+        operation_description="Zwraca listę wszystkich kategorii",
         responses={
             200: sample_string_response()
         }
@@ -378,7 +380,7 @@ class BlogPostCategoryListView(generics.ListAPIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-        operation_description="Returns list of all tags.",
+        operation_description="Zwraca listę wszystkich tagów",
         responses={
             200: sample_string_response()
         }
@@ -397,7 +399,7 @@ class BlogPostTagListView(generics.ListAPIView):
         responses={
         '200': BlogPostListSerializer(many=True)
         },
-        operation_description="Returns blog post list. Can be filtered by category and/or tag."
+        operation_description="Zwraca listę postów wszystkich lub filtrowanych po kategorii i/lub tagu"
     ))
 class BlogPostListView(generics.ListAPIView):
     serializer_class = BlogPostListSerializer
@@ -424,13 +426,12 @@ class BlogPostCommentCreateView(views.APIView):
         ],
         responses={
             200: sample_commentid_response(),
-            403: 'Forbidden - no permissions',
             404: '"error": "Nie znaleziono posta o podanym id"'
         }
     )
     def post(self, request, post_id):
         author = request.user
-        
+
         try:
             blog_post = BlogPost.objects.get(pk=post_id)
             request.data["blog_post"] = post_id
@@ -469,6 +470,6 @@ class BlogPostCommentUpdateView(views.APIView):
         if IsUserCommentAuthor().has_object_permission(request, self, comment) or \
                 IsStaffBlogModerator().has_object_permission(request, self, comment):
             comment.delete()
-            return Response("Komentarz o podanym id został usunięty", status=status.HTTP_200_OK)
+            return MessageResponse("Komentarz o podanym id został usunięty")
         else:
             return ErrorResponse("Nie masz uprawnień, by usunąć ten komentarz", status.HTTP_403_FORBIDDEN)

@@ -1,6 +1,4 @@
 from datetime import date
-
-from account.models import DefaultAccount, Address
 from account.serializers import AddressSerializer
 from rest_framework import serializers
 
