@@ -17,7 +17,7 @@ from .permissions import CanStaffVerifyUsers
 from .serializers import *
 from .models import *
 from .filters import *
-from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema
+from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_registration_response
 from rest_framework.pagination import PageNumberPagination
 
 
@@ -28,10 +28,10 @@ class UserListPagination(PageNumberPagination):
 from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_login_response
 
 
-class AbstractRegistrationView(views.APIView):
+class AbstractRegistrationView(KnoxLoginView):
     permission_classes = [AllowAny]
 
-    def perform_registration(self, serializer):
+    def perform_registration(self, serializer, request):
         response_data = {}
         if serializer.is_valid():
             user = serializer.create(serializer.validated_data)
@@ -39,7 +39,16 @@ class AbstractRegistrationView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-        return Response(response_data, status=status.HTTP_201_CREATED)
+        token_data = self.__create_token(request)
+        response_data['token_data'] = token_data
+        return Response(response_data, status.HTTP_201_CREATED)
+
+    def __create_token(self, request):
+        token_serializer = AuthTokenSerializer(data=request.data)
+        token_serializer.is_valid(raise_exception=True)
+        user = token_serializer.validated_data['user']
+        login(request, user)
+        return super(AbstractRegistrationView, self).post(request, format=None).data
 
     @staticmethod
     def set_response_params(user, response_data):
@@ -48,19 +57,6 @@ class AbstractRegistrationView(views.APIView):
         response_data['username'] = user.username
         response_data['status'] = AccountStatus(user.status).name.lower()
         response_data['type'] = dict(ACCOUNT_TYPE_CHOICES)[user.type]
-
-
-def sample_registration_response(account_type):
-    response = openapi.Schema(properties={
-        'response_message': openapi.Schema(type='string', default='Successfully registered a new user'),
-        'email': openapi.Schema(type='string', format='email', default='example@domain.com'),
-        'username': openapi.Schema(type='string', default='sample_user'),
-        'status': openapi.Schema(type='string', default='Waiting for verification'),
-        'type': openapi.Schema(type='string', default=account_type)
-    },
-        type='object'
-    )
-    return response
 
 
 class DefaultAccountRegistrationView(AbstractRegistrationView):
@@ -88,7 +84,7 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
     )
     def post(self, request):
         serializer = DefaultAccountSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer)
+        return self.perform_registration(serializer, request)
 
 
 class EmployerRegistrationView(AbstractRegistrationView):
@@ -117,7 +113,7 @@ class EmployerRegistrationView(AbstractRegistrationView):
     )
     def post(self, request):
         serializer = EmployerAccountSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer)
+        return self.perform_registration(serializer, request)
 
 
 class StaffRegistrationView(AbstractRegistrationView):
@@ -132,7 +128,7 @@ class StaffRegistrationView(AbstractRegistrationView):
     )
     def post(self, request):
         serializer = StaffAccountSerializer(data=request.data)
-        return self.perform_registration(serializer=serializer)
+        return self.perform_registration(serializer, request)
 
 
 class LogoutView(KnoxLogoutView):
