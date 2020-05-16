@@ -16,6 +16,8 @@ from account.permissions import GetRequestPublicPermission
 from django.contrib.auth.models import Group
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
+
+from job.views import MessageResponse
 from .permissions import *
 from .serializers import *
 from .models import *
@@ -468,6 +470,6 @@ class BlogPostCommentUpdateView(views.APIView):
         if IsUserCommentAuthor().has_object_permission(request, self, comment) or \
                 IsStaffBlogModerator().has_object_permission(request, self, comment):
             comment.delete()
-            return Response("Komentarz o podanym id został usunięty", status=status.HTTP_200_OK)
+            return MessageResponse("Komentarz o podanym id został usunięty")
         else:
             return ErrorResponse("Nie masz uprawnień, by usunąć ten komentarz", status.HTTP_403_FORBIDDEN)

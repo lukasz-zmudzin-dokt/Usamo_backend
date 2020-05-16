@@ -262,13 +262,13 @@ class CreateJobOfferApplicationView(views.APIView):
         try:
             CV.objects.get(cv_user=user, cv_id=request.data['cv'])
         except CV.DoesNotExist:
-            return Response("CV o podanym id nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("CV o podanym id nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
 
         prev_app = JobOfferApplication.objects.filter(cv__cv_user=user, 
             job_offer__id=request.data['job_offer'])
 
         if prev_app:
-             return Response("Aplikowałeś_aś już na tę ofertę", status.HTTP_403_FORBIDDEN)
+             return ErrorResponse("Aplikowałeś_aś już na tę ofertę", status.HTTP_403_FORBIDDEN)
 
         serializer = JobOfferApplicationSerializer(data=request.data)
         if serializer.is_valid():
@@ -299,7 +299,7 @@ class JobOfferApplicationView(views.APIView):
         user = DefaultAccount.objects.get(user=request.user)
         application = JobOfferApplication.objects.filter(cv__cv_user=user, job_offer__id=offer_id)
         if not application:
-             return Response("Nie posiadasz takiej aplikacji", status.HTTP_404_NOT_FOUND)
+             return ErrorResponse("Nie posiadasz takiej aplikacji", status.HTTP_404_NOT_FOUND)
 
         serializer = JobOfferApplicationSerializer(application.first())
         return Response(serializer.data, status.HTTP_200_OK)

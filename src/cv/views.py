@@ -13,7 +13,7 @@ from account.permissions import IsStandardUser
 from .models import *
 from .serializers import *
 from .permissions import *
-from job.views import sample_message_response
+from job.views import sample_message_response, ErrorResponse, MessageResponse
 import base64
 
 class CreateCVView(views.APIView):
@@ -36,7 +36,7 @@ class CreateCVView(views.APIView):
         users_cvs = CV.objects.filter(cv_user=def_account)
 
         if not users_cvs.count() < 5:
-            return Response("Użytkownik posiada już 5 CV!", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Użytkownik posiada już 5 CV!", status.HTTP_403_FORBIDDEN)
 
         request_data['cv_user'] = def_account.id
         serializer = self.serializer_class(data=request_data)
@@ -69,11 +69,11 @@ class CVView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
 
-        return Response(cv.document.url, status.HTTP_200_OK)
+        return Response({'url': cv.document.url}, status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Usuwa CV z bazy danych jeśli ono istnieje",
@@ -92,12 +92,12 @@ class CVView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
             cv.delete()
         except CV.DoesNotExist:
-            return Response("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
 
-        return Response('CV usunięto pomyślnie', status.HTTP_200_OK)
+        return MessageResponse('CV usunięto pomyślnie')
 
 
 class CVDataView(views.APIView):
@@ -120,9 +120,9 @@ class CVDataView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(instance=cv)
         return Response(serializer.data, status.HTTP_200_OK)
 
@@ -144,9 +144,9 @@ class CVDataView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response("Nie znaleziono cv", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono cv", status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(data=request.data)
 
         delete_previous_cv_file(cv)
@@ -192,10 +192,10 @@ class CVPictureView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
 
         except CV.DoesNotExist:
-            return Response('Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u', status.HTTP_404_NOT_FOUND)
 
         serializer = CVSerializer(instance=cv)
         data = serializer.data
@@ -207,7 +207,7 @@ class CVPictureView(views.APIView):
             cv.has_picture = True
             cv.save()
         except MultiValueDictKeyError:
-            Response('Upewnij się, że form key to "picture"', status.HTTP_400_BAD_REQUEST)
+            ErrorResponse('Upewnij się, że form key to "picture"', status.HTTP_400_BAD_REQUEST)
         serializer = CVSerializer(data=data)
 
         delete_previous_cv_file(cv)
@@ -215,7 +215,7 @@ class CVPictureView(views.APIView):
 
         if serializer.is_valid():
             serializer.update(cv, serializer.validated_data)
-            return Response('Zdjęcie dodano pomyślnie', status.HTTP_201_CREATED)
+            return MessageResponse('Zdjęcie dodano pomyślnie')
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -236,12 +236,12 @@ class CVPictureView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
         bi = BasicInfo.objects.get(cv=cv)
         if not bi.picture:
-            return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono zdjęcia', status.HTTP_404_NOT_FOUND)
 
         encoded_string = base64.b64encode(bi.picture.read())
 
@@ -266,12 +266,12 @@ class CVPictureView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
         bi = BasicInfo.objects.get(cv=cv)
         if not bi.picture:
-            return Response('Nie znaleziono zdjęcia', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono zdjęcia', status.HTTP_404_NOT_FOUND)
         bi.picture.delete(save=True)
         cv.has_picture = False
         cv.save()
@@ -281,7 +281,7 @@ class CVPictureView(views.APIView):
         delete_previous_cv_file(cv)
         cv_serializer.update(cv, cv_serializer.data)
 
-        return Response('Zdjęcie usunięto pomyślnie', status.HTTP_200_OK)
+        return MessageResponse('Zdjęcie usunięto pomyślnie')
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
@@ -320,11 +320,11 @@ class AdminFeedback(views.APIView):
         try:
             cv = CV.objects.get(cv_id=request_data['cv_id'])
         except CV.DoesNotExist:
-            return Response('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
 
         if serializer.is_valid():
             feedback = serializer.create(serializer.validated_data)
-            return Response('Feedback stworzono pomyślnie', status.HTTP_201_CREATED)
+            return MessageResponse('Feedback stworzono pomyślnie')
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -349,14 +349,14 @@ class CVFeedback(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
 
         try:
             fb = Feedback.objects.get(cv_id=cv_id)
         except Feedback.DoesNotExist:
-            return Response('Nie znaleziono feedbacku', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono feedbacku', status.HTTP_404_NOT_FOUND)
 
         serializer = FeedbackSerializer(instance=fb)
         return Response(serializer.data, status.HTTP_200_OK)
@@ -383,12 +383,12 @@ class AdminCVVerificationView(views.APIView):
             try:
                 cv = CV.objects.get(cv_id=cv_id)
             except CV.DoesNotExist:
-                return Response('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
+                return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
             cv.is_verified = True
             cv.save()
-            return Response('CV zweryfikowano pomyślnie', status.HTTP_200_OK)
+            return MessageResponse('CV zweryfikowano pomyślnie')
 
-        return Response('Nie podano cv_id', status.HTTP_400_BAD_REQUEST)
+        return ErrorResponse('Nie podano cv_id', status.HTTP_400_BAD_REQUEST)
 
 
 class CVStatus(views.APIView):
@@ -411,9 +411,9 @@ class CVStatus(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
 
         return Response({"is_verified": cv.is_verified}, status.HTTP_200_OK)
 
@@ -474,17 +474,17 @@ class UserCVNameView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv):
-                return Response("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
 
         except CV.DoesNotExist:
-            return Response('Nie znaleziono CV o podanym id', status=status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
 
         try:
             cv.name = request.data['name']
             cv.save()
             return Response(f'Nazwa CV zmieniona na: {request.data["name"]}', status=status.HTTP_200_OK)
         except KeyError:
-            return Response('Nie podano nowej nazwy CV', status=status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse('Nie podano nowej nazwy CV', status.HTTP_400_BAD_REQUEST)
 
 
 class UserCVAvailabilityView(views.APIView):
