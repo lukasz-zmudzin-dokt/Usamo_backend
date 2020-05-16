@@ -26,6 +26,8 @@ urlpatterns = [
          AdminUserAdmissionView.as_view(), name='admit_user_view'),
     path('admin/user_rejection/<uuid:user_id>/',
          AdminUserRejectionView.as_view(), name='reject_user_view'),
+    path('admin/user_block/<uuid:user_id>/',
+         AdminUserBlockView.as_view(), name='block_user_view'),
     url(r'^password_reset/',
         include('django_rest_passwordreset.urls', namespace='password_reset')),
 ]
