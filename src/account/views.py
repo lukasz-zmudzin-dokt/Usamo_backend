@@ -5,6 +5,7 @@ from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from knox.views import LoginView as KnoxLoginView
 from knox.views import LogoutView as KnoxLogoutView
+from knox.views import LogoutAllView as KnoxLogoutAllView
 from rest_framework import status
 from rest_framework import views
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -143,6 +144,19 @@ class LogoutView(KnoxLogoutView):
         response = super(LogoutView, self).post(request)
         return Response({'success': 'Successfully logged out'},
                         status.HTTP_200_OK) if response.data is None else response
+
+
+class LogoutAllView(KnoxLogoutAllView):
+
+    @swagger_auto_schema(
+        operation_description="Logout on all devices currently logged in user",
+        responses={
+            status.HTTP_200_OK: 'message: Successfully logged out on all devices'
+        }
+    )
+    def post(self, request, format=None):
+        super(LogoutAllView, self).post(request)
+        return Response({'success': 'Successfully logged out on all devices'})
 
 
 class LoginView(KnoxLoginView):
