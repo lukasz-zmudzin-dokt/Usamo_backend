@@ -78,7 +78,7 @@ REST_FRAMEWORK = {
 }
 
 REST_KNOX = {
-  'TOKEN_TTL': timedelta(minutes=int(os.getenv("TOKEN_EXPIRY_MINUTES", default=600))),
+  'TOKEN_TTL': timedelta(minutes=2400),
 }
 
 ROOT_URLCONF = 'usamo.urls'
