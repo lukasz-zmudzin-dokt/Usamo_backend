@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from .permissions import CanStaffVerifyUsers
+from .permissions import CanStaffVerifyUsers, IsStaffMember
 from .serializers import *
 from .models import *
 from .filters import *
@@ -280,6 +280,7 @@ class AdminUserBlockView(views.APIView):
 
         return ErrorResponse('ID użytkownika nie zostało podane', status.HTTP_400_BAD_REQUEST)
 
+
 @method_decorator(name='get', decorator=swagger_auto_schema(
     filter_inspectors=[DjangoFilterDescriptionInspector],
     operation_description="Zwraca listę wszystkich użytkowników dla admina"
@@ -287,7 +288,7 @@ class AdminUserBlockView(views.APIView):
 class AdminAllAccountsListView(ListAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountListSerializer
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = UserListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
@@ -301,7 +302,7 @@ class AdminAllAccountsListView(ListAPIView):
 ))
 class AdminDefaultAccountsListView(ListAPIView):
     serializer_class = AccountListSerializer
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = DefaultAccountListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
@@ -318,7 +319,7 @@ class AdminDefaultAccountsListView(ListAPIView):
 ))
 class AdminEmployerListView(ListAPIView):
     serializer_class = AccountListSerializer
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = EmployerListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
@@ -335,7 +336,7 @@ class AdminEmployerListView(ListAPIView):
 ))
 class AdminStaffListView(ListAPIView):
     serializer_class = AccountListSerializer
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = StaffListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
@@ -356,7 +357,7 @@ class AdminStaffListView(ListAPIView):
 ))
 class AdminUserDetailView(RetrieveAPIView):
     queryset = Account.objects.all()
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
 
     def get_serializer_class(self):
         pk = self.kwargs['pk']
