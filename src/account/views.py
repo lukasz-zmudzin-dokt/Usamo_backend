@@ -165,7 +165,7 @@ class LoginView(KnoxLoginView):
     @swagger_auto_schema(
         operation_description="Obtain auth token by specifying username and password",
         responses={
-            201: sample_login_response(AccountType.STANDARD.value),
+            200: sample_login_response(AccountType.STANDARD.value),
             400: 'Serializer errors/ Unable to login with given credentials'
         }
     )
