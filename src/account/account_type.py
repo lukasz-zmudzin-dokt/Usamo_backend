@@ -8,15 +8,15 @@ class AccountType(Enum):
 
 
 ACCOUNT_TYPE_CHOICES = [
-    (AccountType.STANDARD.value, 'Standard'),
-    (AccountType.STAFF.value, 'Staff'),
-    (AccountType.EMPLOYER.value, 'Employer')
+    (AccountType.STANDARD.value, 'standard'),
+    (AccountType.STAFF.value, 'staff'),
+    (AccountType.EMPLOYER.value, 'employer')
 ]
 
 TYPE_CHOICES_VERBOSE = [
-    ('standard', 'Standard'),
-    ('staff', 'Staff'),
-    ('employer', 'Employer')
+    ('standard', 'standard'),
+    ('staff', 'staff'),
+    ('employer', 'employer')
 ]
 
 TYPE_TO_INT_MAP = {
