@@ -18,7 +18,7 @@ from .permissions import CanStaffVerifyUsers
 from .serializers import *
 from .models import *
 from .filters import *
-from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_registration_response
+from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_registration_response, sample_login_response
 from rest_framework.pagination import PageNumberPagination
 from job.views import ErrorResponse, MessageResponse
 
@@ -27,7 +27,6 @@ class UserListPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
-from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_login_response
 
 
 class AbstractRegistrationView(KnoxLoginView):
@@ -80,7 +79,7 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
     @swagger_auto_schema(
         request_body=sample_default_account_request_schema(),
         responses={
-            201: sample_registration_response('Standard'),
+            201: sample_registration_response('standard'),
             400: 'Serializer errors'
         }
     )
@@ -109,7 +108,7 @@ class EmployerRegistrationView(AbstractRegistrationView):
     @swagger_auto_schema(
         request_body=sample_employer_account_request_schema(),
         responses={
-            201: sample_registration_response('Employer'),
+            201: sample_registration_response('employer'),
             400: 'Serializer errors'
         }
     )
@@ -124,7 +123,7 @@ class StaffRegistrationView(AbstractRegistrationView):
     @swagger_auto_schema(
         query_serializer=StaffAccountSerializer,
         responses={
-            201: sample_registration_response('Staff'),
+            201: sample_registration_response('staff'),
             400: 'Serializer errors'
         }
     )
@@ -143,7 +142,7 @@ class LogoutView(KnoxLogoutView):
     )
     def post(self, request):
         response = super(LogoutView, self).post(request)
-        return Response({'success': 'Successfully logged out'},
+        return Response({'message': 'Successfully logged out'},
                         status.HTTP_200_OK) if response.data is None else response
 
 
@@ -157,7 +156,7 @@ class LogoutAllView(KnoxLogoutAllView):
     )
     def post(self, request, format=None):
         super(LogoutAllView, self).post(request)
-        return Response({'success': 'Successfully logged out on all devices'})
+        return Response({'message': 'Successfully logged out on all devices'})
 
 
 class LoginView(KnoxLoginView):
