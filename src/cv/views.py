@@ -464,7 +464,7 @@ class UserCVNameView(views.APIView):
             'name': openapi.Schema(type='string')}),
 
         responses={
-            200: 'Nazwa CV zmieniona na: nowa_nazwa',
+            200: '"message": "Nazwa CV zmieniona na: nowa_nazwa"',
             403: 'Nie masz uprawnień do wykonania tej czynności',
             404: 'Nie znaleziono CV o podanym id',
             400: 'Nie podano nowej nazwy CV'
@@ -482,7 +482,7 @@ class UserCVNameView(views.APIView):
         try:
             cv.name = request.data['name']
             cv.save()
-            return Response(f'Nazwa CV zmieniona na: {request.data["name"]}', status=status.HTTP_200_OK)
+            return MessageResponse(f'Nazwa CV zmieniona na: {request.data["name"]}')
         except KeyError:
             return ErrorResponse('Nie podano nowej nazwy CV', status.HTTP_400_BAD_REQUEST)
 
