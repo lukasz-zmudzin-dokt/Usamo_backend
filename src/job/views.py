@@ -67,6 +67,8 @@ def sample_offer_response():
             'offer_name': Schema(type='string', default="offer name"),
             'category': Schema(type='string', default="offer category"),
             'type': Schema(type='string', default="offer type"),
+            'salary_min': Schema(type='integer', default=0),
+            'salary_max': Schema(type='integer', default=0),
             'company_name': Schema(type='string', default="company name"),
             'company_address': Schema(type='object',
              properties={ 
@@ -136,7 +138,7 @@ class JobOfferView(views.APIView):
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         operation_id='job_job-offer_edit',
-        request_body=JobOfferEditSerializer,
+        request_body=JobOfferSerializer,
         responses={
             '200': sample_message_response("Offer edited successfully"),
             '400': 'Bad request - serializer errors',
@@ -147,22 +149,29 @@ class JobOfferView(views.APIView):
         operation_description="Edit job offer.",
     )
     def put(self, request, offer_id):
-        serializer = JobOfferEditSerializer(data=request.data)
+        def validate_update(inst, valid_serializer):
+            data = valid_serializer.validated_data
+            salary_min = data.get('salary_min')
+            salary_max = data.get('salary_max')
+            if salary_min and salary_max and salary_min > salary_max:
+                return ErrorResponse("salary_min is greater than salary_max", status.HTTP_400_BAD_REQUEST)
+            elif salary_min and not salary_max and salary_min > inst.salary_max:
+                return ErrorResponse("salary_min is greater than current salary_max", status.HTTP_400_BAD_REQUEST)
+            elif not salary_min and salary_max and salary_max < inst.salary_min:
+                return ErrorResponse("salary_max is less than current salary_min", status.HTTP_400_BAD_REQUEST)
+            valid_serializer.update(inst, data)
+            return MessageResponse("Offer edited successfully")
+
+        try:
+            instance = JobOffer.objects.get(pk=offer_id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
+        serializer = JobOfferSerializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
-            #job_offer_edit = serializer.create(serializer.validated_data)
-            try:
-                instance = JobOffer.objects.get(pk=offer_id)
-                if not IsEmployer().has_object_permission(request, self, instance) \
-                        and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                    return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
-                #fields_to_update = job_offer_edit.update_dict()
-                #for field, value in fields_to_update.items():
-                    #setattr(instance, field, value)
-                serializer.update(instance, serializer.validated_data)
-                instance.save()
-                return MessageResponse("Offer edited successfully")
-            except ObjectDoesNotExist:
-                return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
+            if not IsEmployer().has_object_permission(request, self, instance) \
+                    and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+                return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
+            return validate_update(instance, serializer)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
