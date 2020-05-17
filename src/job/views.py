@@ -1,3 +1,5 @@
+import os
+
 from account.models import EmployerAccount, DefaultAccount
 from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
@@ -70,7 +72,7 @@ def sample_offer_response():
             'type': Schema(type='string', default="offer type"),
             'company_name': Schema(type='string', default="company name"),
             'company_address': Schema(type='object',
-             properties={ 
+             properties={
                  'city': Schema(type='string', default="city"),
                  'street': Schema(type='string', default="street"),
                  'street_number': Schema(type='string', default="street number"),
@@ -266,6 +268,8 @@ class JobOfferImageView(views.APIView):
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
         if not instance.offer_image:
             return ErrorResponse('Brak zdjęcia dla tej oferty', status.HTTP_404_NOT_FOUND)
+        if os.path.isfile(instance.offer_image.path):
+            os.remove(instance.offer_image.path)
         instance.offer_image = None
         instance.save()
         return MessageResponse('Usunięto zdjęcie z oferty pracy')
