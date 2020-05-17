@@ -1,5 +1,5 @@
 import os
-
+from rest_framework.parsers import MultiPartParser
 from account.models import EmployerAccount, DefaultAccount
 from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
@@ -113,7 +113,7 @@ class JobOfferCreateView(views.APIView):
             '403': sample_error_response('Brak użytkownika lub użytkownik nie jest pracodawcą'),
             '400': 'Błędy walidacji (np. brakujące pole)'
         },
-        operation_description="Create job offer.",
+        operation_description="Pozwala stworzyć ofertę pracy.",
     )
     def post(self, request):
         try:
@@ -191,7 +191,7 @@ class JobOfferView(views.APIView):
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         responses={
-            '200': sample_message_response('Usunięto ofertę'),
+            '200': sample_message_response("Oferta została pomyślnie usunięta."),
             '400': sample_error_response('Oferta została wcześniej usunięta'),
             '401': 'No authorization token',
             '403': sample_error_response('Nie masz uprawnień do wykonania tej czynności'),
@@ -209,13 +209,14 @@ class JobOfferView(views.APIView):
                 return ErrorResponse("Oferta została wcześniej usunięta", status.HTTP_400_BAD_REQUEST)
             instance.removed = True
             instance.save()
-            return MessageResponse("Offer removed successfully")
+            return MessageResponse("Oferta została pomyślnie usunięta.")
         except ObjectDoesNotExist:
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
 
 
 class JobOfferImageView(views.APIView):
     permission_classes = [IsEmployer | IsStaffResponsibleForJobs]
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -226,9 +227,9 @@ class JobOfferImageView(views.APIView):
             '200': sample_message_response('Poprawnie dodano zdjęcie do oferty pracy'),
             '401': sample_error_response('No authorization token'),
             '403': sample_error_response('Brak uprawnień do tej czynności'),
-            '400': 'Bad request - serializer errors'
+            '400': "Błędy walidacji (np. brakujące pole)"
         },
-        operation_description="Upload job offer image.",
+        operation_description="Api do uploadu dodatkowego zdjęcia do oferty pracy.",
     )
     def post(self, request, offer_id):
         try:
@@ -242,7 +243,7 @@ class JobOfferImageView(views.APIView):
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
         if not IsEmployer().has_object_permission(request, self, instance) \
                 and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-            return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Nie masz uprawnień, by wykonać tę czynność.", status.HTTP_403_FORBIDDEN)
         message = 'Poprawnie dodano zdjęcie do oferty pracy'
         if instance.offer_image:
             message = 'Poprawnie zmieniono zdjęcie do oferty pracy'
