@@ -1,4 +1,6 @@
 import os
+import uuid
+
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
@@ -16,3 +18,13 @@ def send_mail_via_sendgrid(message: Mail):
         print(response.headers)
     except Exception as e:
         raise e
+
+
+def __create_file_path(folder, filename):
+    ext = filename.split('.')[-1]
+    filename = "%s.%s" % (uuid.uuid4(), ext)
+    return os.path.join(f'account/{folder}', filename)
+
+
+def create_profile_picture_file_path(instance, filename):
+    return __create_file_path('profile_pics', filename)

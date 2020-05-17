@@ -10,6 +10,7 @@ from rest_framework import status
 from rest_framework import views
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
@@ -369,3 +370,24 @@ class AdminUserDetailView(RetrieveAPIView):
             return StaffDetailSerializer
 
         return DefaultAccountDetailSerializer
+
+
+class ProfilePictureView(views.APIView):
+
+    permission_classes = (IsAuthenticated,)
+    parser_classes = (MultiPartParser, )
+
+    def post(self, request):
+        serializer = ProfilePictureSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Pomyślnie dodano zjęcie'}, status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request):
+        user = request.user
+        had_picture = user.delete_image_if_exists()
+        if had_picture:
+            return Response({'message': 'Pomyślnie usunięto zdjęcie'}, status.HTTP_200_OK)
+        return Response({'message': 'Użytkownik nie ma zdjęcia'}, status.HTTP_400_BAD_REQUEST)
