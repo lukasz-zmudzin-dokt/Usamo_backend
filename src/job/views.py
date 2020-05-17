@@ -245,6 +245,8 @@ class JobOfferImageView(views.APIView):
         message = 'Poprawnie dodano zdjęcie do oferty pracy'
         if instance.offer_image:
             message = 'Poprawnie zmieniono zdjęcie do oferty pracy'
+        if os.path.isfile(instance.offer_image.path):
+            os.remove(instance.offer_image.path)
         instance.offer_image = image
         instance.save()
         return MessageResponse(message)
