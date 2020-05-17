@@ -1,12 +1,7 @@
 from rest_framework import serializers
-from django.contrib.auth.models import User
-from phonenumber_field.validators import validate_international_phonenumber
-from django.core.exceptions import ValidationError
-from rest_framework.relations import PrimaryKeyRelatedField
 from django.core.files.base import ContentFile
 from .utilities import *
 from .models import *
-from account.models import DefaultAccount
 
 
 class SchoolSerializer(serializers.ModelSerializer):

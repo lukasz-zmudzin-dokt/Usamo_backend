@@ -51,6 +51,12 @@ class IsEmployer(AbstractIsAllowedUser):
             and hasattr(obj, 'employer') 
 
 
+class IsStaffMember(AbstractIsAllowedUser):
+
+    def _get_allowed_user_type(self):
+        return AccountType.STAFF        
+
+
 class IsStaffResponsibleForJobs(AbstractIsAllowedStaff):
 
     def _get_allowed_staff_type(self):

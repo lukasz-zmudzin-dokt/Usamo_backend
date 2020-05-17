@@ -4,8 +4,9 @@ from . import views
 
 urlpatterns = [
      # job offers
-     path('job-offer/<uuid:offer_id>/', views.JobOfferView.as_view()),
      path('job-offer/', views.JobOfferCreateView.as_view()),
+     path('job-offer/<uuid:offer_id>/', views.JobOfferView.as_view()),
+     path('job-offer/<uuid:offer_id>/image/', views.JobOfferImageView.as_view()),
      path('job-offers/', views.JobOfferListView.as_view()),
      path('job-offers/application/',
          views.CreateJobOfferApplicationView.as_view()),

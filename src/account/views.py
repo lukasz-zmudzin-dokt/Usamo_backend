@@ -14,7 +14,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
-from .permissions import CanStaffVerifyUsers
+from .permissions import CanStaffVerifyUsers, IsStaffMember
 from .serializers import *
 from .models import *
 from .filters import *
@@ -53,7 +53,7 @@ class AbstractRegistrationView(KnoxLoginView):
 
     @staticmethod
     def set_response_params(user, response_data):
-        response_data['response_message'] = "Successfully registered a new user"
+        response_data['message'] = "Rejestracja powiodła się"
         response_data['email'] = user.email
         response_data['username'] = user.username
         response_data['status'] = AccountStatus(user.status).name.lower()
@@ -61,26 +61,12 @@ class AbstractRegistrationView(KnoxLoginView):
 
 
 class DefaultAccountRegistrationView(AbstractRegistrationView):
-    """
-    > ## Creates a default account
-    > Required parameters:
-    >
-    > - username
-    > - email
-    > - password
-    > - first_name
-    > - last_name
-    > - phone_number
-    > - facility_name
-    > - facility_address
-    >
-    """
-
+    operation_description = "Rejestruje standardowego użytkownika",
     @swagger_auto_schema(
         request_body=sample_default_account_request_schema(),
         responses={
             201: sample_registration_response('standard'),
-            400: 'Serializer errors'
+            400: 'Błędy walidacji (np. brakujące pole)'
         }
     )
     def post(self, request):
@@ -89,27 +75,12 @@ class DefaultAccountRegistrationView(AbstractRegistrationView):
 
 
 class EmployerRegistrationView(AbstractRegistrationView):
-    """
-    > ## Creates an account for an employer
-    > Required parameters:
-    >
-    > - username
-    > - email
-    > - password
-    > - company_name
-    > - company_address
-    > - phone_number
-    > - last_name
-    > - first_name
-    > - nip
-    >
-    """
-
+    operation_description = "Rejestruje konto pracodawcy",
     @swagger_auto_schema(
         request_body=sample_employer_account_request_schema(),
         responses={
             201: sample_registration_response('employer'),
-            400: 'Serializer errors'
+            400: 'Błędy walidacji (np. brakujące pole)'
         }
     )
     def post(self, request):
@@ -121,10 +92,11 @@ class StaffRegistrationView(AbstractRegistrationView):
     permission_classes = [CanStaffVerifyUsers]
 
     @swagger_auto_schema(
+        operation_description="Rejestruje użytkownika z personelu. Wymaga odpowiednich uprawnień",
         query_serializer=StaffAccountSerializer,
         responses={
             201: sample_registration_response('staff'),
-            400: 'Serializer errors'
+            400: 'Błędy walidacji (np. brakujące pole)'
         }
     )
     def post(self, request):
@@ -135,38 +107,40 @@ class StaffRegistrationView(AbstractRegistrationView):
 class LogoutView(KnoxLogoutView):
 
     @swagger_auto_schema(
-        operation_description="Logout currently logged in user.",
+        operation_description="Wylogowuje aktualnego użytkownika na obecnym urządzeniu",
         responses={
-            status.HTTP_200_OK: 'message: Successfully logged out'
+            status.HTTP_200_OK: 'message: Wylogowano pomyślnie'
         }
     )
     def post(self, request):
         response = super(LogoutView, self).post(request)
-        return Response({'message': 'Successfully logged out'},
+        return Response({'message': 'Wylogowano pomyślnie'},
                         status.HTTP_200_OK) if response.data is None else response
 
 
 class LogoutAllView(KnoxLogoutAllView):
 
     @swagger_auto_schema(
-        operation_description="Logout on all devices currently logged in user",
+        operation_description="Wylogowuje użytkownika ze wszystkich urządzeń",
         responses={
-            status.HTTP_200_OK: 'message: Successfully logged out on all devices'
+            status.HTTP_200_OK: 'message: Pomyślnie wylogowano ze wszystkich urządzeń'
         }
     )
     def post(self, request, format=None):
         super(LogoutAllView, self).post(request)
-        return Response({'message': 'Successfully logged out on all devices'})
+        return Response({'message': 'Pomyślnie wylogowano ze wszystkich urządzeń'})
 
 
 class LoginView(KnoxLoginView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
-        operation_description="Obtain auth token by specifying username and password",
+        operation_description="Zwraca token, jego datę ważności oraz typ użytkownika w oparciu o "
+                              "username i hasło",
         responses={
-            201: sample_login_response(AccountType.STANDARD.value),
-            400: 'Serializer errors/ Unable to login with given credentials'
+            200: sample_login_response(AccountType.STANDARD.value),
+            400: 'Błędy walidacji (np. brakujące pole) '
+                 '/ Podane dane uwierzytelniające nie pozwalają na zalogowanie.'
         }
     )
     def post(self, request, format=None):
@@ -201,8 +175,8 @@ class DataView(views.APIView):
     permission_classes = [IsAuthenticated]
 
     @swagger_auto_schema(
-        operation_description="Get currently logged in user's data."
-                              "Example response is for default user.",
+        operation_description="Zwraca dane aktualnego użytkownika. "
+                              "Przykład jest dla użytkownika standardowego",
 
         responses={
             200: DefaultAccountSerializer
@@ -228,27 +202,27 @@ class AdminUserAdmissionView(views.APIView):
 
     @swagger_auto_schema(
         responses={
-            '200': 'User successfully verified.',
-            '400': 'User id was not specified.',
-            '404': 'User with the id given was not found.'
+            '200': 'Użytkownik został pomyślnie zweryfikowany',
+            '400': 'Nie podano id użytkownika',
+            '404': 'Nie znaleziono użytkownika'
         },
         manual_parameters=[
             openapi.Parameter('user_id', openapi.IN_PATH, type='string($uuid)',
                               description='A UUID string identifying this account')
         ],
-        operation_description="Sets user's status to verified.",
+        operation_description="Ustawia status użytkownika na zweryfikowany",
     )
     def post(self, request, user_id):
         if user_id is not None:
             try:
                 user = Account.objects.get(pk=user_id)
             except Account.DoesNotExist:
-                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
+                return ErrorResponse('Nie znaleziono użytkownika', status.HTTP_404_NOT_FOUND)
             user.status = AccountStatus.VERIFIED.value
             user.save()
-            return Response('User successfully verified.', status.HTTP_200_OK)
+            return MessageResponse('Użytkownik został pomyślnie zweryfikowany')
 
-        return Response('User id was not specified.', status.HTTP_400_BAD_REQUEST)
+        return ErrorResponse('Nie podano id użytkownika', status.HTTP_400_BAD_REQUEST)
 
 
 class AdminUserRejectionView(views.APIView):
@@ -306,18 +280,15 @@ class AdminUserBlockView(views.APIView):
 
         return ErrorResponse('ID użytkownika nie zostało podane', status.HTTP_400_BAD_REQUEST)
 
+
 @method_decorator(name='get', decorator=swagger_auto_schema(
-    responses={
-        '200': AccountListSerializer(many=True),
-        '404': "Not found",
-    },
     filter_inspectors=[DjangoFilterDescriptionInspector],
-    operation_description="Returns all accounts list for admin"
+    operation_description="Zwraca listę wszystkich użytkowników dla admina"
 ))
 class AdminAllAccountsListView(ListAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountListSerializer
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = UserListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
@@ -326,16 +297,12 @@ class AdminAllAccountsListView(ListAPIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-    responses={
-        '200': AccountListSerializer(many=True),
-        '404': "Not found",
-    },
     filter_inspectors=[DjangoFilterDescriptionInspector],
-    operation_description="Returns standard accounts list for admin"
+    operation_description="Zwrca listę standardowych użytkowników dla admina"
 ))
 class AdminDefaultAccountsListView(ListAPIView):
     serializer_class = AccountListSerializer
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = DefaultAccountListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
@@ -347,16 +314,12 @@ class AdminDefaultAccountsListView(ListAPIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-    responses={
-        '200': AccountListSerializer(many=True),
-        '404': "Not found",
-    },
     filter_inspectors=[DjangoFilterDescriptionInspector],
-    operation_description="Returns employer accounts list for admin"
+    operation_description="Zwraca listę kont pracodawców dla admina"
 ))
 class AdminEmployerListView(ListAPIView):
     serializer_class = AccountListSerializer
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = EmployerListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
@@ -368,16 +331,12 @@ class AdminEmployerListView(ListAPIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-    responses={
-        '200': AccountListSerializer(many=True),
-        '404': "Not found",
-    },
     filter_inspectors=[DjangoFilterDescriptionInspector],
-    operation_description="Returns staff accounts list for admin"
+    operation_description="Zwrca listę kont personelu dla admina"
 ))
 class AdminStaffListView(ListAPIView):
     serializer_class = AccountListSerializer
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
     filter_backends = (DjangoFilterBackend, OrderingFilter,)
     filterset_class = StaffListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
@@ -393,11 +352,12 @@ class AdminStaffListView(ListAPIView):
         '200': DefaultAccountDetailSerializer,
         '404': "Not found",
     },
-    operation_description="Get user's data by specifying his/her id (for admin). Example response is for standard user."
+    operation_description="Zwraca dane użytkownika w oparciu o jego id dla admina."
+                          " Przykład jest dla użytkownika standardowego"
 ))
 class AdminUserDetailView(RetrieveAPIView):
     queryset = Account.objects.all()
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = [IsStaffMember]
 
     def get_serializer_class(self):
         pk = self.kwargs['pk']
