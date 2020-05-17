@@ -218,6 +218,7 @@ class JobOfferView(views.APIView):
 
 
 class JobOfferImageView(views.APIView):
+    permission_classes = [IsEmployer | IsStaffResponsibleForJobs]
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -242,6 +243,9 @@ class JobOfferImageView(views.APIView):
             instance = JobOffer.objects.get(pk=offer_id)
         except ObjectDoesNotExist:
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+        if not IsEmployer().has_object_permission(request, self, instance) \
+                and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+            return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
         message = 'Poprawnie dodano zdjęcie do oferty pracy'
         if instance.offer_image:
             message = 'Poprawnie zmieniono zdjęcie do oferty pracy'
@@ -268,6 +272,9 @@ class JobOfferImageView(views.APIView):
             instance = JobOffer.objects.get(pk=offer_id)
         except ObjectDoesNotExist:
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+        if not IsEmployer().has_object_permission(request, self, instance) \
+                and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+            return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
         if not instance.offer_image:
             return ErrorResponse('Brak zdjęcia dla tej oferty', status.HTTP_404_NOT_FOUND)
         if os.path.isfile(instance.offer_image.path):
