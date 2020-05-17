@@ -14,15 +14,15 @@ ACCOUNT_STATUS_CHOICES = [
 ]
 
 STATUS_CHOICES_VERBOSE = [
-    ('Verified', 'Verified'),
-    ('Waiting for verification', 'Waiting for verification'),
-    ('Rejected', 'Rejected'),
-    ('Blocked', 'Blocked')
+    ('verified', 'Verified'),
+    ('waiting_for_verification', 'Waiting for verification'),
+    ('rejected', 'Rejected'),
+    ('blocked', 'Blocked')
 ]
 
 STATUS_TO_INT_MAP = {
-    'Verified': 1,
-    'Waiting for verification': 2,
-    'Rejected': 3,
-    'Blocked': 4
+    'verified': 1,
+    'waiting_for_verification': 2,
+    'rejected': 3,
+    'blocked': 4
 }
