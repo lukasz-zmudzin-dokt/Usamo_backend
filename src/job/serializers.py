@@ -29,11 +29,12 @@ class JobOfferSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Date is in past")
         return value
 
-    class Meta:
-        model = JobOffer
-        fields = ['id', 'offer_name', 'offer_image', 'category', 'type', 'company_name', 'company_address', 'voivodeship', 'expiration_date',
-                  'description']
-        read_only_fields = ['offer_image']
+    def validate(self, data):
+        salary_min = data.get('salary_min')
+        salary_max = data.get('salary_max')
+        if salary_min and salary_max and salary_min > salary_max:
+            raise serializers.ValidationError("salary_min is greater than salary_max")
+        return data
 
     def create(self, validated_data):
         validated_data['category'] = JobOfferCategory.objects.get(**validated_data['category'])
@@ -41,24 +42,6 @@ class JobOfferSerializer(serializers.ModelSerializer):
         company_address = Address.objects.create(**validated_data['company_address'])
         validated_data['company_address'] = company_address
         return JobOffer(**validated_data)
-
-
-class JobOfferEditSerializer(serializers.Serializer):
-    offer_name = serializers.CharField(max_length=50, required=False)
-    category = serializers.CharField(max_length=30, required=False)
-    type = serializers.CharField(max_length=30, required=False)
-    company_name = serializers.CharField(max_length=120, required=False)
-    company_address = AddressSerializer(required=False)
-    voivodeship = serializers.CharField(max_length=30, required=False)
-    expiration_date = serializers.DateField(required=False)
-    description = serializers.CharField(max_length=1000, required=False)
-
-    def create(self, validated_data):
-        if 'category' in validated_data:
-            validated_data['category'] = JobOfferCategory.objects.get(name=validated_data.pop('category'))
-        if 'type' in validated_data:
-            validated_data['offer_type'] = JobOfferType.objects.get(name=validated_data.pop('type'))
-        return JobOfferEdit(**validated_data)
 
     def update(self, instance, validated_data):
         try:
@@ -73,6 +56,8 @@ class JobOfferEditSerializer(serializers.Serializer):
 
         instance.offer_name = validated_data.get('offer_name', instance.offer_name)
         instance.company_name = validated_data.get('company_name', instance.company_name)
+        instance.salary_min = validated_data.get('salary_min', instance.salary_min)
+        instance.salary_max = validated_data.get('salary_max', instance.salary_max)
         new_address_data = validated_data.get('company_address')
         if new_address_data:
             new_address = Address.objects.create(**new_address_data)
@@ -81,7 +66,15 @@ class JobOfferEditSerializer(serializers.Serializer):
         instance.voivodeship = validated_data.get('voivodeship', instance.voivodeship)
         instance.expiration_date = validated_data.get('expiration_date', instance.expiration_date)
         instance.description = validated_data.get('description', instance.description)
+        instance.save()
         return instance
+
+
+    class Meta:
+        model = JobOffer
+        fields = ['id', 'offer_name', 'offer_image', 'category', 'type', 'salary_min', 'salary_max', 'company_name',
+                  'company_address', 'voivodeship', 'expiration_date', 'description']
+        read_only_fields = ['offer_image']
 
 
 class JobOfferFiltersSerializer(serializers.Serializer):

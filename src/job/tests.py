@@ -20,6 +20,8 @@ def create_test_offer_data(name="OFERTA TESTOWA", voivodeship="mazowieckie", exp
         "offer_name": name,
         "category": category.name,
         "type": offer_type.name,
+        "salary_min": 1000,
+        "salary_max": 3000,
         "company_name": "TESTOWA FIRMA",
         "company_address": {
             "city": "Warszawa",
@@ -47,6 +49,8 @@ def create_test_offer_instance(name="OFERTA TESTOWA", voivodeship="mazowieckie",
         offer_name=name,
         category=category,
         offer_type=offer_type,
+        salary_min=1000,
+        salary_max=3000,
         company_name="TESTOWA FIRMA",
         company_address=address,
         voivodeship=voivodeship,
@@ -132,7 +136,7 @@ class JobOfferCreateTestCase(APITestCase):
     def test_offer_create_not_employer(self):
         self.assertEquals(EmployerAccount.objects.count(), 0)
         self.assertEquals(JobOffer.objects.count(), 0)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, create_test_offer_data(), format='json')
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
         self.assertEquals(JobOffer.objects.count(), 0)
@@ -141,7 +145,7 @@ class JobOfferCreateTestCase(APITestCase):
         employer = create_employer(self.user)
         self.assertEquals(EmployerAccount.objects.count(), 1)
         self.assertEquals(JobOffer.objects.count(), 0)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, create_test_offer_data(), format='json')
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(JobOffer.objects.count(), 1)
@@ -152,7 +156,7 @@ class JobOfferCreateTestCase(APITestCase):
         employer = create_employer(self.user)
         self.assertEquals(EmployerAccount.objects.count(), 1)
         self.assertEquals(JobOffer.objects.count(), 0)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, create_test_offer_data(voivodeship='some_rubbish'), format='json')
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(JobOffer.objects.count(), 0)
@@ -168,14 +172,14 @@ class JobOfferGetTestCase(APITestCase):
 
     def test_offer_get_success(self):
         self.assertEquals(JobOffer.objects.count(), 1)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url(self.offer.id))
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(JobOffer.objects.count(), 1)
 
     def test_offer_get_bad_offer_id(self):
         self.assertEquals(JobOffer.objects.count(), 1)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url(0))
         self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -191,7 +195,7 @@ class JobOfferEditTestCase(APITestCase):
     def test_offer_edit_success(self):
         staff = create_staff(self.user)
         self.assertEquals(JobOffer.objects.count(), 1)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         offer_edit_data = create_offer_edit_data()
         response = self.client.put(self.url(self.offer.id), data=offer_edit_data)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
@@ -209,7 +213,7 @@ class JobOfferEditTestCase(APITestCase):
     def test_offer_edit_bad_offer_id(self):
         self.assertEquals(JobOffer.objects.count(), 1)
         staff = create_staff(self.user)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url(0))
         self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -225,7 +229,7 @@ class JobOfferDeleteTestCase(APITestCase):
     def test_offer_delete_success(self):
         staff = create_staff(self.user)
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 1)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(self.url(self.offer.id))
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 0)
@@ -236,7 +240,7 @@ class JobOfferDeleteTestCase(APITestCase):
         self.offer.save()
         self.assertEquals(JobOffer.objects.filter(removed=True).count(), 1)
         staff = create_staff(self.user)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(self.url(self.offer.id))
         self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertEquals(JobOffer.objects.filter(removed=True).count(), 1)
@@ -244,7 +248,7 @@ class JobOfferDeleteTestCase(APITestCase):
     def test_offer_delete_bad_offer_id(self):
         staff = create_staff(self.user)
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 1)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.delete(self.url(0))
         self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 1)
@@ -262,7 +266,7 @@ class JobOffersListTestCase(APITestCase):
 
     def test_offer_list_success(self):
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 2)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data['results']), 2)
@@ -272,7 +276,7 @@ class JobOffersListTestCase(APITestCase):
         self.offer1.removed = True
         self.offer1.save()
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 1)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data['results']), 1)
@@ -293,7 +297,7 @@ class EmployerJobOffersListTestCase(APITestCase):
 
     def test_employer_offer_list_success(self):
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 3)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data['results']), 2)
@@ -303,7 +307,7 @@ class EmployerJobOffersListTestCase(APITestCase):
         self.employer_offer1.removed = True
         self.employer_offer1.save()
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 2)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data['results']), 1)
@@ -313,7 +317,7 @@ class EmployerJobOffersListTestCase(APITestCase):
         self.assertEquals(JobOffer.objects.count(), 3)
         other_user = create_user("other_employer")
         other_employer = create_employer(other_user)
-        self.client.force_authenticate(user=other_user, token=other_user.auth_token)
+        self.client.force_authenticate(user=other_user)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data['results']), 0)
@@ -332,7 +336,7 @@ class JobOfferInterestedUsersAddTestCase(APITestCase):
         cv = create_cv(default_user)
         application_data = {'cv': cv.cv_id, 'job_offer': self.offer.id}
         self.assertEquals(self.offer.jobofferapplication_set.count(), 0)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, application_data, format='json')
         self.assertEquals(response.status_code, status.HTTP_201_CREATED)
         self.assertEquals(JobOffer.objects.count(), 1)
@@ -343,7 +347,7 @@ class JobOfferInterestedUsersAddTestCase(APITestCase):
         default_user = create_default(self.user)
         cv = create_cv(default_user)
         application_data = {'cv': cv.cv_id, 'job_offer': self.offer.id}
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response1 = self.client.post(self.url, application_data, format='json')
         self.assertEquals(response1.status_code, status.HTTP_201_CREATED)
         response2 = self.client.post(self.url, application_data, format='json')
@@ -366,14 +370,14 @@ class EmployerJobOfferInterestedUsersListTestCase(APITestCase):
         cls.application = create_job_application(cls.default_user, cls.offer)
 
     def test_employer_offer_insterested_users_list_success(self):
-        self.client.force_authenticate(user=self.employer_user, token=self.employer_user.auth_token)
+        self.client.force_authenticate(user=self.employer_user)
         response = self.client.get(self.url(self.offer.id))
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data), 1)
         self.assertEquals(response.data[0]['user_id'], str(self.user.id))
 
     def test_employer_offer_insterested_users_bad_offer(self):
-        self.client.force_authenticate(user=self.employer_user, token=self.employer_user.auth_token)
+        self.client.force_authenticate(user=self.employer_user)
         response = self.client.get(self.url(0))
         self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
 
@@ -386,7 +390,7 @@ class VoivodeshipEnumTestCase(APITestCase):
         cls.user = create_user()
 
     def test_offer_voivodeship_list_success(self):
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(len(response.data['voivodeships']), 16)
@@ -402,7 +406,7 @@ class OfferAdminConfirmTestCase(APITestCase):
         cls.offer = create_test_offer_instance(confirmed=False)
 
     def test_offer_confirm_not_admin(self):
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url(self.offer.id), {'confirmed': True}, format='json')
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
@@ -410,7 +414,7 @@ class OfferAdminConfirmTestCase(APITestCase):
     def test_offer_confirm_success(self):
         staff = create_staff(self.user)
         self.assertEquals(JobOffer.objects.filter(removed=False, confirmed=False).count(), 1)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url(self.offer.id), {'confirmed': True}, format='json')
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(JobOffer.objects.filter(removed=False, confirmed=False).count(), 0)
@@ -426,14 +430,14 @@ class OfferAdminUnconfirmedListTestCase(APITestCase):
         cls.offer2 = create_test_offer_instance(name="TEST2", confirmed=False)
 
     def test_unconfirmed_offers_list_not_admin(self):
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
 
 
     def test_unconfirmed_offers_list_success(self):
         staff = create_staff(self.user)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         self.assertEquals(JobOffer.objects.filter(removed=False).count(), 2)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
@@ -450,7 +454,7 @@ class OfferTypesListTestCase(APITestCase):
         cls.user = create_user()
 
     def test_offer_type_list_success(self):
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(sorted(response.data['offer_types']), sorted(list(JobOfferType.objects.values_list('name', flat=True))))
@@ -465,7 +469,7 @@ class OfferTypeCreateTestCase(APITestCase):
         cls.test_type_data = {'name': 'TESTTYPE'}
 
     def test_offer_type_add_not_admin(self):
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         count = JobOfferType.objects.count()
         response = self.client.post(self.url, self.test_type_data, format='json')
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -474,10 +478,10 @@ class OfferTypeCreateTestCase(APITestCase):
 
     def test_offer_type_add_success(self):
         staff = create_staff(self.user)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         count = JobOfferType.objects.count()
         response = self.client.post(self.url, self.test_type_data, format='json')
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(JobOfferType.objects.count(), count+1)
         self.assertTrue(JobOfferType.objects.filter(name='TESTTYPE').exists())
 
@@ -490,7 +494,7 @@ class OfferCategoriesListTestCase(APITestCase):
         cls.user = create_user()
 
     def test_offer_category_list_success(self):
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         response = self.client.get(self.url)
         self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(sorted(response.data['categories']), sorted(list(JobOfferCategory.objects.values_list('name', flat=True))))
@@ -505,7 +509,7 @@ class OfferCategoryCreateTestCase(APITestCase):
         cls.test_category_data = {'name': 'TESTCATEGORY'}
 
     def test_offer_category_add_not_admin(self):
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         count = JobOfferCategory.objects.count()
         response = self.client.post(self.url, self.test_category_data, format='json')
         self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
@@ -514,10 +518,10 @@ class OfferCategoryCreateTestCase(APITestCase):
 
     def test_offer_category_add_success(self):
         staff = create_staff(self.user)
-        self.client.force_authenticate(user=self.user, token=self.user.auth_token)
+        self.client.force_authenticate(user=self.user)
         count = JobOfferCategory.objects.count()
         response = self.client.post(self.url, self.test_category_data, format='json')
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(response.status_code, status.HTTP_200_OK)
         self.assertEquals(JobOfferCategory.objects.count(), count+1)
         self.assertTrue(JobOfferCategory.objects.filter(name='TESTCATEGORY').exists())
 
