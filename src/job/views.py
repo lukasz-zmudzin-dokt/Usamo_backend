@@ -2,16 +2,21 @@ from account.models import EmployerAccount, DefaultAccount
 from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.inspectors import DjangoRestResponsePagination
 from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema, IN_BODY
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics, serializers
+from rest_framework import generics, serializers, filters
 from rest_framework import status
 from rest_framework import views
 from rest_framework.decorators import permission_classes
+from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from cv.models import CV
+from .filters import JobOfferApplicationListFilter, JobOfferApplicationOrderingFilter, DjangoFilterDescriptionInspector, \
+    JobOfferOrderingFilter
 from .models import *
 from .serializers import *
 from rest_framework.generics import ListAPIView, get_object_or_404
@@ -59,40 +64,13 @@ def sample_offerid_response():
     )
 
 
-def sample_offer_response():
-    return Schema(
-        type='object',
-        properties={
-            'id': Schema(type='string', default="uuid4", format='byte'),
-            'offer_name': Schema(type='string', default="offer name"),
-            'category': Schema(type='string', default="offer category"),
-            'type': Schema(type='string', default="offer type"),
-            'company_name': Schema(type='string', default="company name"),
-            'company_address': Schema(type='object',
-             properties={ 
-                 'city': Schema(type='string', default="city"),
-                 'street': Schema(type='string', default="street"),
-                 'street_number': Schema(type='string', default="street number"),
-                 'postal_code': Schema(type='string', default="postal code")
-             }),
-            'voivodeship': Schema(type='string', default="mazowieckie"),
-            'expiration_date': Schema(type='string', default="2020-02-20"),
-            'description': Schema(type='string', default="offer description")
-        }
-    )
-
-
-def sample_paginated_offers_response():
-    return Schema(type='object', properties={
-        'count': Schema(type='integer', default=1),
-        'next': Schema(type='string', default='"http://localhost:8000/job/job-offers/?page=2"'),
-        'previous': Schema(type='string', default='null'),
-        'results': Schema(type='array', items=sample_offer_response())
-        },
-    )
-
-
 class OffersPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class ApplicationsPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
@@ -215,13 +193,9 @@ class JobOfferView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-    manual_parameters=[
-        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
-        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
-    ],
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     query_serializer=JobOfferFiltersSerializer,
     responses={
-        '200': sample_paginated_offers_response(),
         '400': "Bad request - serializer errors",
     },
     operation_description="Returns offers list with filters"
@@ -229,6 +203,9 @@ class JobOfferView(views.APIView):
 class JobOfferListView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
+    filter_backends = [JobOfferOrderingFilter]
+    ordering_fields = ['offer_name', 'category', 'voivodeship', 'salary_min', 'salary_max', 'company_name',
+                       'expiration_date']
 
     permission_classes = [AllowAny]
 
@@ -309,8 +286,8 @@ class JobOfferApplicationView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '200': JobOfferApplicationSerializer(many=True),
         '403': "Offer does not belong to current user",
         '404': "Offer not found"
     },
@@ -323,6 +300,10 @@ class JobOfferApplicationView(views.APIView):
 class EmployerApplicationListView(ListAPIView):
     serializer_class = JobOfferApplicationSerializer
     permission_classes = [IsEmployer]
+    filter_backends = (DjangoFilterBackend, JobOfferApplicationOrderingFilter)
+    filterset_class = JobOfferApplicationListFilter
+    ordering_fields = ['first_name', 'last_name', 'email', 'date_posted']
+    pagination_class = ApplicationsPagination
 
     def get_queryset(self):
         id = self.kwargs['offer_id']
@@ -339,8 +320,8 @@ class EmployerApplicationListView(ListAPIView):
             return ErrorResponse("Offer not found", status.HTTP_404_NOT_FOUND)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '200': JobOfferApplicationSerializer(many=True),
         '403': "You do not have permission to perform this action.",
         '404': "Not found",
     },
@@ -349,19 +330,19 @@ class EmployerApplicationListView(ListAPIView):
 class UserApplicationsView(ListAPIView):
     serializer_class = JobOfferApplicationSerializer
     permission_classes = [IsStandardUser]
+    filter_backends = (DjangoFilterBackend, JobOfferApplicationOrderingFilter)
+    filterset_class = JobOfferApplicationListFilter
+    ordering_fields = ['first_name', 'last_name', 'email', 'date_posted']
+    pagination_class = ApplicationsPagination
 
     def get_queryset(self):
         return JobOfferApplication.objects.filter(cv__cv_user__user=self.request.user)
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     query_serializer=JobOfferFiltersSerializer,
-    manual_parameters=[
-        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
-        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
-    ],
     responses={
-        '200': sample_paginated_offers_response(),
         '401': 'No authorization token',
         '403': "You do not have permission to perform this action.",
         '404': "Bad request - serializer errors",
@@ -372,6 +353,9 @@ class EmployerJobOffersView(generics.ListAPIView):
     permission_classes = [IsEmployer]
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
+    filter_backends = [JobOfferOrderingFilter]
+    ordering_fields = ['offer_name', 'category', 'voivodeship', 'salary_min', 'salary_max', 'company_name',
+                       'expiration_date']
 
     filter_serializer = None
     employer = None
@@ -393,13 +377,9 @@ class EmployerJobOffersView(generics.ListAPIView):
             return ErrorResponse("No user or user is not employer", status.HTTP_403_FORBIDDEN)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     query_serializer=JobOfferFiltersSerializer,
-    manual_parameters=[
-        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
-        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
-    ],
     responses={
-        '200': sample_paginated_offers_response(),
         '401': 'No authorization token',
         '403': sample_error_response('Brak uprawnień do tej czynności'),
         '400': sample_error_response('Błędy walidacji (np. brakujące pole)'),
@@ -410,6 +390,9 @@ class AdminUnconfirmedJobOffersView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
     permission_classes = [IsStaffResponsibleForJobs]
+    filter_backends = [JobOfferOrderingFilter]
+    ordering_fields = ['offer_name', 'category', 'voivodeship', 'salary_min', 'salary_max', 'company_name',
+                       'expiration_date']
 
     filter_serializer = None
 
@@ -535,8 +518,7 @@ class JobOfferCategoryView(views.APIView):
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
-
-class JobOfferTypesListView(generics.ListAPIView):
+class JobOfferTypesListView(views.APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
