@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import SET_NULL
 from .enums import Voivodeships
+from .utils import create_job_offer_image_path
 from account.models import DefaultAccount, EmployerAccount, Address
 from cv.models import CV
 
@@ -18,6 +19,7 @@ class JobOfferType(models.Model):
 class JobOffer(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     offer_name = models.CharField(max_length=50)
+    offer_image = models.ImageField(upload_to=create_job_offer_image_path, null=True)
     category = models.ForeignKey(JobOfferCategory, on_delete=SET_NULL, null=True, db_column='category')
     offer_type = models.ForeignKey(JobOfferType, on_delete=SET_NULL, null=True, db_column='offer_type')
     company_name = models.CharField(max_length=70)

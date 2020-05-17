@@ -17,7 +17,7 @@ from .filters import CvOrderingFilter, CVListFilter, DjangoFilterDescriptionInsp
 from .models import *
 from .serializers import *
 from .permissions import *
-from job.views import sample_message_response
+from job.views import sample_message_response, ErrorResponse, MessageResponse
 import base64
 
 
@@ -28,7 +28,6 @@ class CVPagination(PageNumberPagination):
 
 
 class CreateCVView(views.APIView):
-
     permission_classes = [IsStandardUser]
     serializer_class = CVSerializer
 
@@ -36,11 +35,11 @@ class CreateCVView(views.APIView):
         request_body=CVSerializer,
         responses={
             '201': '"cv_id" : id',
-            '400': 'Serializer errors',
+            '400': 'Błędy walidacji (np. brak jakiegoś pola)',
             '403': "You do not have permission to perform this action. \
-                    / User has already created 5 CVs!"
+                    / Użytkownik posiada już 5 CV!"
         },
-        operation_description="Create or update database object for CV generation.",
+        operation_description="Tworzenie obiektu CV dla danego użytkownika",
     )
     def post(self, request):
         request_data = request.data
@@ -48,56 +47,55 @@ class CreateCVView(views.APIView):
         users_cvs = CV.objects.filter(cv_user=def_account)
 
         if not users_cvs.count() < 5:
-            return Response("User has already created 5 CVs!", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Użytkownik posiada już 5 CV!", status.HTTP_403_FORBIDDEN)
 
         request_data['cv_user'] = def_account.id
         serializer = self.serializer_class(data=request_data)
 
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
-            response = {"cv_id" : cv.pk}
+            response = {"cv_id": cv.pk}
             return Response(response, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
 class CVView(views.APIView):
-
     permissions_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
     @swagger_auto_schema(
         manual_parameters=[
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this cv')
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego CV')
         ],
         responses={
             '200': sample_message_response("/media/cv_docs/2020/04/03/file_name.pdf"),
-            '403': 'User has no permission to perfonm this action.',
-            '404': "CV not found. Make sure cv_id was specified in the url."
+            '403': 'Nie masz uprawnień do wykonania tej czynności',
+            '404': "Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u"
         },
-        operation_description='Generate pdf url based on existing CV data.'
+        operation_description='Zwraca url-a do pdf zawierającego CV na podstawie zapisanych wcześniej danych'
     )
     def get(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response("CV not found. Make sure cv_id was specified in the url.", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
 
-        return Response(cv.document.url, status.HTTP_200_OK)
+        return Response({'url': cv.document.url}, status.HTTP_200_OK)
 
     @swagger_auto_schema(
-        operation_description="Deletes cv from database if it exists",
+        operation_description="Usuwa CV z bazy danych jeśli ono istnieje",
         manual_parameters=[
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this cv')
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego CV')
         ],
         responses={
-            '200': 'CV deleted successfully.',
-            '403': 'User has no permission to perfonm this action.',
-            '404': "CV not found. Make sure cv_id was specified in the url."
+            '200': 'CV usunięto pomyślnie',
+            '403': 'Nie masz uprawnień do wykonania tej czynności.',
+            '404': "Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u"
         }
     )
     def delete(self, request, cv_id):
@@ -105,28 +103,27 @@ class CVView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
             cv.delete()
         except CV.DoesNotExist:
-            return Response("CV not found. Make sure cv_id was specified in the url.", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
 
-        return Response('CV deleted successfully.', status.HTTP_200_OK)
+        return MessageResponse('CV usunięto pomyślnie')
 
 
 class CVDataView(views.APIView):
-
     permissions_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
     @swagger_auto_schema(
-        operation_description="Returns CV data in json format",
+        operation_description="Zwraca dane do CV w formacie json",
         manual_parameters=[
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this cv') 
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego CV')
         ],
         responses={
             '200': CVSerializer,
-            '403': "User has no permission to perfonm this action.",
-            '404': "CV not found."
+            '403': "Nie masz uprawnień do wykonania tej czynności",
+            '404': "Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u"
         }
     )
     def get(self, request, cv_id):
@@ -134,23 +131,23 @@ class CVDataView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response("CV not found.", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(instance=cv)
         return Response(serializer.data, status.HTTP_200_OK)
 
     @swagger_auto_schema(
         operation_description="Lets user edit his CV",
         manual_parameters=[
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this cv') 
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                description='A UUID string identifying this cv')
         ],
         responses={
-            '200': 'message: CV edited successfully.',
-            '400': 'serializer errors',
-            '403': "User has no permission to perfonm this action.",
-            '404': "CV not found."
+            '200': 'message: CV edytowany pomyślnie',
+            '400': 'Błędy walidacji (np. brak jakiegoś pola)',
+            '403': "Nie masz uprawnień do wykonania tej czynności",
+            '404': "Nie znaleziono cv"
         }
     )
     def put(self, request, cv_id):
@@ -158,9 +155,9 @@ class CVDataView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response("CV not found.", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono cv", status.HTTP_404_NOT_FOUND)
         serializer = CVSerializer(data=request.data)
 
         delete_previous_cv_file(cv)
@@ -170,12 +167,11 @@ class CVDataView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-        response = {'message': 'CV edited successfully.'}
+        response = {'message': 'CV edytowany pomyślnie'}
         return Response(response, status.HTTP_200_OK)
 
 
 class CVPictureView(views.APIView):
-
     permissions_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
     @swagger_auto_schema(
@@ -193,24 +189,24 @@ class CVPictureView(views.APIView):
                 in_='form-data',
                 type=openapi.TYPE_FILE
             ),
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this cv')
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego CV')
         ],
         responses={
-            '201': 'Picture added successfully.',
-            '400': 'Make sure the form key is "picture". / serializer errors ',
-            '403': "User has no permission to perfonm this action.",
-            '404': 'CV not found.'
+            '201': 'Zdjęcie dodano pomyślnie',
+            '400': 'Upewnij się, że form key to "picture" / Błędy walidacji',
+            '403': "Nie masz uprawnień do wykonania tej czynności",
+            '404': 'Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u'
         }
     )
     def post(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
-        
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+
         except CV.DoesNotExist:
-            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u', status.HTTP_404_NOT_FOUND)
 
         serializer = CVSerializer(instance=cv)
         data = serializer.data
@@ -222,29 +218,28 @@ class CVPictureView(views.APIView):
             cv.has_picture = True
             cv.save()
         except MultiValueDictKeyError:
-            Response('Make sure the form key is "picture".', status.HTTP_400_BAD_REQUEST)
+            ErrorResponse('Upewnij się, że form key to "picture"', status.HTTP_400_BAD_REQUEST)
         serializer = CVSerializer(data=data)
-        
+
         delete_previous_cv_file(cv)
         delete_previous_picture(cv.basic_info)
 
         if serializer.is_valid():
             serializer.update(cv, serializer.validated_data)
-            return Response('Picture added successfully.', status.HTTP_201_CREATED)
+            return MessageResponse('Zdjęcie dodano pomyślnie')
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-
     @swagger_auto_schema(
-        operation_description="Returns picture encoded in base64 if it was uploaded",
+        operation_description="Zwraca obrazek w base64",
         manual_parameters=[
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this cv')
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego CV')
         ],
         responses={
             '200': "file: base 64",
-            '403': "User has no permission to perfonm this action.",
-            '404': 'CV/picture not found'
+            '403': "Nie masz uprawnień do wykonania tej czynności",
+            '404': 'Nie znaleziono CV/zdjęcia'
         }
     )
     def get(self, request, cv_id):
@@ -252,12 +247,12 @@ class CVPictureView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
         bi = BasicInfo.objects.get(cv=cv)
         if not bi.picture:
-            return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono zdjęcia', status.HTTP_404_NOT_FOUND)
 
         encoded_string = base64.b64encode(bi.picture.read())
 
@@ -265,17 +260,16 @@ class CVPictureView(views.APIView):
 
         return Response(response_data, status.HTTP_200_OK)
 
-
     @swagger_auto_schema(
-        operation_description="Deletes cv picture from the database",
+        operation_description="Usuwa CV z bazy",
         manual_parameters=[
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this cv')
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego CV')
         ],
         responses={
-            '200': 'Picture deleted successfully.',
-            '403': "User has no permission to perfonm this action.",
-            '404': 'CV/picture not found.'
+            '200': 'Zdjęcie usunięto pomyślnie',
+            '403': "Nie masz uprawnień do wykonania tej czynności",
+            '404': 'Nie znaleziono CV/zdjęcia'
         }
     )
     def delete(self, request, cv_id):
@@ -283,31 +277,31 @@ class CVPictureView(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
         bi = BasicInfo.objects.get(cv=cv)
         if not bi.picture:
-            return Response('Picture not found.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono zdjęcia', status.HTTP_404_NOT_FOUND)
         bi.picture.delete(save=True)
         cv.has_picture = False
         cv.save()
         cv_serializer = CVSerializer(instance=cv)
-        
+
         delete_previous_picture(bi)
         delete_previous_cv_file(cv)
         cv_serializer.update(cv, cv_serializer.data)
 
-        return Response('Picture deleted successfully.', status.HTTP_200_OK)
+        return MessageResponse('Zdjęcie usunięto pomyślnie')
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '403': "User has no permission to perfonm this action.",
+        '403': "User has no permission to perform this action.",
         '404': "Not found"
     },
-    operation_description="Returns unverified cv list for admin"
+    operation_description="Zwraca listę niezweryfikowanych CV dla admina"
 ))
 class AdminUnverifiedCVList(generics.ListAPIView):
     serializer_class = CVSerializer
@@ -322,21 +316,18 @@ class AdminUnverifiedCVList(generics.ListAPIView):
 
 
 class AdminFeedback(views.APIView):
-    """
-    Adds feedback from admin to an existing CV.
-    Requires admin privileges.
-    """
     permission_classes = [IsStaffResponsibleForCVs]
     serializer_class = FeedbackSerializer
 
     @swagger_auto_schema(
         request_body=FeedbackSerializer,
         responses={
-            '201': 'Feedback successfully created.',
-            '400': 'Serializer errors',
-            '403': "User has no permission to perfonm this action."
+            '201': 'Feedback stworzono pomyślnie',
+            '400': 'Błędy walidacji (np. brak jakiegoś pola)',
+            '403': "User has no permission to perform this action.",
+            '404': 'Nie znaleziono CV o podanym id'
         },
-        operation_description="Lets admin create feedback for a cv.",
+        operation_description="Tworzenie feedbacku do danego CV przez admina",
     )
     def post(self, request):
         request_data = request.data
@@ -344,11 +335,11 @@ class AdminFeedback(views.APIView):
         try:
             cv = CV.objects.get(cv_id=request_data['cv_id'])
         except CV.DoesNotExist:
-            return Response('CV with the given id was not found.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
 
         if serializer.is_valid():
             feedback = serializer.create(serializer.validated_data)
-            return Response('Feedback successfully created.', status.HTTP_201_CREATED)
+            return MessageResponse('Feedback stworzono pomyślnie')
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -356,13 +347,14 @@ class AdminFeedback(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     responses={
         '200': FeedbackSerializer,
-        '403': "User has no permission to perfonm this action.",
-        '404': "Not found"
+        '403': "Nie masz uprawnień do wykonania tej czynności",
+        '404': "Nie znaleziono CV/feedbacku"
     },
     manual_parameters=[
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string')
-        ],
-    operation_description="Returns feedback for users cv"
+        openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                          description='String UUID będący id danego CV')
+    ],
+    operation_description="Zwraca feedback do danego cv"
 ))
 class CVFeedback(views.APIView):
     permission_classes = [IsCVOwner | IsStaffResponsibleForCVs]
@@ -372,15 +364,15 @@ class CVFeedback(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
-        
+            return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
+
         try:
             fb = Feedback.objects.get(cv_id=cv_id)
         except Feedback.DoesNotExist:
-            return Response('Feedback not found.', status.HTTP_404_NOT_FOUND)
-    
+            return ErrorResponse('Nie znaleziono feedbacku', status.HTTP_404_NOT_FOUND)
+
         serializer = FeedbackSerializer(instance=fb)
         return Response(serializer.data, status.HTTP_200_OK)
 
@@ -390,44 +382,43 @@ class AdminCVVerificationView(views.APIView):
 
     @swagger_auto_schema(
         responses={
-            '200': 'CV was successfully verified.',
-            '400': 'CV id was not specified.',
-            '403': "User has no permission to perfonm this action.",
-            '404': 'CV with the given id was not found.'
+            '200': 'CV zweryfikowano pomyślnie',
+            '400': 'Nie podano cv_id',
+            '403': "User has no permission to perform this action.",
+            '404': 'Nie znaleziono CV o podanym id'
         },
         manual_parameters=[
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying cv.')
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego CV')
         ],
-        operation_description="Sets cv's status to verified.",
+        operation_description="Zmienia status CV na zweryfikowane",
     )
     def post(self, request, cv_id):
         if cv_id is not None:
             try:
                 cv = CV.objects.get(cv_id=cv_id)
             except CV.DoesNotExist:
-                return Response('CV with the given id was not found.', status.HTTP_404_NOT_FOUND)
+                return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
             cv.is_verified = True
             cv.save()
-            return Response('CV successfully verified.', status.HTTP_200_OK)
+            return MessageResponse('CV zweryfikowano pomyślnie')
 
-        return Response('CV id was not specified.', status.HTTP_400_BAD_REQUEST)
+        return ErrorResponse('Nie podano cv_id', status.HTTP_400_BAD_REQUEST)
 
 
 class CVStatus(views.APIView):
-
     permission_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
     @swagger_auto_schema(
-        operation_description="Returns cv verification status",
+        operation_description="Zwraca status weryfikacji danego CV",
         manual_parameters=[
-            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)', 
-                description='A UUID string identifying this cv')
+            openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
+                              description='A UUID string identifying this cv')
         ],
         responses={
             '200': 'is_verified: true/false',
-            '403': 'User has no permission to perfonm this action.',
-            '404': 'Not found'
+            '403': 'Nie masz uprawnień do wykonania tej czynności',
+            '404': 'Nie znaleziono CV o podanym id'
         }
     )
     def get(self, request, cv_id):
@@ -435,9 +426,9 @@ class CVStatus(views.APIView):
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
                     and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
-            return Response('CV not found.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
 
         return Response({"is_verified": cv.is_verified}, status.HTTP_200_OK)
 
@@ -445,10 +436,10 @@ class CVStatus(views.APIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '403': 'User has no permission to perfonm this action.',
+        '403': "Nie masz uprawnień, by wykonać tę czynność.",
         '404': "Not found",
     },
-    operation_description="Returns all CVs list for admin"
+    operation_description="Zwraca listę wszystkich CV dla admina"
 ))
 class AdminCVListView(generics.ListAPIView):
     queryset = CV.objects.all()
@@ -463,10 +454,10 @@ class AdminCVListView(generics.ListAPIView):
 @method_decorator(name='get', decorator=swagger_auto_schema(
     filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '403': 'User has no permission to perfonm this action.',
+        '403': "Nie masz uprawnień, by wykonać tę czynność.",
         '404': "Not found",
     },
-    operation_description="Returns users CV list"
+    operation_description="Zwraca listę wszystkich CV zalogowanego użytkownika"
 ))
 class UserCVListView(generics.ListAPIView):
     serializer_class = CVSerializer
@@ -484,40 +475,39 @@ class UserCVListView(generics.ListAPIView):
 
 
 class UserCVNameView(views.APIView):
-
     permission_classes = [IsCVOwner]
 
     @swagger_auto_schema(
-        operation_description="Changes the name of a CV",
+        operation_description='Zmienia nazwę danego CV',
         manual_parameters=[
             openapi.Parameter('cv_id', openapi.IN_PATH, type='string($uuid)',
-                              description='A UUID string identifying this cv')
+                              description='String UUID będący id danego CV')
         ],
-        request_body = openapi.Schema(type='object', properties= {
+        request_body=openapi.Schema(type='object', properties={
             'name': openapi.Schema(type='string')}),
 
         responses={
-            200: 'CV name changed to: new_name',
-            403: 'User has no permission to perfonm this action.',
-            404: 'CV with the given id  does not exist',
-            400: 'New name was not specified'
+            200: '"message": "Nazwa CV zmieniona na: nowa_nazwa"',
+            403: 'Nie masz uprawnień do wykonania tej czynności',
+            404: 'Nie znaleziono CV o podanym id',
+            400: 'Nie podano nowej nazwy CV'
         }
     )
     def put(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv):
-                return Response("User has no permission to perfonm this action.", status.HTTP_403_FORBIDDEN)
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
 
         except CV.DoesNotExist:
-            return Response('CV with the given id  does not exist', status=status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
 
         try:
             cv.name = request.data['name']
             cv.save()
-            return Response(f'CV name changed to: {request.data["name"]}', status=status.HTTP_200_OK)
+            return MessageResponse(f'Nazwa CV zmieniona na: {request.data["name"]}')
         except KeyError:
-            return Response('New name was not specified', status=status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse('Nie podano nowej nazwy CV', status.HTTP_400_BAD_REQUEST)
 
 
 class UserCVAvailabilityView(views.APIView):
