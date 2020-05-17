@@ -16,6 +16,8 @@ from .validators import validate_nip
 
 class AbstractAccountSerializer(serializers.ModelSerializer):
 
+    picture_url = serializers.CharField(read_only=True)
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         account_data = self.get_account_data(validated_data)
@@ -99,7 +101,7 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
-                  'password', 'phone_number', 'facility_name', 'facility_address', 'profile_picture']
+                  'password', 'phone_number', 'facility_name', 'facility_address', 'picture_url']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -146,7 +148,7 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
-                  'password', 'phone_number', 'company_name', 'company_address', 'nip', 'profile_picture']
+                  'password', 'phone_number', 'company_name', 'company_address', 'nip', 'picture_url']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -200,7 +202,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name',
-                  'first_name', 'password', 'group_type', 'profile_picture']
+                  'first_name', 'password', 'group_type', 'picture_url']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -242,7 +244,7 @@ class AccountListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'type',
-                  'date_joined', 'last_login', 'status']
+                  'date_joined', 'last_login', 'status', 'picture_url']
 
 
 class EmployerDetailSerializer(EmployerAccountSerializer, AccountListSerializer):
@@ -250,7 +252,7 @@ class EmployerDetailSerializer(EmployerAccountSerializer, AccountListSerializer)
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name',
                   'phone_number', 'company_name', 'company_address',
-                  'nip', 'date_joined', 'last_login', 'status', 'profile_picture']
+                  'nip', 'date_joined', 'last_login', 'status', 'picture_url']
 
 
 class StaffDetailSerializer(StaffAccountSerializer, AccountListSerializer):
@@ -259,7 +261,7 @@ class StaffDetailSerializer(StaffAccountSerializer, AccountListSerializer):
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'group_type',
-                  'date_joined', 'last_login', 'status', 'profile_picture']
+                  'date_joined', 'last_login', 'status', 'picture_url']
 
 
 class DefaultAccountDetailSerializer(DefaultAccountSerializer, AccountListSerializer):
@@ -267,7 +269,7 @@ class DefaultAccountDetailSerializer(DefaultAccountSerializer, AccountListSerial
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name',
                   'phone_number', 'facility_name', 'facility_address',
-                  'date_joined', 'last_login', 'status', 'profile_picture']
+                  'date_joined', 'last_login', 'status', 'picture_url']
 
 
 class ProfilePictureSerializer(serializers.Serializer):

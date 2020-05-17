@@ -83,6 +83,10 @@ class Account(AbstractBaseUser, PermissionsMixin):
     def group_type(self):
         return list(self.groups.values_list('name', flat=True))
 
+    @property
+    def picture_url(self):
+        return self.profile_picture.url
+
     def delete_image_if_exists(self, *args, **kwargs) -> bool:
         if self.profile_picture.name:
             storage, path = self.profile_picture.storage, self.profile_picture.path
