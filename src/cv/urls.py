@@ -19,5 +19,5 @@ urlpatterns = [
     path('admin/verification/<uuid:cv_id>/', views.AdminCVVerificationView.as_view(), name='cv_verification'),
     path('status/<uuid:cv_id>/', views.CVStatus.as_view(), name='cv_status'),
     path('name/<uuid:cv_id>/', views.UserCVNameView.as_view(), name='cv_name'),
-    path('generator/can-post', views.UserCVAvailabilityView.as_view(), name='cv_generator_can_post'),
+    path('generator/can-post/', views.UserCVAvailabilityView.as_view(), name='cv_generator_can_post'),
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

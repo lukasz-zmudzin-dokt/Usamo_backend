@@ -1,5 +1,4 @@
 import uuid
-
 from django.conf import settings
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
@@ -41,9 +40,17 @@ class AccountManager(BaseUserManager):
         return user
 
 
+class EmailLowerCaseField(models.EmailField):
+    def get_prep_value(self, value):
+        value = super(EmailLowerCaseField, self).get_prep_value(value)
+        if value is not None:
+            value = value.lower()
+        return value
+
+
 class Account(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name='id')
-    email = models.EmailField(verbose_name='email', max_length=60, unique=True)
+    email = EmailLowerCaseField(verbose_name='email', max_length=60, unique=True)
     username = models.CharField(max_length=30, unique=True)
     first_name = models.CharField(max_length=30, verbose_name='first_name')
     last_name = models.CharField(max_length=30, verbose_name='last_name')
@@ -102,7 +109,6 @@ class StaffAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
 
 
-
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def create_user_token(sender, instance, created, **kwargs):
     if created:
@@ -127,7 +133,5 @@ def set_employer_account_type(sender, instance, created, **kwargs):
 @receiver(post_save, sender=StaffAccount)
 def set_admin_status(sender, instance, created, **kwargs):
     if created:
-        instance.user.is_admin = True
-        instance.user.is_staff = True
         instance.user.type = AccountType.STAFF.value
         instance.user.status = AccountStatus.VERIFIED.value

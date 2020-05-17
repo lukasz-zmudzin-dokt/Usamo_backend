@@ -24,6 +24,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
+PASS_RESET_URL = os.getenv('PASS_RESET_URL')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -38,12 +39,14 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
     'phonenumber_field',
     'rest_framework',
     'rest_framework.authtoken',
     'whitenoise.runserver_nostatic',
     'corsheaders',
     'job.apps.JobConfig',
+    'chat',
     'cv.apps.CvConfig',
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
@@ -92,7 +95,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'usamo.wsgi.application'
+#WSGI_APPLICATION = 'usamo.wsgi.application'
+ASGI_APPLICATION = "usamo.routing.application"
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -106,11 +110,21 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432'
     }
-}
+} 
 
 db_from_env = dj_database_url.config(conn_max_age=600)
 DATABASES['default'].update(db_from_env)
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
+
+CHANNEL_LAYERS['default']["hosts"] = [os.environ.get('REDIS_URL', 'redis://localhost:6379')]
 
 def _get_pdfkit_config():
     if platform.system() == 'Windows':
@@ -127,17 +141,18 @@ def _get_pdfkit_config():
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
     },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
+   
     {
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    }
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # }
 ]
 
 # Internationalization
@@ -155,6 +170,8 @@ CORS_ALLOW_HEADERS = (
     'x-csrftoken',
     'x-requested-with',
 )
+
+DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
 
 AUTH_USER_MODEL = 'account.Account'
 
