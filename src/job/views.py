@@ -247,8 +247,8 @@ class JobOfferImageView(views.APIView):
         message = 'Poprawnie dodano zdjęcie do oferty pracy'
         if instance.offer_image:
             message = 'Poprawnie zmieniono zdjęcie do oferty pracy'
-        if os.path.isfile(instance.offer_image.path):
             os.remove(instance.offer_image.path)
+
         instance.offer_image = image
         instance.save()
         return MessageResponse(message)
@@ -275,8 +275,7 @@ class JobOfferImageView(views.APIView):
             return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
         if not instance.offer_image:
             return ErrorResponse('Brak zdjęcia dla tej oferty', status.HTTP_404_NOT_FOUND)
-        if os.path.isfile(instance.offer_image.path):
-            os.remove(instance.offer_image.path)
+        os.remove(instance.offer_image.path)
         instance.offer_image = None
         instance.save()
         return MessageResponse('Usunięto zdjęcie z oferty pracy')
