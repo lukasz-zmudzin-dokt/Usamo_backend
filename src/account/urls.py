@@ -1,15 +1,15 @@
 from django.urls import path
 from django.conf.urls import include, url
 from .views import *
-import uuid
 
 
 urlpatterns = [
     path('register/', DefaultAccountRegistrationView.as_view(), name='register'),
     path('register/employer/', EmployerRegistrationView.as_view()),
     path('register/staff/', StaffRegistrationView.as_view()),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('login/', LoginView.as_view(), name='login'),
+    url(r'login/', LoginView.as_view(), name='knox_login'),
+    url(r'logout/', LogoutView.as_view(), name='knox_logout'),
+    url(r'logout_all/', LogoutAllView.as_view(), name='knox_logout_all'),
     path('data/', DataView.as_view(), name='data'),
     path('status/', UserStatusView.as_view(), name='user_status'),
     url(r'^admin/user_list/all/$',
@@ -26,6 +26,8 @@ urlpatterns = [
          AdminUserAdmissionView.as_view(), name='admit_user_view'),
     path('admin/user_rejection/<uuid:user_id>/',
          AdminUserRejectionView.as_view(), name='reject_user_view'),
+    path('admin/user_block/<uuid:user_id>/',
+         AdminUserBlockView.as_view(), name='block_user_view'),
     url(r'^password_reset/',
         include('django_rest_passwordreset.urls', namespace='password_reset')),
 ]

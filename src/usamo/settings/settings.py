@@ -17,6 +17,8 @@ import sys
 import pdfkit
 import platform
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+from datetime import timedelta
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -55,6 +57,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_rest_passwordreset',
     'django_filters',
+    'knox'
 ]
 
 MIDDLEWARE = [
@@ -70,12 +73,14 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
-    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ]
+}
+
+REST_KNOX = {
+  'TOKEN_TTL': timedelta(minutes=2400),
 }
 
 ROOT_URLCONF = 'usamo.urls'
@@ -175,7 +180,7 @@ DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
 
 AUTH_USER_MODEL = 'account.Account'
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pl'
 
 TIME_ZONE = 'Europe/Warsaw'
 
