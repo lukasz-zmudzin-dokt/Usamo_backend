@@ -339,7 +339,7 @@ class AdminFeedback(views.APIView):
                         object_id=cv.cv_id
                         )
             return MessageResponse('Feedback stworzono pomyślnie')
-           else:
+        else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
