@@ -1,5 +1,5 @@
 import uuid
-from django.conf import settings
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
@@ -12,6 +12,7 @@ from rest_framework.authtoken.models import Token
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
 from .account_type import *
 from .utils import create_profile_picture_file_path
+
 
 class AccountManager(BaseUserManager):
     def create_user(self, email, username, first_name, last_name, password=None):
@@ -85,7 +86,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     @property
     def picture_url(self):
-        return self.profile_picture.url
+        return self.profile_picture.url if self.profile_picture.name else ""
 
     def delete_image_if_exists(self, *args, **kwargs) -> bool:
         if self.profile_picture.name:
