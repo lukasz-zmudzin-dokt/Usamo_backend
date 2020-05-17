@@ -411,3 +411,61 @@ class AdminUserDetailView(RetrieveAPIView):
             return StaffDetailSerializer
 
         return DefaultAccountDetailSerializer
+
+
+class AccountEditView(views.APIView):
+    permission_classes = [IsAuthenticated]
+
+    def put(self, request):
+        try:
+            account = Account.objects.get(pk=request.user.id)
+            try:
+                new_password = request.data['password']
+            except KeyError:
+                return Response("Key 'password' is not defined in JSON request")
+            account.set_password(new_password)
+            account.save()
+            return Response("User data updated", status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response("User not found in database", status.HTTP_404_NOT_FOUND)
+
+    def delete(self, request):
+        try:
+            account = Account.objects.get(pk = request.user.id)
+            account.delete()
+            return Response("Account successfully deleted", status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response("User not found in database", status.HTTP_404_NOT_FOUND)
+
+
+class AdminAccountEditView(views.APIView):
+    permission_classes = [CanStaffVerifyUsers]
+
+    def put(self, request, user_id):
+        if user_id is not None:
+            try:
+                account = Account.objects.get(pk=user_id)
+            except Account.DoesNotExist:
+                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
+        if account.type == AccountType.STANDARD.value:
+            serializer = DefaultAccountSerializer(account, data=request.data, partial=True)
+        elif account.type == AccountType.EMPLOYER.value:
+            serializer = EmployerAccountSerializer(account, data=request.data, partial=True)
+        elif account.type == AccountType.STAFF.value:
+            serializer = StaffAccountSerializer(account, data=request.data, partial=True)
+        else:
+            return Response("User not found", status.HTTP_404_NOT_FOUND)
+
+        if serializer.is_valid():
+            serializer.update(account, serializer.validated_data)
+            return Response("Account data successfully updated", status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, user_id):
+        try:
+            account = Account.objects.get(pk=user_id)
+            account.delete()
+            return Response("Account successfully deleted", status.HTTP_200_OK)
+        except ObjectDoesNotExist:
+            return Response("User not found in database", status.HTTP_404_NOT_FOUND)

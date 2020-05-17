@@ -12,6 +12,7 @@ urlpatterns = [
     path('login/', LoginView.as_view(), name='login'),
     path('data/', DataView.as_view(), name='data'),
     path('status/', UserStatusView.as_view(), name='user_status'),
+    path('edit/', AccountEditView.as_view(), name='account_edit'),
     url(r'^admin/user_list/all/$',
         AdminAllAccountsListView.as_view(), name='user_list_all'),
     url(r'^admin/user_list/employers/$',
@@ -28,6 +29,9 @@ urlpatterns = [
          AdminUserRejectionView.as_view(), name='reject_user_view'),
     path('admin/user_block/<uuid:user_id>/',
          AdminUserBlockView.as_view(), name='block_user_view'),
+    path('admin/user_edit/<uuid:user_id>/',
+         AdminAccountEditView.as_view(), name='edit_user_view'),
+
     url(r'^password_reset/',
         include('django_rest_passwordreset.urls', namespace='password_reset')),
 ]
