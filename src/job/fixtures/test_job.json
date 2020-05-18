@@ -82,7 +82,6 @@
 },
 {
    "model": "job.jobofferapplication",
-   "pk": 1,
    "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "job_offer": "47991e86-4b42-4507-b154-1548bf8a3bd3",
@@ -91,7 +90,6 @@
 },
 {
    "model": "job.jobofferapplication",
-   "pk": 2,
    "fields": {
       "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
       "job_offer": "7152613f-8bed-4a70-8258-35b1c127331d",
@@ -100,7 +98,6 @@
 },
 {
    "model": "job.jobofferapplication",
-   "pk": 3,
    "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "job_offer": "7152613f-8bed-4a70-8258-35b1c127331d",

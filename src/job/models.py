@@ -39,9 +39,11 @@ class JobOffer(models.Model):
         
 
 class JobOfferApplication(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     cv = models.ForeignKey(CV, related_name='application_cv', on_delete=models.CASCADE)
     job_offer = models.ForeignKey(JobOffer, on_delete=models.CASCADE)
     date_posted = models.DateTimeField(auto_now_add=True)
+    was_read = models.BooleanField(default=False)
 
 
 class JobOfferFilters:

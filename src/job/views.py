@@ -433,6 +433,38 @@ class UserApplicationsView(ListAPIView):
         return JobOfferApplication.objects.filter(cv__cv_user__user=self.request.user)
 
 
+class EmployerApplicationMarkAsReadView(views.APIView):
+    permission_classes = [IsEmployer]
+
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Aplikacja została oznaczona jako przeczytana"),
+            '403': sample_error_response("Aplikacja nie została złożona na ofertę należącą Ciebie"),
+            '404': sample_error_response("Nie znaleziono aplikacji o podanym id")
+        },
+        manual_parameters=[
+            Parameter('application_id', IN_PATH, type='string($uuid)', 
+                description='ID aplikacji na ofertę pracy')
+        ],
+        operation_description="Pozwala oznaczyć aplikację jako przeczytaną"
+    )
+    def post(self, request, application_id):
+        try:
+            application = JobOfferApplication.objects.get(id=application_id)
+        except JobOfferApplication.DoesNotExist:
+            return ErrorResponse("Nie znaleziono aplikacji o podanym id", status.HTTP_404_NOT_FOUND)
+
+        offer = application.job_offer
+        if not IsEmployer().has_object_permission(request, self, offer):
+            return ErrorResponse("Aplikacja nie została złożona na ofertę należącą do \
+                                Ciebie", status.HTTP_403_FORBIDDEN)
+
+        application.was_read = True
+        application.save()
+
+        return MessageResponse("Aplikacja została oznaczona jako przeczytana")
+
+
 @method_decorator(name='get', decorator=swagger_auto_schema(
     query_serializer=JobOfferFiltersSerializer,
     manual_parameters=[
