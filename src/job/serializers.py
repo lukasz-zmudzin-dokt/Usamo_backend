@@ -58,7 +58,7 @@ class JobOfferSerializer(serializers.ModelSerializer):
         instance.company_name = validated_data.get('company_name', instance.company_name)
         instance.salary_min = validated_data.get('salary_min', instance.salary_min)
         instance.salary_max = validated_data.get('salary_max', instance.salary_max)
-        new_address_data = validated_data.get('company_address')
+        new_address_data = validated_data.get('company_address', None)
         if new_address_data:
             new_address = Address.objects.create(**new_address_data)
             instance.company_address.delete()

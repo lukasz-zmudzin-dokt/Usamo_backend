@@ -402,20 +402,18 @@ class AdminUserDetailView(RetrieveAPIView):
 class AdminAccountEditView(views.APIView):
     permission_classes = [CanStaffVerifyUsers]
 
-    def put(self, request, user_id):
-        if user_id is not None:
-            try:
-                account = Account.objects.get(pk=user_id)
-            except Account.DoesNotExist:
-                return Response('User with the id given was not found.', status.HTTP_404_NOT_FOUND)
+    def put(self, request, pk):
+        try:
+            account = Account.objects.get(pk=pk)
+        except Account.DoesNotExist:
+            return Response('Użytkownik o podanym id nie został znaleziony.', status.HTTP_404_NOT_FOUND)
+
         if account.type == AccountType.STANDARD.value:
             serializer = DefaultAccountSerializer(account, data=request.data, partial=True)
         elif account.type == AccountType.EMPLOYER.value:
             serializer = EmployerAccountSerializer(account, data=request.data, partial=True)
         elif account.type == AccountType.STAFF.value:
             serializer = StaffAccountSerializer(account, data=request.data, partial=True)
-        else:
-            return Response("User not found", status.HTTP_404_NOT_FOUND)
 
         if serializer.is_valid():
             serializer.update(account, serializer.validated_data)
@@ -423,10 +421,10 @@ class AdminAccountEditView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-    def delete(self, request, user_id):
-        try:
-            account = Account.objects.get(pk=user_id)
-            account.delete()
-            return Response("Account successfully deleted", status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response("User not found in database", status.HTTP_404_NOT_FOUND)
+    # def delete(self, request, pk):
+    #     try:
+    #         account = Account.objects.get(pk=user_id)
+    #         account.delete()
+    #         return Response("Account successfully deleted", status.HTTP_200_OK)
+    #     except ObjectDoesNotExist:
+    #         return Response("User not found in database", status.HTTP_404_NOT_FOUND)
