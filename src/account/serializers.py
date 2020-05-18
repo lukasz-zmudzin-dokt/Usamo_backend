@@ -91,6 +91,22 @@ class AddressSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError(err.message)
 
 
+class PasswordChangeRequestSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+
+    def validate(self, data):       
+        new_password = data['new_password']
+
+        try:
+            validate_password(new_password)
+        except ValidationError as e:
+            errors = {}
+            errors['new_password'] = list(e.messages)
+            raise serializers.ValidationError(errors)
+        
+        return super().validate(data)
+
 class DefaultAccountSerializer(AbstractAccountSerializer):
     facility_address = AddressSerializer(source='account.facility_address')
     facility_name = serializers.CharField(source='account.facility_name')

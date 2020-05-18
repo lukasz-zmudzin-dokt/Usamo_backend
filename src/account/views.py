@@ -18,9 +18,10 @@ from .permissions import CanStaffVerifyUsers, IsStaffMember
 from .serializers import *
 from .models import *
 from .filters import *
-from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_registration_response, sample_login_response
+from .swagger import *
 from rest_framework.pagination import PageNumberPagination
 from job.views import ErrorResponse, MessageResponse
+from django.contrib.auth.hashers import check_password
 
 
 class UserListPagination(PageNumberPagination):
@@ -171,22 +172,13 @@ class UserStatusView(views.APIView):
         return Response(response_data, status.HTTP_200_OK)
 
 
-class DataView(views.APIView):
+class UserDataView(views.APIView):
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Zwraca dane aktualnego użytkownika. "
-                              "Przykład jest dla użytkownika standardowego",
-
-        responses={
-            200: DefaultAccountSerializer
-        }
-    )
-    def get(self, request):
-        serializer = None
-        user_type = AccountType.STANDARD.value
+    def get_serializer_class(self, request):
         if request.user.type == AccountType.STANDARD.value:
             serializer = DefaultAccountDetailSerializer(instance=request.user)
+            user_type = AccountType.STANDARD.value
         elif request.user.type == AccountType.EMPLOYER.value:
             serializer = EmployerDetailSerializer(instance=request.user)
             user_type = AccountType.EMPLOYER.value
@@ -194,9 +186,37 @@ class DataView(views.APIView):
             serializer = StaffDetailSerializer(instance=request.user)
             user_type = AccountType.STAFF.value
 
+        return serializer, user_type
+
+    @swagger_auto_schema(
+        operation_description="Zwraca dane aktualnego użytkownika. "
+                              "Przykład jest dla użytkownika standardowego",
+        responses={
+            200: DefaultAccountSerializer
+        }
+    )
+    def get(self, request):
+        serializer, user_type = self.get_serializer_class(request)
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})
 
+    def put(self, request):
+        account = request.user
+        serializer = PasswordChangeRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        old_pass = request.data['old_password']
+        new_pass = request.data['new_password']
+        if check_password(old_pass, account.password):
+            account.set_password(new_pass)
+            account.save()
+            return MessageResponse("Hasło zostało zmienione")
+        return ErrorResponse("Stare hasło jest niepoprawne", status.HTTP_403_FORBIDDEN)
+        
+    def delete(self, request):
+        account = request.user
+        account.delete()
+        return MessageResponse("Konto zostało pomyślnie usunięte")
 
+    
 class AdminUserAdmissionView(views.APIView):
     permission_classes = [CanStaffVerifyUsers]
 
@@ -246,6 +266,10 @@ class AdminUserRejectionView(views.APIView):
                 user = Account.objects.get(pk=user_id)
             except Account.DoesNotExist:
                 return ErrorResponse('Użytkownik o podanym ID nie został znaleziony', status.HTTP_404_NOT_FOUND)
+
+            if user.type == AccountType.STAFF.value:
+                return ErrorResponse('Nie możesz usunąć tego użytkownika', status.HTTP_403_FORBIDDEN)
+
             user.status = AccountStatus.REJECTED.value
             user.save()
             return MessageResponse('Użytkownik został pomyślnie odrzucony')
@@ -274,6 +298,10 @@ class AdminUserBlockView(views.APIView):
                 user = Account.objects.get(pk=user_id)
             except Account.DoesNotExist:
                 return ErrorResponse('Użytkownik o podanym ID nie został znaleziony', status.HTTP_404_NOT_FOUND)
+
+            if user.type == AccountType.STAFF.value:
+                return ErrorResponse('Nie możesz zablokować tego użytkownika', status.HTTP_403_FORBIDDEN)
+                
             user.status = AccountStatus.BLOCKED.value
             user.save()
             return MessageResponse('Użytkownik został pomyślnie zablokowany')
@@ -369,31 +397,6 @@ class AdminUserDetailView(RetrieveAPIView):
             return StaffDetailSerializer
 
         return DefaultAccountDetailSerializer
-
-
-class AccountEditView(views.APIView):
-    permission_classes = [IsAuthenticated]
-
-    def put(self, request):
-        try:
-            account = Account.objects.get(pk=request.user.id)
-            try:
-                new_password = request.data['password']
-            except KeyError:
-                return Response("Key 'password' is not defined in JSON request")
-            account.set_password(new_password)
-            account.save()
-            return Response("User data updated", status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response("User not found in database", status.HTTP_404_NOT_FOUND)
-
-    def delete(self, request):
-        try:
-            account = Account.objects.get(pk = request.user.id)
-            account.delete()
-            return Response("Account successfully deleted", status.HTTP_200_OK)
-        except ObjectDoesNotExist:
-            return Response("User not found in database", status.HTTP_404_NOT_FOUND)
 
 
 class AdminAccountEditView(views.APIView):
