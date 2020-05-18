@@ -29,7 +29,7 @@ urlpatterns = [
     path('admin/user_block/<uuid:user_id>/',
         AdminUserBlockView.as_view(), name='block_user_view'),
     path('admin/user_details/edit/<uuid:pk>/',
-        AdminAccountEditView.as_view(), name='edit_user_view'),
+        AdminUserDataEditView.as_view(), name='edit_user_view'),
     url(r'^password_reset/',
         include('django_rest_passwordreset.urls', namespace='password_reset')),
 ]

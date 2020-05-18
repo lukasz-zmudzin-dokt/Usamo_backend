@@ -20,7 +20,7 @@ from .models import *
 from .filters import *
 from .swagger import *
 from rest_framework.pagination import PageNumberPagination
-from job.views import ErrorResponse, MessageResponse
+from job.views import ErrorResponse, MessageResponse, sample_error_response, sample_message_response
 from django.contrib.auth.hashers import check_password
 
 
@@ -199,6 +199,15 @@ class UserDataView(views.APIView):
         serializer, user_type = self.get_serializer_class(request)
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})
 
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Hasło zostało zmienione"),
+            '400': "Błędy walidacji",
+            '403': sample_error_response("Stare hasło jest niepoprawne")
+        },
+        request_body=PasswordChangeRequestSerializer,
+        operation_description="Api pozwalające użytkownikowi zmienić swoje hasło",
+    )
     def put(self, request):
         account = request.user
         serializer = PasswordChangeRequestSerializer(data=request.data)
@@ -210,7 +219,13 @@ class UserDataView(views.APIView):
             account.save()
             return MessageResponse("Hasło zostało zmienione")
         return ErrorResponse("Stare hasło jest niepoprawne", status.HTTP_403_FORBIDDEN)
-        
+
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Konto zostało pomyślnie usunięte")
+        },
+        operation_description="Api pozwalające użytkownikowi usunąć swoje konto",
+    )
     def delete(self, request):
         account = request.user
         account.delete()
@@ -399,14 +414,26 @@ class AdminUserDetailView(RetrieveAPIView):
         return DefaultAccountDetailSerializer
 
 
-class AdminAccountEditView(views.APIView):
+class AdminUserDataEditView(views.APIView):
     permission_classes = [CanStaffVerifyUsers]
 
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Dane konta zostały zaktualizowane"),
+            '400': "Błędy walidacji",
+            '404': sample_error_response('Użytkownik o podanym id nie został znaleziony.')
+        },
+        manual_parameters=[
+            openapi.Parameter('pk', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego użytkownika')
+        ],
+        operation_description="Api dla admina do edycji danych użytkowników.",
+    )
     def put(self, request, pk):
         try:
             account = Account.objects.get(pk=pk)
         except Account.DoesNotExist:
-            return Response('Użytkownik o podanym id nie został znaleziony.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Użytkownik o podanym id nie został znaleziony.', status.HTTP_404_NOT_FOUND)
 
         if account.type == AccountType.STANDARD.value:
             serializer = DefaultAccountSerializer(account, data=request.data, partial=True)
@@ -417,14 +444,28 @@ class AdminAccountEditView(views.APIView):
 
         if serializer.is_valid():
             serializer.update(account, serializer.validated_data)
-            return Response("Account data successfully updated", status.HTTP_200_OK)
+            return MessageResponse("Dane konta zostały zaktualizowane")
         else:
-            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+            return ErrorResponse(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-    # def delete(self, request, pk):
-    #     try:
-    #         account = Account.objects.get(pk=user_id)
-    #         account.delete()
-    #         return Response("Account successfully deleted", status.HTTP_200_OK)
-    #     except ObjectDoesNotExist:
-    #         return Response("User not found in database", status.HTTP_404_NOT_FOUND)
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Konto zostało usunięte"),
+            '403': sample_error_response("Nie możesz wykonać tej operacji"),
+            '404': sample_error_response("Użytkownik o podanym id nie został znaleziony")
+        },
+        manual_parameters=[
+            openapi.Parameter('pk', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego użytkownika')
+        ],
+        operation_description="Api dla admina do kasowania użytkowników. Nie można przez nie usuwać staffów.",
+    )
+    def delete(self, request, pk):
+        try:
+            account = Account.objects.get(pk=pk)
+            if account.type == AccountType.STAFF.value:
+                return ErrorResponse("Nie możesz wykonać tej operacji", status.HTTP_403_FORBIDDEN)
+            account.delete()
+            return MessageResponse("Konto zostało usunięte")
+        except Account.DoesNotExist:
+            return ErrorResponse("Użytkownik o podanym id nie został znaleziony", status.HTTP_404_NOT_FOUND)
