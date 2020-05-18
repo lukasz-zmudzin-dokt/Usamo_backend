@@ -100,11 +100,14 @@ class JobOfferApplicationSerializer(serializers.ModelSerializer):
     first_name = serializers.CharField(source='cv.cv_user.user.first_name', read_only=True)
     last_name = serializers.CharField(source='cv.cv_user.user.last_name', read_only=True)
     email = serializers.CharField(source='cv.cv_user.user.email', read_only=True)
+    phone_number = serializers.CharField(source='cv.cv_user.phone_number', read_only=True)
     date_posted = serializers.DateTimeField(read_only=True)
+    was_read = serializers.BooleanField(read_only=True)
     
     class Meta:
         model = JobOfferApplication
-        fields = ['cv', 'job_offer', 'cv_url', 'user_id', 'first_name', 'last_name', 'email', 'date_posted']
+        fields = ['id', 'cv', 'job_offer', 'cv_url', 'user_id', 'first_name', 'last_name', 'email','phone_number', 
+                'date_posted', "was_read"]
         extra_kwargs = {
             'cv': {'write_only': True}
         }
