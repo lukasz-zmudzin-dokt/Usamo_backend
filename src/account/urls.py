@@ -1,15 +1,15 @@
 from django.urls import path
 from django.conf.urls import include, url
 from .views import *
-import uuid
 
 
 urlpatterns = [
     path('register/', DefaultAccountRegistrationView.as_view(), name='register'),
     path('register/employer/', EmployerRegistrationView.as_view()),
     path('register/staff/', StaffRegistrationView.as_view()),
-    path('logout/', LogoutView.as_view(), name='logout'),
-    path('login/', LoginView.as_view(), name='login'),
+    url(r'login/', LoginView.as_view(), name='knox_login'),
+    url(r'logout/', LogoutView.as_view(), name='knox_logout'),
+    url(r'logout_all/', LogoutAllView.as_view(), name='knox_logout_all'),
     path('data/', DataView.as_view(), name='data'),
     path('status/', UserStatusView.as_view(), name='user_status'),
     path('edit/', AccountEditView.as_view(), name='account_edit'),

@@ -7,17 +7,17 @@ class AccountStatus(Enum):
     BLOCKED = 4
 
 ACCOUNT_STATUS_CHOICES = [
-    (AccountStatus.VERIFIED.value, 'Verified'),
-    (AccountStatus.WAITING_FOR_VERIFICATION.value, 'Waiting for verification'),
-    (AccountStatus.REJECTED.value, 'Rejected'),
-    (AccountStatus.BLOCKED.value, 'Blocked')
+    (AccountStatus.VERIFIED.value, 'verified'),
+    (AccountStatus.WAITING_FOR_VERIFICATION.value, 'waiting_for_verification'),
+    (AccountStatus.REJECTED.value, 'rejected'),
+    (AccountStatus.BLOCKED.value, 'blocked')
 ]
 
 STATUS_CHOICES_VERBOSE = [
-    ('verified', 'Verified'),
-    ('waiting_for_verification', 'Waiting for verification'),
-    ('rejected', 'Rejected'),
-    ('blocked', 'Blocked')
+    ('verified', 'verified'),
+    ('waiting_for_verification', 'waiting_for_verification'),
+    ('rejected', 'rejected'),
+    ('blocked', 'blocked')
 ]
 
 STATUS_TO_INT_MAP = {

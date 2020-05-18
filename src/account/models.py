@@ -109,14 +109,6 @@ class StaffAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
 
 
-@receiver(post_save, sender=settings.AUTH_USER_MODEL)
-def create_user_token(sender, instance, created, **kwargs):
-    if created:
-        Token.objects.create(user=instance)
-        instance.last_login = timezone.now()
-        instance.date_joined = timezone.now()
-
-
 @receiver(post_save, sender=Token)
 def update_last_login(sender, instance, created, **kwargs):
     if created:
