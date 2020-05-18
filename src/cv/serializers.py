@@ -104,6 +104,7 @@ class CVSerializer(serializers.ModelSerializer):
         serializer = BasicInfoSerializer()
         serializer.update(cv.basic_info, basic_info_data)
         cv.is_verified = False
+        cv.was_reviewed = False
         School.objects.filter(cv=cv).delete()
         Experience.objects.filter(cv=cv).delete()
         Language.objects.filter(cv=cv).delete()
