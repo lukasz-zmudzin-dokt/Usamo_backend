@@ -18,9 +18,10 @@ from .permissions import CanStaffVerifyUsers, IsStaffMember
 from .serializers import *
 from .models import *
 from .filters import *
-from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_registration_response, sample_login_response
+from .swagger import *
 from rest_framework.pagination import PageNumberPagination
-from job.views import ErrorResponse, MessageResponse
+from job.views import ErrorResponse, MessageResponse, sample_error_response, sample_message_response
+from django.contrib.auth.hashers import check_password
 
 
 class UserListPagination(PageNumberPagination):
@@ -171,22 +172,13 @@ class UserStatusView(views.APIView):
         return Response(response_data, status.HTTP_200_OK)
 
 
-class DataView(views.APIView):
+class UserDataView(views.APIView):
     permission_classes = [IsAuthenticated]
 
-    @swagger_auto_schema(
-        operation_description="Zwraca dane aktualnego użytkownika. "
-                              "Przykład jest dla użytkownika standardowego",
-
-        responses={
-            200: DefaultAccountSerializer
-        }
-    )
-    def get(self, request):
-        serializer = None
-        user_type = AccountType.STANDARD.value
+    def get_serializer_class(self, request):
         if request.user.type == AccountType.STANDARD.value:
             serializer = DefaultAccountDetailSerializer(instance=request.user)
+            user_type = AccountType.STANDARD.value
         elif request.user.type == AccountType.EMPLOYER.value:
             serializer = EmployerDetailSerializer(instance=request.user)
             user_type = AccountType.EMPLOYER.value
@@ -194,9 +186,52 @@ class DataView(views.APIView):
             serializer = StaffDetailSerializer(instance=request.user)
             user_type = AccountType.STAFF.value
 
+        return serializer, user_type
+
+    @swagger_auto_schema(
+        operation_description="Zwraca dane aktualnego użytkownika. "
+                              "Przykład jest dla użytkownika standardowego",
+        responses={
+            200: DefaultAccountSerializer
+        }
+    )
+    def get(self, request):
+        serializer, user_type = self.get_serializer_class(request)
         return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})
 
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Hasło zostało zmienione"),
+            '400': "Błędy walidacji",
+            '403': sample_error_response("Stare hasło jest niepoprawne")
+        },
+        request_body=PasswordChangeRequestSerializer,
+        operation_description="Api pozwalające użytkownikowi zmienić swoje hasło",
+    )
+    def put(self, request):
+        account = request.user
+        serializer = PasswordChangeRequestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        old_pass = request.data['old_password']
+        new_pass = request.data['new_password']
+        if check_password(old_pass, account.password):
+            account.set_password(new_pass)
+            account.save()
+            return MessageResponse("Hasło zostało zmienione")
+        return ErrorResponse("Stare hasło jest niepoprawne", status.HTTP_403_FORBIDDEN)
 
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Konto zostało pomyślnie usunięte")
+        },
+        operation_description="Api pozwalające użytkownikowi usunąć swoje konto",
+    )
+    def delete(self, request):
+        account = request.user
+        account.delete()
+        return MessageResponse("Konto zostało pomyślnie usunięte")
+
+    
 class AdminUserAdmissionView(views.APIView):
     permission_classes = [CanStaffVerifyUsers]
 
@@ -246,6 +281,10 @@ class AdminUserRejectionView(views.APIView):
                 user = Account.objects.get(pk=user_id)
             except Account.DoesNotExist:
                 return ErrorResponse('Użytkownik o podanym ID nie został znaleziony', status.HTTP_404_NOT_FOUND)
+
+            if user.type == AccountType.STAFF.value:
+                return ErrorResponse('Nie możesz usunąć tego użytkownika', status.HTTP_403_FORBIDDEN)
+
             user.status = AccountStatus.REJECTED.value
             user.save()
             return MessageResponse('Użytkownik został pomyślnie odrzucony')
@@ -274,6 +313,10 @@ class AdminUserBlockView(views.APIView):
                 user = Account.objects.get(pk=user_id)
             except Account.DoesNotExist:
                 return ErrorResponse('Użytkownik o podanym ID nie został znaleziony', status.HTTP_404_NOT_FOUND)
+
+            if user.type == AccountType.STAFF.value:
+                return ErrorResponse('Nie możesz zablokować tego użytkownika', status.HTTP_403_FORBIDDEN)
+                
             user.status = AccountStatus.BLOCKED.value
             user.save()
             return MessageResponse('Użytkownik został pomyślnie zablokowany')
@@ -369,3 +412,60 @@ class AdminUserDetailView(RetrieveAPIView):
             return StaffDetailSerializer
 
         return DefaultAccountDetailSerializer
+
+
+class AdminUserDataEditView(views.APIView):
+    permission_classes = [CanStaffVerifyUsers]
+
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Dane konta zostały zaktualizowane"),
+            '400': "Błędy walidacji",
+            '404': sample_error_response('Użytkownik o podanym id nie został znaleziony.')
+        },
+        manual_parameters=[
+            openapi.Parameter('pk', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego użytkownika')
+        ],
+        operation_description="Api dla admina do edycji danych użytkowników.",
+    )
+    def put(self, request, pk):
+        try:
+            account = Account.objects.get(pk=pk)
+        except Account.DoesNotExist:
+            return ErrorResponse('Użytkownik o podanym id nie został znaleziony.', status.HTTP_404_NOT_FOUND)
+
+        if account.type == AccountType.STANDARD.value:
+            serializer = DefaultAccountSerializer(account, data=request.data, partial=True)
+        elif account.type == AccountType.EMPLOYER.value:
+            serializer = EmployerAccountSerializer(account, data=request.data, partial=True)
+        elif account.type == AccountType.STAFF.value:
+            serializer = StaffAccountSerializer(account, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.update(account, serializer.validated_data)
+            return MessageResponse("Dane konta zostały zaktualizowane")
+        else:
+            return ErrorResponse(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Konto zostało usunięte"),
+            '403': sample_error_response("Nie możesz wykonać tej operacji"),
+            '404': sample_error_response("Użytkownik o podanym id nie został znaleziony")
+        },
+        manual_parameters=[
+            openapi.Parameter('pk', openapi.IN_PATH, type='string($uuid)',
+                              description='String UUID będący id danego użytkownika')
+        ],
+        operation_description="Api dla admina do kasowania użytkowników. Nie można przez nie usuwać staffów.",
+    )
+    def delete(self, request, pk):
+        try:
+            account = Account.objects.get(pk=pk)
+            if account.type == AccountType.STAFF.value:
+                return ErrorResponse("Nie możesz wykonać tej operacji", status.HTTP_403_FORBIDDEN)
+            account.delete()
+            return MessageResponse("Konto zostało usunięte")
+        except Account.DoesNotExist:
+            return ErrorResponse("Użytkownik o podanym id nie został znaleziony", status.HTTP_404_NOT_FOUND)
