@@ -87,3 +87,6 @@ whitenoise==5.0.1
 wkhtmltopdf-pack @ git+git://github.com/johnfraney/wkhtmltopdf-pack.git@a4996edbd9ec1c9dfe316146e7fa17cc8f86a676
 wrapt==1.11.2
 zope.interface==5.1.0
+django-notifications-hq==1.6.0
+apscheduler==3.6.3
+django-apscheduler==0.3.0

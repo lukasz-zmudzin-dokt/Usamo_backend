@@ -26,4 +26,6 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
             logger.error(e)
 
     async def new_notification(self, event):
-        await self.send(text_data=event['event'])
+        content = event['data']
+        content['event'] = event['event']
+        await self.send_json(content=content)

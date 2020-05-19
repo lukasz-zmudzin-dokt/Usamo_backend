@@ -11,4 +11,6 @@ urlpatterns = [
     path('count/unread', views.UnreadNotificationsCount.as_view()),
     path('mark-as-read/<int:slug>/', views.MarkAsRead.as_view()),
     path('delete/<int:slug>/', views.Delete.as_view()),
+    path('start-daily/', views.StartDailyNotifications.as_view()),
+    path('stop-daily/', views.StopDailyNotifications.as_view())
 ] + static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

@@ -1,12 +1,13 @@
-from django.shortcuts import render
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
-from notifications.models import Notification
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
 from rest_framework import views, generics, status
 
+from account.models import Account
+from job.views import MessageResponse, ErrorResponse
 from notification.serializers import *
+from notification.jobs import start_scheduler, stop_scheduler
 
 
 def slug2id(slug):
@@ -65,13 +66,13 @@ class MarkAsRead(views.APIView):
         try:
             instance = request.user.notifications.get(id=slug2id(slug))
         except Notification.DoesNotExist:
-            return Response('Nie ma takiego powiadomienia!', status=status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie ma takiego powiadomienia!', status.HTTP_404_NOT_FOUND)
         if instance.unread:
             instance.mark_as_read()
-            return Response('Oznaczono powiadomienie jako przeczytane', status=status.HTTP_200_OK)
+            return MessageResponse('Oznaczono powiadomienie jako przeczytane')
         else:
             instance.mark_as_unread()
-            return Response('Oznaczono powiadomienie jako nieprzeczytane', status=status.HTTP_200_OK)
+            return MessageResponse('Oznaczono powiadomienie jako nieprzeczytane')
 
 
 class MarkAllAsRead(views.APIView):
@@ -84,7 +85,7 @@ class MarkAllAsRead(views.APIView):
     )
     def post(self, request):
         request.user.notifications.mark_all_as_read()
-        return Response('Oznaczono wszystkie powiadomienia jako przeczytane', status=status.HTTP_200_OK)
+        return MessageResponse('Oznaczono wszystkie powiadomienia jako przeczytane')
 
 
 class Delete(views.APIView):
@@ -104,9 +105,9 @@ class Delete(views.APIView):
         try:
             instance = request.user.notifications.get(id=slug2id(slug))
         except Notification.DoesNotExist:
-            return Response('Nie ma takiego powiadomienia!', status=status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Nie ma takiego powiadomienia!', status.HTTP_404_NOT_FOUND)
         instance.delete()
-        return Response('Pomyślnie usunięto powiadomienie!', status=status.HTTP_200_OK)
+        return MessageResponse('Pomyślnie usunięto powiadomienie!')
 
 
 class DeleteAll(views.APIView):
@@ -119,4 +120,18 @@ class DeleteAll(views.APIView):
     )
     def delete(self, request):
         request.user.notifications.all().delete()
-        return Response('Usunięto wszystkie twoje powiadomienia!', status=status.HTTP_200_OK)
+        return MessageResponse('Usunięto wszystkie twoje powiadomienia!')
+
+
+class StartDailyNotifications(views.APIView):
+    def post(self, request):
+        pk = request.user.id
+        start_scheduler(pk)
+        return MessageResponse('Powiadomienia będą wysyłane na adres mailowy codziennie o 06:00')
+
+
+class StopDailyNotifications(views.APIView):
+    def post(self, request):
+        pk = request.user.id
+        stop_scheduler(pk)
+        return MessageResponse('Powiadomienia nie będą już wysyłane na adres mailowy')

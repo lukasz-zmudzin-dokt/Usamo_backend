@@ -47,7 +47,7 @@ class CreateCVView(views.APIView):
 
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
-            response = {"cv_id" : cv.pk}
+            response = {"cv_id": cv.pk}
             notify.send(request.user, recipient=Account.objects.filter(groups__name__contains='staff_cv'),
                         verb=f'Użytkownik {def_account.user.username} utworzył_a nowe CV',
                         app='cv/generator/',
@@ -402,7 +402,6 @@ class AdminCVVerificationView(views.APIView):
             cv.save()
             notify.send(request.user, recipient=cv.cv_user.user,
                         verb=f'Osoba z fundacji zatwierdziła twoje CV: {cv.name}',
-                        text=f'Osoba z fundacji zatwierdziła twoje CV: {cv.name}',
                         app='cv/generator/',
                         object_id=cv.cv_id
                         )
