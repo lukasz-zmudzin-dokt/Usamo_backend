@@ -15,3 +15,6 @@ def create_blog_attachment_file_path(instance, filename):
 def create_blog_header_file_path(instance, filename):
     return __create_file_path('headers', filename)
 
+
+def create_category_header_file_path(instance, filename):
+    return __create_file_path('category_headers', filename)

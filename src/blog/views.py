@@ -1,4 +1,6 @@
 import os
+from functools import wraps
+
 from django.utils.datastructures import MultiValueDictKeyError
 from account.models import StaffAccount, DefaultAccount, Account
 from django.core.exceptions import ObjectDoesNotExist
@@ -6,7 +8,7 @@ from django.utils.decorators import method_decorator
 from drf_yasg.openapi import IN_QUERY, IN_FORM
 from drf_yasg.openapi import Schema, Parameter, IN_PATH
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics
+from rest_framework import generics, mixins
 from rest_framework import views, status
 from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -21,6 +23,10 @@ from job.views import MessageResponse
 from .permissions import *
 from .serializers import *
 from .models import *
+from rest_framework import generics
+from django.http import Http404
+
+
 
 
 class ErrorResponse(Response):
@@ -473,3 +479,45 @@ class BlogPostCommentUpdateView(views.APIView):
             return MessageResponse("Komentarz o podanym id został usunięty")
         else:
             return ErrorResponse("Nie masz uprawnień, by usunąć ten komentarz", status.HTTP_403_FORBIDDEN)
+
+
+class BlogPostCategoryHeaderUploadView(views.APIView):
+
+    permission_classes = (IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator, )
+    parser_classes = (MultiPartParser, )
+
+    def post(self, request, category_id):
+        category = self.__get_category(category_id)
+        serializer = BlogPostCategoryHeaderSerializer(data=request.data, context={'category': category})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Pomyślnie dodano zdjęcie do kategorii"}, status.HTTP_200_OK)
+        return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, category_id):
+        category = self.__get_category(category_id)
+        is_success = category.delete_header_if_exists()
+        return Response('', status.HTTP_204_NO_CONTENT) if is_success \
+            else ErrorResponse('Kategoria nie ma zdjęcia', status.HTTP_404_NOT_FOUND)
+
+    @staticmethod
+    def __get_category(category_id):
+        try:
+            return BlogPostCategory.objects.get(pk=category_id)
+        except BlogPostCategory.DoesNotExist:
+            raise Http404()
+
+
+class BlogPostCategoryCreateView(generics.CreateAPIView):
+    permission_classes = (IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator, )
+    serializer_class = BlogPostCategorySerializer
+    queryset = BlogPostCategory.objects.all()
+
+
+class BlogPostCategoryDeleteView(generics.DestroyAPIView):
+    permission_classes = (IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator, )
+    serializer_class = BlogPostCategorySerializer
+
+    def get_queryset(self):
+        return BlogPostCategory.objects.filter(pk=self.kwargs['pk'])
+
