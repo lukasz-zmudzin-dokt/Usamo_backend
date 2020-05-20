@@ -1,4 +1,5 @@
 from django.http import JsonResponse
+from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
@@ -7,14 +8,24 @@ from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework import views
 from rest_framework.generics import get_object_or_404
+from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from account.permissions import IsStandardUser
+
+from .filters import CvOrderingFilter, CVListFilter, DjangoFilterDescriptionInspector
 from .models import *
 from .serializers import *
 from .permissions import *
 from job.views import sample_message_response, ErrorResponse, MessageResponse
 import base64
+
+
+class CVPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 
 class CreateCVView(views.APIView):
     permission_classes = [IsStandardUser]
@@ -285,8 +296,8 @@ class CVPictureView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '200': CVSerializer(many=True),
         '403': "User has no permission to perform this action.",
         '404': "Not found"
     },
@@ -295,6 +306,12 @@ class CVPictureView(views.APIView):
 class AdminUnverifiedCVList(generics.ListAPIView):
     serializer_class = CVSerializer
     permission_classes = [IsStaffResponsibleForCVs]
+    pagination_class = CVPagination
+    filter_backends = (DjangoFilterBackend, CvOrderingFilter,)
+    filterset_class = CVListFilter
+    ordering_fields = ['first_name', 'last_name', 'email', 'languages_count', 'date_created', 'has_picture',
+                       'was_reviewed']
+    ordering = ['-date_created']
 
     def get_queryset(self):
         return CV.objects.filter(is_verified=False)
@@ -419,8 +436,8 @@ class CVStatus(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '200': CVSerializer(many=True),
         '403': "Nie masz uprawnień, by wykonać tę czynność.",
         '404': "Not found",
     },
@@ -430,11 +447,17 @@ class AdminCVListView(generics.ListAPIView):
     queryset = CV.objects.all()
     serializer_class = CVSerializer
     permission_classes = [IsStaffResponsibleForCVs]
+    pagination_class = CVPagination
+    filter_backends = (DjangoFilterBackend, CvOrderingFilter,)
+    filterset_class = CVListFilter
+    ordering_fields = ['first_name', 'last_name', 'email', 'languages_count', 'date_created', 'has_picture',
+                       'was_reviewed', 'is_verified']
+    ordering = ['-date_created']
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '200': CVSerializer(many=True),
         '403': "Nie masz uprawnień, by wykonać tę czynność.",
         '404': "Not found",
     },
@@ -443,6 +466,10 @@ class AdminCVListView(generics.ListAPIView):
 class UserCVListView(generics.ListAPIView):
     serializer_class = CVSerializer
     permission_classes = [IsStandardUser]
+    filter_backends = (DjangoFilterBackend, CvOrderingFilter,)
+    filterset_class = CVListFilter
+    ordering_fields = ['date_created', 'was_reviewed', 'is_verified']
+    ordering = ['-date_created']
 
     def get_queryset(self):
         user = self.request.user

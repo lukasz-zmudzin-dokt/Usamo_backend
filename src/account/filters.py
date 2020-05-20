@@ -5,6 +5,11 @@ from usamo.settings.settings import PASS_RESET_URL
 from .models import *
 from .account_type import *
 from .account_status import *
+from rest_framework.filters import OrderingFilter
+
+
+class UserListOrderingFilter(OrderingFilter):
+    ordering_description = "umożliwia sortowanie po: 'username', 'date_joined', 'last_login'"        
 
 
 class UserListFilter(filters.FilterSet):

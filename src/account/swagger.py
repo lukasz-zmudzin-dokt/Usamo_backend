@@ -1,4 +1,7 @@
 from drf_yasg.openapi import Schema
+from drf_yasg.utils import swagger_auto_schema
+
+from .serializers import ProfilePictureSerializer
 
 
 def sample_employer_account_request_schema():
@@ -83,4 +86,22 @@ def sample_token_data_response():
             'expiry': Schema(type='string', default='2020-05-19T00:19:35.265288+02:00'),
             'token': Schema(type='string', default='7ecb5e73d94f8a77e8f7bce87a777e459502709a59e2a35c27148fc16c23c3ds')
         }
+    )
+
+
+def get_delete_picture_decorator():
+    return swagger_auto_schema(
+        responses={
+            '200': "Pomyślnie usunięto zdjęcie",
+            '404': "Użytkownik nie ma zdjęcia",
+        },
+    )
+
+
+def get_post_picture_decorator():
+    return swagger_auto_schema(
+        request_body=ProfilePictureSerializer,
+        responses={
+            '200': "Pomyślnie dodano zdjęcie",
+        },
     )
