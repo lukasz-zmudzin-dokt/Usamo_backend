@@ -466,11 +466,9 @@ class AdminCVListView(generics.ListAPIView):
 class UserCVListView(generics.ListAPIView):
     serializer_class = CVSerializer
     permission_classes = [IsStandardUser]
-    pagination_class = CVPagination
     filter_backends = (DjangoFilterBackend, CvOrderingFilter,)
     filterset_class = CVListFilter
-    ordering_fields = ['first_name', 'last_name', 'email', 'languages_count', 'date_created', 'has_picture',
-                       'was_reviewed', 'is_verified']
+    ordering_fields = ['date_created', 'was_reviewed', 'is_verified']
     ordering = ['-date_created']
 
     def get_queryset(self):
