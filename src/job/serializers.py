@@ -97,10 +97,10 @@ class JobOfferFiltersSerializer(serializers.Serializer):
 class JobOfferApplicationSerializer(serializers.ModelSerializer):
     cv_url = serializers.CharField(source='cv.document.url', read_only=True)
     user_id = serializers.UUIDField(source='cv.cv_user.user.id', read_only=True)
-    first_name = serializers.CharField(source='cv.cv_user.user.first_name', read_only=True)
-    last_name = serializers.CharField(source='cv.cv_user.user.last_name', read_only=True)
-    email = serializers.CharField(source='cv.cv_user.user.email', read_only=True)
-    phone_number = serializers.CharField(source='cv.cv_user.phone_number', read_only=True)
+    first_name = serializers.CharField(source='cv.basic_info.first_name', read_only=True)
+    last_name = serializers.CharField(source='cv.basic_info.last_name', read_only=True)
+    email = serializers.CharField(source='cv.basic_info.email', read_only=True)
+    phone_number = serializers.CharField(source='cv.basic_info.phone_number', read_only=True)
     date_posted = serializers.DateTimeField(read_only=True)
     was_read = serializers.BooleanField(read_only=True)
     

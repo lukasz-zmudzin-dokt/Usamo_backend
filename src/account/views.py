@@ -13,7 +13,6 @@ from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
-from rest_framework.filters import OrderingFilter
 from django_filters.rest_framework import DjangoFilterBackend
 
 from notification.jobs import send_verification_email
@@ -342,7 +341,7 @@ class AdminAllAccountsListView(ListAPIView):
     queryset = Account.objects.all()
     serializer_class = AccountListSerializer
     permission_classes = [IsStaffMember]
-    filter_backends = (DjangoFilterBackend, OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, UserListOrderingFilter,)
     filterset_class = UserListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
     ordering = ['-date_joined']
@@ -356,7 +355,7 @@ class AdminAllAccountsListView(ListAPIView):
 class AdminDefaultAccountsListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [IsStaffMember]
-    filter_backends = (DjangoFilterBackend, OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, UserListOrderingFilter,)
     filterset_class = DefaultAccountListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
     ordering = ['-date_joined']
@@ -373,7 +372,7 @@ class AdminDefaultAccountsListView(ListAPIView):
 class AdminEmployerListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [IsStaffMember]
-    filter_backends = (DjangoFilterBackend, OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, UserListOrderingFilter,)
     filterset_class = EmployerListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
     ordering = ['-date_joined']
@@ -390,7 +389,7 @@ class AdminEmployerListView(ListAPIView):
 class AdminStaffListView(ListAPIView):
     serializer_class = AccountListSerializer
     permission_classes = [IsStaffMember]
-    filter_backends = (DjangoFilterBackend, OrderingFilter,)
+    filter_backends = (DjangoFilterBackend, UserListOrderingFilter,)
     filterset_class = StaffListFilter
     ordering_fields = ['username', 'date_joined', 'last_login']
     ordering = ['-date_joined']

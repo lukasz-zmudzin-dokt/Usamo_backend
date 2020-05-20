@@ -32,7 +32,7 @@ class BlogPost(models.Model):
     category = models.ForeignKey(BlogPostCategory, on_delete=models.CASCADE)
     tags = models.ManyToManyField(BlogPostTag, blank=True)
     content = models.TextField()
-    title = models.TextField(blank=False, null=False)
+    title = models.CharField(max_length=120, blank=False, null=False)
     date_created = models.DateTimeField(auto_now_add=True)
     date_modified = models.DateTimeField(auto_now=True)
     _summary = models.TextField(null=True)
