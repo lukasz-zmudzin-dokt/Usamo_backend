@@ -1,17 +1,25 @@
+import os
+from rest_framework.parsers import MultiPartParser
 from account.models import EmployerAccount, DefaultAccount
 from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
-from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema, IN_BODY
+from django_filters.rest_framework import DjangoFilterBackend
+from drf_yasg.inspectors import DjangoRestResponsePagination
+from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema, IN_BODY, IN_FORM
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics, serializers
+from rest_framework import generics, serializers, filters
 from rest_framework import status
 from rest_framework import views
 from rest_framework.decorators import permission_classes
+from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser, AllowAny
 from rest_framework.response import Response
 from cv.models import CV
+from .filters import JobOfferApplicationListFilter, JobOfferApplicationOrderingFilter, DjangoFilterDescriptionInspector, \
+    JobOfferOrderingFilter
 from .models import *
 from .serializers import *
 from rest_framework.generics import ListAPIView, get_object_or_404
@@ -59,40 +67,13 @@ def sample_offerid_response():
     )
 
 
-def sample_offer_response():
-    return Schema(
-        type='object',
-        properties={
-            'id': Schema(type='string', default="uuid4", format='byte'),
-            'offer_name': Schema(type='string', default="offer name"),
-            'category': Schema(type='string', default="offer category"),
-            'type': Schema(type='string', default="offer type"),
-            'company_name': Schema(type='string', default="company name"),
-            'company_address': Schema(type='object',
-             properties={
-                 'city': Schema(type='string', default="city"),
-                 'street': Schema(type='string', default="street"),
-                 'street_number': Schema(type='string', default="street number"),
-                 'postal_code': Schema(type='string', default="postal code")
-             }),
-            'voivodeship': Schema(type='string', default="mazowieckie"),
-            'expiration_date': Schema(type='string', default="2020-02-20"),
-            'description': Schema(type='string', default="offer description")
-        }
-    )
-
-
-def sample_paginated_offers_response():
-    return Schema(type='object', properties={
-        'count': Schema(type='integer', default=1),
-        'next': Schema(type='string', default='"http://localhost:8000/job/job-offers/?page=2"'),
-        'previous': Schema(type='string', default='null'),
-        'results': Schema(type='array', items=sample_offer_response())
-        },
-    )
-
-
 class OffersPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
+class ApplicationsPagination(PageNumberPagination):
     page_size = 10
     page_size_query_param = 'page_size'
     max_page_size = 100
@@ -110,7 +91,7 @@ class JobOfferCreateView(views.APIView):
             '403': sample_error_response('Brak użytkownika lub użytkownik nie jest pracodawcą'),
             '400': 'Błędy walidacji (np. brakujące pole)'
         },
-        operation_description="Create job offer.",
+        operation_description="Pozwala stworzyć ofertę pracy.",
     )
     def post(self, request):
         try:
@@ -136,7 +117,7 @@ class JobOfferView(views.APIView):
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         operation_id='job_job-offer_edit',
-        request_body=JobOfferEditSerializer,
+        request_body=JobOfferSerializer,
         responses={
             '200': sample_message_response("Pomyślnie edytowano ofertę"),
             '400': 'Błędy walidacji (np. brakujące pole)',
@@ -147,19 +128,29 @@ class JobOfferView(views.APIView):
         operation_description="Edytuje ofertę pracy",
     )
     def put(self, request, offer_id):
-        serializer = JobOfferEditSerializer(data=request.data)
+        def validate_update(inst, valid_serializer):
+            data = valid_serializer.validated_data
+            salary_min = data.get('salary_min')
+            salary_max = data.get('salary_max')
+            if salary_min and salary_max and salary_min > salary_max:
+                return ErrorResponse("Minimalne wynagrodzenie jest większe niż maksymalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
+            elif salary_min and not salary_max and salary_min > inst.salary_max:
+                return ErrorResponse("Podane minimalne wynagrodzenie jest większe niż aktualne maksymalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
+            elif not salary_min and salary_max and salary_max < inst.salary_min:
+                return ErrorResponse("Podane maskymalne wynagrodzenie jest mniejsze niż aktualne minimalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
+            valid_serializer.update(inst, data)
+            return MessageResponse("Pomyślnie edytowano ofertę")
+
+        try:
+            instance = JobOffer.objects.get(pk=offer_id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+        serializer = JobOfferSerializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
-            #job_offer_edit = serializer.create(serializer.validated_data)
-            try:
-                instance = JobOffer.objects.get(pk=offer_id)
-                if not IsEmployer().has_object_permission(request, self, instance) \
-                        and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                    return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
-                serializer.update(instance, serializer.validated_data)
-                instance.save()
-                return MessageResponse("Pomyślnie edytowano ofertę")
-            except ObjectDoesNotExist:
-                return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+            if not IsEmployer().has_object_permission(request, self, instance) \
+                    and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+            return validate_update(instance, serializer)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -188,7 +179,7 @@ class JobOfferView(views.APIView):
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         responses={
-            '200': sample_message_response('Usunięto ofertę'),
+            '200': sample_message_response("Oferta została pomyślnie usunięta."),
             '400': sample_error_response('Oferta została wcześniej usunięta'),
             '401': 'No authorization token',
             '403': sample_error_response('Nie masz uprawnień do wykonania tej czynności'),
@@ -206,19 +197,82 @@ class JobOfferView(views.APIView):
                 return ErrorResponse("Oferta została wcześniej usunięta", status.HTTP_400_BAD_REQUEST)
             instance.removed = True
             instance.save()
-            return MessageResponse("Offer removed successfully")
+            return MessageResponse("Oferta została pomyślnie usunięta.")
         except ObjectDoesNotExist:
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
 
 
+class JobOfferImageView(views.APIView):
+    permission_classes = [IsEmployer | IsStaffResponsibleForJobs]
+    parser_classes = [MultiPartParser]
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('offer_id', IN_PATH, type='string($uuid)'),
+            Parameter('file', IN_FORM, type='file')
+        ],
+        responses={
+            '200': sample_message_response('Poprawnie dodano zdjęcie do oferty pracy'),
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '400': "Błędy walidacji (np. brakujące pole)"
+        },
+        operation_description="Api do uploadu dodatkowego zdjęcia do oferty pracy.",
+    )
+    def post(self, request, offer_id):
+        try:
+            image = request.FILES['file']
+        except MultiValueDictKeyError:
+            return ErrorResponse('Nie znaleziono pliku. Upewnij się, że został on załączony pod kluczem file',
+                status.HTTP_400_BAD_REQUEST)
+        try:
+            instance = JobOffer.objects.get(pk=offer_id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+        if not IsEmployer().has_object_permission(request, self, instance) \
+                and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+            return ErrorResponse("Nie masz uprawnień, by wykonać tę czynność.", status.HTTP_403_FORBIDDEN)
+        message = 'Poprawnie dodano zdjęcie do oferty pracy'
+        if instance.offer_image:
+            message = 'Poprawnie zmieniono zdjęcie do oferty pracy'
+            os.remove(instance.offer_image.path)
+
+        instance.offer_image = image
+        instance.save()
+        return MessageResponse(message)
+
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('offer_id', IN_PATH, type='string', format='byte')
+        ],
+        responses={
+            '200': "Usunięto zdjęcie z oferty pracy",
+            '401': sample_error_response('No authorization token'),
+            '403': sample_error_response('Brak uprawnień do tej czynności'),
+            '404': sample_error_response('Nie znaleziono oferty/Brak zdjęcia dla tej oferty')
+        },
+        operation_description="Usuwanie typu oferty pracy",
+    )
+    def delete(self, request, offer_id):
+        try:
+            instance = JobOffer.objects.get(pk=offer_id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+        if not IsEmployer().has_object_permission(request, self, instance) \
+                and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+            return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
+        if not instance.offer_image:
+            return ErrorResponse('Brak zdjęcia dla tej oferty', status.HTTP_404_NOT_FOUND)
+        os.remove(instance.offer_image.path)
+        instance.offer_image = None
+        instance.save()
+        return MessageResponse('Usunięto zdjęcie z oferty pracy')
+
+
 @method_decorator(name='get', decorator=swagger_auto_schema(
-    manual_parameters=[
-        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
-        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
-    ],
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     query_serializer=JobOfferFiltersSerializer,
     responses={
-        '200': sample_paginated_offers_response(),
         '400': "Błędy walidacji (np. brakujące pole)",
     },
     operation_description="Zwraca listę ofert pracy z możliwością filtracji"
@@ -226,7 +280,10 @@ class JobOfferView(views.APIView):
 class JobOfferListView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
-
+    filter_backends = [JobOfferOrderingFilter]
+    ordering_fields = ['offer_name', 'category', 'voivodeship', 'salary_min', 'salary_max', 'company_name',
+                       'expiration_date']
+    ordering = ['expiration_date']
     permission_classes = [AllowAny]
 
     filter_serializer = None
@@ -306,8 +363,8 @@ class JobOfferApplicationView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '200': JobOfferApplicationSerializer(many=True),
         '403': "Oferta nie należy do Ciebie",
         '404': "Nie znaleziono oferty"
     },
@@ -320,6 +377,11 @@ class JobOfferApplicationView(views.APIView):
 class EmployerApplicationListView(ListAPIView):
     serializer_class = JobOfferApplicationSerializer
     permission_classes = [IsEmployer]
+    filter_backends = (DjangoFilterBackend, JobOfferApplicationOrderingFilter)
+    filterset_class = JobOfferApplicationListFilter
+    ordering_fields = ['first_name', 'last_name', 'email', 'date_posted', 'was_read']
+    ordering = ['-date_posted']
+    pagination_class = ApplicationsPagination
 
     def get_queryset(self):
         id = self.kwargs['offer_id']
@@ -336,8 +398,8 @@ class EmployerApplicationListView(ListAPIView):
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     responses={
-        '200': JobOfferApplicationSerializer(many=True),
         '403': "You do not have permission to perform this action.",
         '404': "Not found",
     },
@@ -346,19 +408,52 @@ class EmployerApplicationListView(ListAPIView):
 class UserApplicationsView(ListAPIView):
     serializer_class = JobOfferApplicationSerializer
     permission_classes = [IsStandardUser]
+    filter_backends = (DjangoFilterBackend, JobOfferApplicationOrderingFilter)
+    filterset_class = JobOfferApplicationListFilter
+    ordering_fields = ['first_name', 'last_name', 'email', 'date_posted', 'was_read']
+    ordering = ['-date_posted']
+    pagination_class = ApplicationsPagination
 
     def get_queryset(self):
         return JobOfferApplication.objects.filter(cv__cv_user__user=self.request.user)
 
 
+class EmployerApplicationMarkAsReadView(views.APIView):
+    permission_classes = [IsEmployer]
+
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Aplikacja została oznaczona jako przeczytana"),
+            '403': sample_error_response("Aplikacja nie została złożona na ofertę należącą Ciebie"),
+            '404': sample_error_response("Nie znaleziono aplikacji o podanym id")
+        },
+        manual_parameters=[
+            Parameter('application_id', IN_PATH, type='string($uuid)',
+                description='ID aplikacji na ofertę pracy')
+        ],
+        operation_description="Pozwala oznaczyć aplikację jako przeczytaną"
+    )
+    def post(self, request, application_id):
+        try:
+            application = JobOfferApplication.objects.get(id=application_id)
+        except JobOfferApplication.DoesNotExist:
+            return ErrorResponse("Nie znaleziono aplikacji o podanym id", status.HTTP_404_NOT_FOUND)
+
+        offer = application.job_offer
+        if not IsEmployer().has_object_permission(request, self, offer):
+            return ErrorResponse("Aplikacja nie została złożona na ofertę należącą do \
+                                Ciebie", status.HTTP_403_FORBIDDEN)
+
+        application.was_read = True
+        application.save()
+
+        return MessageResponse("Aplikacja została oznaczona jako przeczytana")
+
+
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     query_serializer=JobOfferFiltersSerializer,
-    manual_parameters=[
-        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
-        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
-    ],
     responses={
-        '200': sample_paginated_offers_response(),
         '401': 'No authorization token',
         '403': "You do not have permission to perform this action.",
         '404': "Błędy walidacji (np. brakujące pole)",
@@ -369,6 +464,10 @@ class EmployerJobOffersView(generics.ListAPIView):
     permission_classes = [IsEmployer]
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
+    filter_backends = [JobOfferOrderingFilter]
+    ordering_fields = ['offer_name', 'category', 'voivodeship', 'salary_min', 'salary_max', 'company_name',
+                       'expiration_date']
+    ordering = ['expiration_date']
 
     filter_serializer = None
     employer = None
@@ -390,13 +489,9 @@ class EmployerJobOffersView(generics.ListAPIView):
             return ErrorResponse("Brak użytkownika lub użytkownik nie jest pracodawcą", status.HTTP_403_FORBIDDEN)
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
     query_serializer=JobOfferFiltersSerializer,
-    manual_parameters=[
-        Parameter('page', IN_QUERY, description='Numer strony', type='integer', required=False),
-        Parameter('page_size', IN_QUERY, description='Rozmiar strony, max 100', type='integer', required=False)
-    ],
     responses={
-        '200': sample_paginated_offers_response(),
         '401': 'No authorization token',
         '403': sample_error_response('Brak uprawnień do tej czynności'),
         '400': sample_error_response('Błędy walidacji (np. brakujące pole)'),
@@ -407,6 +502,10 @@ class AdminUnconfirmedJobOffersView(generics.ListAPIView):
     serializer_class = JobOfferSerializer
     pagination_class = OffersPagination
     permission_classes = [IsStaffResponsibleForJobs]
+    filter_backends = [JobOfferOrderingFilter]
+    ordering_fields = ['offer_name', 'category', 'voivodeship', 'salary_min', 'salary_max', 'company_name',
+                       'expiration_date']
+    ordering = ['expiration_date']
 
     filter_serializer = None
 
@@ -532,8 +631,7 @@ class JobOfferCategoryView(views.APIView):
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 
-
-class JobOfferTypesListView(generics.ListAPIView):
+class JobOfferTypesListView(views.APIView):
     permission_classes = [AllowAny]
 
     @swagger_auto_schema(
