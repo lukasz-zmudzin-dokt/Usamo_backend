@@ -309,7 +309,9 @@ class AdminUnverifiedCVList(generics.ListAPIView):
     pagination_class = CVPagination
     filter_backends = (DjangoFilterBackend, CvOrderingFilter,)
     filterset_class = CVListFilter
-    ordering_fields = ['first_name', 'last_name', 'email', 'languages_count', 'date_created', 'has_picture']
+    ordering_fields = ['first_name', 'last_name', 'email', 'languages_count', 'date_created', 'has_picture',
+                       'was_reviewed']
+    ordering = ['-date_created']
 
     def get_queryset(self):
         return CV.objects.filter(is_verified=False)
@@ -448,7 +450,9 @@ class AdminCVListView(generics.ListAPIView):
     pagination_class = CVPagination
     filter_backends = (DjangoFilterBackend, CvOrderingFilter,)
     filterset_class = CVListFilter
-    ordering_fields = ['first_name', 'last_name', 'email', 'languages_count', 'date_created', 'has_picture']
+    ordering_fields = ['first_name', 'last_name', 'email', 'languages_count', 'date_created', 'has_picture',
+                       'was_reviewed', 'is_verified']
+    ordering = ['-date_created']
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
@@ -465,7 +469,9 @@ class UserCVListView(generics.ListAPIView):
     pagination_class = CVPagination
     filter_backends = (DjangoFilterBackend, CvOrderingFilter,)
     filterset_class = CVListFilter
-    ordering_fields = ['first_name', 'last_name', 'email', 'languages_count', 'date_created', 'has_picture']
+    ordering_fields = ['first_name', 'last_name', 'email', 'languages_count', 'date_created', 'has_picture',
+                       'was_reviewed', 'is_verified']
+    ordering = ['-date_created']
 
     def get_queryset(self):
         user = self.request.user

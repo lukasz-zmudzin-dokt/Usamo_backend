@@ -283,7 +283,7 @@ class JobOfferListView(generics.ListAPIView):
     filter_backends = [JobOfferOrderingFilter]
     ordering_fields = ['offer_name', 'category', 'voivodeship', 'salary_min', 'salary_max', 'company_name',
                        'expiration_date']
-
+    ordering = ['expiration_date']
     permission_classes = [AllowAny]
 
     filter_serializer = None
@@ -379,7 +379,8 @@ class EmployerApplicationListView(ListAPIView):
     permission_classes = [IsEmployer]
     filter_backends = (DjangoFilterBackend, JobOfferApplicationOrderingFilter)
     filterset_class = JobOfferApplicationListFilter
-    ordering_fields = ['first_name', 'last_name', 'email', 'date_posted']
+    ordering_fields = ['first_name', 'last_name', 'email', 'date_posted', 'was_read']
+    ordering = ['-date_posted']
     pagination_class = ApplicationsPagination
 
     def get_queryset(self):
@@ -409,7 +410,8 @@ class UserApplicationsView(ListAPIView):
     permission_classes = [IsStandardUser]
     filter_backends = (DjangoFilterBackend, JobOfferApplicationOrderingFilter)
     filterset_class = JobOfferApplicationListFilter
-    ordering_fields = ['first_name', 'last_name', 'email', 'date_posted']
+    ordering_fields = ['first_name', 'last_name', 'email', 'date_posted', 'was_read']
+    ordering = ['-date_posted']
     pagination_class = ApplicationsPagination
 
     def get_queryset(self):
@@ -465,6 +467,7 @@ class EmployerJobOffersView(generics.ListAPIView):
     filter_backends = [JobOfferOrderingFilter]
     ordering_fields = ['offer_name', 'category', 'voivodeship', 'salary_min', 'salary_max', 'company_name',
                        'expiration_date']
+    ordering = ['expiration_date']
 
     filter_serializer = None
     employer = None
@@ -502,6 +505,7 @@ class AdminUnconfirmedJobOffersView(generics.ListAPIView):
     filter_backends = [JobOfferOrderingFilter]
     ordering_fields = ['offer_name', 'category', 'voivodeship', 'salary_min', 'salary_max', 'company_name',
                        'expiration_date']
+    ordering = ['expiration_date']
 
     filter_serializer = None
 

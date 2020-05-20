@@ -29,14 +29,15 @@ class JobOfferOrderingFilter(OrderingFilter):
 
 
 class JobOfferApplicationListFilter(filters.FilterSet):
-    date_posted = filters.DateFromToRangeFilter(field_name='date_joined')
+    date_posted = filters.DateFromToRangeFilter(field_name='date_posted')
     first_name = filters.CharFilter(field_name='cv__cv_user__user__first_name', lookup_expr='icontains')
     last_name = filters.CharFilter(field_name='cv__cv_user__user__last_name', lookup_expr='icontains')
     email = filters.CharFilter(field_name='cv__cv_user__user__email', lookup_expr='icontains')
+    was_read = filters.BooleanFilter(field_name='was_read')
 
     class Meta:
         model = JobOfferApplication
-        fields = ['first_name', 'last_name', 'email', 'date_posted']
+        fields = ['first_name', 'last_name', 'email', 'date_posted', 'was_read']
 
 
 class JobOfferApplicationOrderingFilter(OrderingFilter):
