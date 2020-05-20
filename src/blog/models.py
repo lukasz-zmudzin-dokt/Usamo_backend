@@ -23,7 +23,7 @@ class BlogPostCategory(models.Model):
 
     @property
     def header_url(self):
-        return self.header.url if self.header.name else ""
+        return self.header.url if self.header.name else None
 
     def delete_header_if_exists(self, *args, **kwargs) -> bool:
         if self.header.name:
