@@ -63,7 +63,8 @@ class CVListFilter(filters.FilterSet):
     email = filters.CharFilter(field_name='basic_info__email', lookup_expr='icontains')
     date_posted = filters.DateFromToRangeFilter(field_name='date_posted')
     has_picture = filters.BooleanFilter(field_name='has_picture')
+    was_reviewed = filters.BooleanFilter(field_name='was_reviewed')
 
     class Meta:
         model = CV
-        fields = ['first_name', 'last_name', 'email', 'date_created', 'has_picture']
+        fields = ['first_name', 'last_name', 'email', 'date_created', 'has_picture', 'was_reviewed']
