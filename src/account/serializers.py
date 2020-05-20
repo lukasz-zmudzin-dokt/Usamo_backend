@@ -16,6 +16,8 @@ from .validators import validate_nip
 
 class AbstractAccountSerializer(serializers.ModelSerializer):
 
+    picture_url = serializers.CharField(read_only=True)
+
     def create(self, validated_data):
         password = validated_data.pop('password')
         account_data = self.get_account_data(validated_data)
@@ -124,6 +126,7 @@ class PasswordChangeRequestSerializer(serializers.Serializer):
         
         return super().validate(data)
 
+
 class DefaultAccountSerializer(AbstractAccountSerializer):
     facility_address = AddressSerializer(source='account.facility_address')
     facility_name = serializers.CharField(source='account.facility_name')
@@ -132,7 +135,7 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
-                  'password', 'phone_number', 'facility_name', 'facility_address']
+                  'password', 'phone_number', 'facility_name', 'facility_address', 'picture_url']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -202,7 +205,7 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
-                  'password', 'phone_number', 'company_name', 'company_address', 'nip']
+                  'password', 'phone_number', 'company_name', 'company_address', 'nip', 'picture_url']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -291,7 +294,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name',
-                  'first_name', 'password', 'group_type']
+                  'first_name', 'password', 'group_type', 'picture_url']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -341,7 +344,7 @@ class AccountListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'type',
-                  'date_joined', 'last_login', 'status']
+                  'date_joined', 'last_login', 'status', 'picture_url']
 
 
 class EmployerDetailSerializer(EmployerAccountSerializer, AccountListSerializer):
@@ -349,7 +352,7 @@ class EmployerDetailSerializer(EmployerAccountSerializer, AccountListSerializer)
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name',
                   'phone_number', 'company_name', 'company_address',
-                  'nip', 'date_joined', 'last_login', 'status']
+                  'nip', 'date_joined', 'last_login', 'status', 'picture_url']
 
 
 class StaffDetailSerializer(StaffAccountSerializer, AccountListSerializer):
@@ -358,7 +361,7 @@ class StaffDetailSerializer(StaffAccountSerializer, AccountListSerializer):
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'group_type',
-                  'date_joined', 'last_login', 'status']
+                  'date_joined', 'last_login', 'status', 'picture_url']
 
 
 class DefaultAccountDetailSerializer(DefaultAccountSerializer, AccountListSerializer):
@@ -366,4 +369,22 @@ class DefaultAccountDetailSerializer(DefaultAccountSerializer, AccountListSerial
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name',
                   'phone_number', 'facility_name', 'facility_address',
-                  'date_joined', 'last_login', 'status']
+                  'date_joined', 'last_login', 'status', 'picture_url']
+
+
+class ProfilePictureSerializer(serializers.Serializer):
+
+    picture = serializers.ImageField()
+
+    def update(self, instance, validated_data):
+        return self.__update_or_create_profile_picture(validated_data)
+
+    def create(self, validated_data):
+        return self.__update_or_create_profile_picture(validated_data)
+
+    def __update_or_create_profile_picture(self, validated_data):
+        user = self.context['user']
+        user.delete_image_if_exists()
+        user.profile_picture = validated_data['picture']
+        user.save()
+        return user

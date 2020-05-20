@@ -1,5 +1,5 @@
 import uuid
-from django.conf import settings
+
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
@@ -11,6 +11,7 @@ from rest_framework.authtoken.models import Token
 
 from .account_status import AccountStatus, ACCOUNT_STATUS_CHOICES
 from .account_type import *
+from .utils import create_profile_picture_file_path
 
 
 class AccountManager(BaseUserManager):
@@ -56,6 +57,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=30, verbose_name='last_name')
     date_joined = models.DateTimeField(verbose_name='date_joined', null=True)
     last_login = models.DateTimeField(verbose_name='last_login', null=True)
+    profile_picture = models.ImageField(null=True, upload_to=create_profile_picture_file_path)
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -81,6 +83,18 @@ class Account(AbstractBaseUser, PermissionsMixin):
     @property
     def group_type(self):
         return list(self.groups.values_list('name', flat=True))
+
+    @property
+    def picture_url(self):
+        return self.profile_picture.url if self.profile_picture.name else ""
+
+    def delete_image_if_exists(self, *args, **kwargs) -> bool:
+        if self.profile_picture.name:
+            storage, path = self.profile_picture.storage, self.profile_picture.path
+            self.profile_picture.delete()
+            storage.delete(path)
+            return True
+        return False
 
 
 class Address(models.Model):
