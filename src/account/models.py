@@ -86,7 +86,7 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
     @property
     def picture_url(self):
-        return self.profile_picture.url if self.profile_picture.name else ""
+        return self.profile_picture.url if self.profile_picture.name else None
 
     def delete_image_if_exists(self, *args, **kwargs) -> bool:
         if self.profile_picture.name:
