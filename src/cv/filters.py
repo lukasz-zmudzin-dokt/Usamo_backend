@@ -61,7 +61,7 @@ class CVListFilter(filters.FilterSet):
     first_name = filters.CharFilter(field_name='basic_info__first_name', lookup_expr='icontains')
     last_name = filters.CharFilter(field_name='basic_info__last_name', lookup_expr='icontains')
     email = filters.CharFilter(field_name='basic_info__email', lookup_expr='icontains')
-    date_posted = filters.DateFromToRangeFilter(field_name='date_posted')
+    date_created = filters.DateFromToRangeFilter(field_name='date_created')
     has_picture = filters.BooleanFilter(field_name='has_picture')
     was_reviewed = filters.BooleanFilter(field_name='was_reviewed')
 
