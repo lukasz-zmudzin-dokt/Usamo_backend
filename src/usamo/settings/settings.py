@@ -50,6 +50,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'job.apps.JobConfig',
     'cv.apps.CvConfig',
+    'videos.apps.VideosConfig',
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
     'drf_yasg',
