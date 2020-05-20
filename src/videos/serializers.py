@@ -17,7 +17,9 @@ class VideoSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def to_representation(self, instance):
-        self.fields['category'] = VideoCategorySerializer(read_only=True)
+        category = VideoCategorySerializer(read_only=True)
+        category.fields.pop('videos')
+        self.fields['category'] = category
         return super(VideoSerializer, self).to_representation(instance)
 
 

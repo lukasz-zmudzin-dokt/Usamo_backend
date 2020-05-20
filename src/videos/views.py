@@ -1,5 +1,7 @@
 from rest_framework import generics
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny, IsAuthenticated
+
+from account.permissions import IsStaffMember
 from .serializers import *
 from .models import *
 
@@ -11,13 +13,13 @@ class CategoriesAllView(generics.ListAPIView):
 
 
 class CategoriesNewView(generics.CreateAPIView):
-    permission_classes = (AllowAny, )
+    permission_classes = (IsAuthenticated, IsStaffMember, )
     serializer_class = VideoCategorySerializer
     queryset = VideoCategory.objects.all()
 
 
 class CategoryUpdateOrDeleteOrListView(generics.DestroyAPIView, generics.UpdateAPIView, generics.ListAPIView):
-    permission_classes = (AllowAny, )
+    permission_classes = (IsAuthenticated, IsStaffMember, )
     serializer_class = VideoCategorySerializer
 
     def get_queryset(self):
@@ -33,13 +35,13 @@ class VideosAllView(generics.ListAPIView):
 
 
 class VideosNewView(generics.CreateAPIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated, IsStaffMember, )
     serializer_class = VideoSerializer
     queryset = Video.objects.all()
 
 
 class VideoUpdateOrDeleteView(generics.DestroyAPIView, generics.UpdateAPIView):
-    permission_classes = (AllowAny,)
+    permission_classes = (IsAuthenticated, IsStaffMember, )
     serializer_class = VideoSerializer
 
     def get_queryset(self):
