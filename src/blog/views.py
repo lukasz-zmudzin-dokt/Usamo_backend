@@ -16,11 +16,13 @@ from account.permissions import GetRequestPublicPermission
 from django.contrib.auth.models import Group
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
-
+from rest_framework.pagination import PageNumberPagination
+from django_filters.rest_framework import DjangoFilterBackend
 from job.views import MessageResponse
 from .permissions import *
 from .serializers import *
 from .models import *
+from .filters import *
 
 
 class ErrorResponse(Response):
@@ -132,6 +134,12 @@ def sample_string_response():
         type='array',
         items=Schema(type='string')
     )
+
+
+class BlogPostListPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100    
 
 
 class BlogPostReservationView(views.APIView):
@@ -396,14 +404,17 @@ class BlogPostTagListView(generics.ListAPIView):
             Parameter('category', IN_QUERY, type='string'),
             Parameter('tag', IN_QUERY, type='string')
         ],
-        responses={
-        '200': BlogPostListSerializer(many=True)
-        },
+        filter_inspectors=[DjangoFilterDescriptionInspector],
         operation_description="Zwraca listę postów wszystkich lub filtrowanych po kategorii i/lub tagu"
     ))
 class BlogPostListView(generics.ListAPIView):
     serializer_class = BlogPostListSerializer
     permission_classes = [AllowAny]
+    filter_backends = (DjangoFilterBackend, BlogPostListOrderingFilter,)
+    filterset_class = BlogPostListFilter
+    ordering_fields = ['date_created']
+    ordering = ['-date_created']
+    pagination_class = BlogPostListPagination
 
     def get_queryset(self):
         queryset = BlogPost.objects.all()
