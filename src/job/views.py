@@ -1,5 +1,5 @@
 import os
-
+from rest_framework.parsers import MultiPartParser
 from account.models import EmployerAccount, DefaultAccount
 from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
@@ -91,7 +91,7 @@ class JobOfferCreateView(views.APIView):
             '403': sample_error_response('Brak użytkownika lub użytkownik nie jest pracodawcą'),
             '400': 'Błędy walidacji (np. brakujące pole)'
         },
-        operation_description="Create job offer.",
+        operation_description="Pozwala stworzyć ofertę pracy.",
     )
     def post(self, request):
         try:
@@ -117,7 +117,7 @@ class JobOfferView(views.APIView):
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         operation_id='job_job-offer_edit',
-        request_body=JobOfferEditSerializer,
+        request_body=JobOfferSerializer,
         responses={
             '200': sample_message_response("Pomyślnie edytowano ofertę"),
             '400': 'Błędy walidacji (np. brakujące pole)',
@@ -128,19 +128,29 @@ class JobOfferView(views.APIView):
         operation_description="Edytuje ofertę pracy",
     )
     def put(self, request, offer_id):
-        serializer = JobOfferEditSerializer(data=request.data)
+        def validate_update(inst, valid_serializer):
+            data = valid_serializer.validated_data
+            salary_min = data.get('salary_min')
+            salary_max = data.get('salary_max')
+            if salary_min and salary_max and salary_min > salary_max:
+                return ErrorResponse("Minimalne wynagrodzenie jest większe niż maksymalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
+            elif salary_min and not salary_max and salary_min > inst.salary_max:
+                return ErrorResponse("Podane minimalne wynagrodzenie jest większe niż aktualne maksymalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
+            elif not salary_min and salary_max and salary_max < inst.salary_min:
+                return ErrorResponse("Podane maskymalne wynagrodzenie jest mniejsze niż aktualne minimalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
+            valid_serializer.update(inst, data)
+            return MessageResponse("Pomyślnie edytowano ofertę")
+
+        try:
+            instance = JobOffer.objects.get(pk=offer_id)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+        serializer = JobOfferSerializer(instance, data=request.data, partial=True)
         if serializer.is_valid():
-            #job_offer_edit = serializer.create(serializer.validated_data)
-            try:
-                instance = JobOffer.objects.get(pk=offer_id)
-                if not IsEmployer().has_object_permission(request, self, instance) \
-                        and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                    return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
-                serializer.update(instance, serializer.validated_data)
-                instance.save()
-                return MessageResponse("Pomyślnie edytowano ofertę")
-            except ObjectDoesNotExist:
-                return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+            if not IsEmployer().has_object_permission(request, self, instance) \
+                    and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+                return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
+            return validate_update(instance, serializer)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -169,7 +179,7 @@ class JobOfferView(views.APIView):
             Parameter('offer_id', IN_PATH, type='string', format='byte')
         ],
         responses={
-            '200': sample_message_response('Usunięto ofertę'),
+            '200': sample_message_response("Oferta została pomyślnie usunięta."),
             '400': sample_error_response('Oferta została wcześniej usunięta'),
             '401': 'No authorization token',
             '403': sample_error_response('Nie masz uprawnień do wykonania tej czynności'),
@@ -187,13 +197,14 @@ class JobOfferView(views.APIView):
                 return ErrorResponse("Oferta została wcześniej usunięta", status.HTTP_400_BAD_REQUEST)
             instance.removed = True
             instance.save()
-            return MessageResponse("Offer removed successfully")
+            return MessageResponse("Oferta została pomyślnie usunięta.")
         except ObjectDoesNotExist:
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
 
 
 class JobOfferImageView(views.APIView):
     permission_classes = [IsEmployer | IsStaffResponsibleForJobs]
+    parser_classes = [MultiPartParser]
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -204,9 +215,9 @@ class JobOfferImageView(views.APIView):
             '200': sample_message_response('Poprawnie dodano zdjęcie do oferty pracy'),
             '401': sample_error_response('No authorization token'),
             '403': sample_error_response('Brak uprawnień do tej czynności'),
-            '400': 'Bad request - serializer errors'
+            '400': "Błędy walidacji (np. brakujące pole)"
         },
-        operation_description="Upload job offer image.",
+        operation_description="Api do uploadu dodatkowego zdjęcia do oferty pracy.",
     )
     def post(self, request, offer_id):
         try:
@@ -220,12 +231,12 @@ class JobOfferImageView(views.APIView):
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
         if not IsEmployer().has_object_permission(request, self, instance) \
                 and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-            return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Nie masz uprawnień, by wykonać tę czynność.", status.HTTP_403_FORBIDDEN)
         message = 'Poprawnie dodano zdjęcie do oferty pracy'
         if instance.offer_image:
             message = 'Poprawnie zmieniono zdjęcie do oferty pracy'
-        if os.path.isfile(instance.offer_image.path):
             os.remove(instance.offer_image.path)
+
         instance.offer_image = image
         instance.save()
         return MessageResponse(message)
@@ -252,8 +263,7 @@ class JobOfferImageView(views.APIView):
             return ErrorResponse("No permissions for this action", status.HTTP_403_FORBIDDEN)
         if not instance.offer_image:
             return ErrorResponse('Brak zdjęcia dla tej oferty', status.HTTP_404_NOT_FOUND)
-        if os.path.isfile(instance.offer_image.path):
-            os.remove(instance.offer_image.path)
+        os.remove(instance.offer_image.path)
         instance.offer_image = None
         instance.save()
         return MessageResponse('Usunięto zdjęcie z oferty pracy')
@@ -404,6 +414,38 @@ class UserApplicationsView(ListAPIView):
 
     def get_queryset(self):
         return JobOfferApplication.objects.filter(cv__cv_user__user=self.request.user)
+
+
+class EmployerApplicationMarkAsReadView(views.APIView):
+    permission_classes = [IsEmployer]
+
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Aplikacja została oznaczona jako przeczytana"),
+            '403': sample_error_response("Aplikacja nie została złożona na ofertę należącą Ciebie"),
+            '404': sample_error_response("Nie znaleziono aplikacji o podanym id")
+        },
+        manual_parameters=[
+            Parameter('application_id', IN_PATH, type='string($uuid)',
+                description='ID aplikacji na ofertę pracy')
+        ],
+        operation_description="Pozwala oznaczyć aplikację jako przeczytaną"
+    )
+    def post(self, request, application_id):
+        try:
+            application = JobOfferApplication.objects.get(id=application_id)
+        except JobOfferApplication.DoesNotExist:
+            return ErrorResponse("Nie znaleziono aplikacji o podanym id", status.HTTP_404_NOT_FOUND)
+
+        offer = application.job_offer
+        if not IsEmployer().has_object_permission(request, self, offer):
+            return ErrorResponse("Aplikacja nie została złożona na ofertę należącą do \
+                                Ciebie", status.HTTP_403_FORBIDDEN)
+
+        application.was_read = True
+        application.save()
+
+        return MessageResponse("Aplikacja została oznaczona jako przeczytana")
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
