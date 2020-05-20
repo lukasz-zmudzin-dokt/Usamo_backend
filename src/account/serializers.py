@@ -126,6 +126,7 @@ class PasswordChangeRequestSerializer(serializers.Serializer):
         
         return super().validate(data)
 
+
 class DefaultAccountSerializer(AbstractAccountSerializer):
     facility_address = AddressSerializer(source='account.facility_address')
     facility_name = serializers.CharField(source='account.facility_name')
