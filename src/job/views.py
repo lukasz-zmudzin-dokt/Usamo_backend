@@ -1,6 +1,8 @@
 import os
+
+from notifications.signals import notify
 from rest_framework.parsers import MultiPartParser
-from account.models import EmployerAccount, DefaultAccount
+from account.models import EmployerAccount, DefaultAccount, Account
 from account.permissions import *
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.datastructures import MultiValueDictKeyError
@@ -101,6 +103,11 @@ class JobOfferCreateView(views.APIView):
                 instance = serializer.create(serializer.validated_data)
                 instance.employer_id = employer.id
                 instance.save()
+                notify.send(employer, recipient=Account.objects.filter(groups__name__contains='staff_jobs'),
+                            verb=f'Użytkownik {employer.username} utworzył_a nową ofertę pracy',
+                            app='cv/generator/',
+                            object_id=instance.id
+                            )
                 return OfferIdResponse(instance.id)
             else:
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -197,6 +204,12 @@ class JobOfferView(views.APIView):
                 return ErrorResponse("Oferta została wcześniej usunięta", status.HTTP_400_BAD_REQUEST)
             instance.removed = True
             instance.save()
+            if IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
+                notify.send(request.user, recipient=instance.employer,
+                            verb=f'Twoja oferta pracy została usunięta',
+                            app='job/job-offer/',
+                            object_id=offer_id
+                            )
             return MessageResponse("Oferta została pomyślnie usunięta.")
         except ObjectDoesNotExist:
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
@@ -333,6 +346,12 @@ class CreateJobOfferApplicationView(views.APIView):
             response = {
                 "id": application.id
             }
+            job_offer = JobOffer.objects.get(id=request.data['job_offer'])
+            notify.send(user, recipient=job_offer.employer,
+                        verb=f'Użytkownik {user.username} aplikował_a na Twoją ofertę pracy!',
+                        app='job/employer/application_list/',
+                        object_id=request.data['job_offer']
+                        )
             return Response(response, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -552,6 +571,11 @@ class AdminConfirmJobOfferView(views.APIView):
             confirmed = request.data['confirmed']
             instance.confirmed = confirmed
             instance.save()
+            notify.send(request.user, recipient=instance.employer,
+                        verb=f'Twoja oferta pracy została zatwierdzona',
+                        app='job/job-offer/',
+                        object_id=instance.id
+                        )
             return MessageResponse("Ustawiono potwierdzenie oferty pracy")
         return ErrorResponse("Błędy walidacji (np. brakujące pole)", status.HTTP_400_BAD_REQUEST)
 

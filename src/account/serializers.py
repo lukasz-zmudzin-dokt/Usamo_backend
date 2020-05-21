@@ -306,11 +306,8 @@ class StaffAccountSerializer(AbstractAccountSerializer):
         return StaffAccount.objects.update_or_create(user=user, defaults=account_data)
 
     def update(self, instance, validated_data):
-        staff_account = StaffAccount.objects.get(user=instance)
-        if self.new_groups:
-            instance.groups.clear()
-            self.__add_to_group(instance, self.new_groups)
-
+        validated_data.pop('group_type', None)
+        validated_data.pop('password', None)
         return super().update(instance, validated_data) 
 
     def perform_additional_validation(self, data):
@@ -333,7 +330,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
         pass
 
     def validate(self, attrs):
-        self.new_groups = attrs.pop('group_type', None)
+        attrs.pop('group_type', None)
         return super().validate(attrs)
 
 

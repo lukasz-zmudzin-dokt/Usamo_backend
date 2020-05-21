@@ -6,6 +6,7 @@ from drf_yasg.utils import swagger_auto_schema
 from knox.views import LoginView as KnoxLoginView
 from knox.views import LogoutView as KnoxLogoutView
 from knox.views import LogoutAllView as KnoxLogoutAllView
+from notifications.signals import notify
 from rest_framework import status
 from rest_framework import views
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -14,7 +15,9 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from .permissions import CanStaffVerifyUsers, IsStaffMember
+
+from notification.jobs import send_verification_email
+from .permissions import *
 from .serializers import *
 from .models import *
 from .filters import *
@@ -44,6 +47,12 @@ class AbstractRegistrationView(KnoxLoginView):
 
         token_data = self.__create_token(request)
         response_data['token_data'] = token_data
+        if isinstance(serializer, (DefaultAccountSerializer, EmployerAccountSerializer)):
+            notify.send(user, recipient=Account.objects.filter(groups__name__contains='staff_verification'),
+                        verb=f'Założono nowe konto do weryfikacji: {user.username}',
+                        app='account/admin/user-details/',
+                        object_id=user.id
+                        )
         return Response(response_data, status.HTTP_201_CREATED)
 
     def __create_token(self, request):
@@ -202,6 +211,21 @@ class UserDataView(views.APIView):
 
     @swagger_auto_schema(
         responses={
+            '200': sample_message_response("Konto zostało pomyślnie usunięte")
+        },
+        operation_description="Api pozwalające użytkownikowi usunąć swoje konto",
+    )
+    def delete(self, request):
+        account = request.user
+        account.delete()
+        return MessageResponse("Konto zostało pomyślnie usunięte")
+
+
+class PasswordChangeView(views.APIView):
+    permission_classes = (IsAuthenticated, )
+
+    @swagger_auto_schema(
+        responses={
             '200': sample_message_response("Hasło zostało zmienione"),
             '400': "Błędy walidacji",
             '403': sample_error_response("Stare hasło jest niepoprawne")
@@ -221,17 +245,26 @@ class UserDataView(views.APIView):
             return MessageResponse("Hasło zostało zmienione")
         return ErrorResponse("Stare hasło jest niepoprawne", status.HTTP_403_FORBIDDEN)
 
+
+class StaffDataChangeView(views.APIView):
+    permission_classes = (IsStaffMember, )
+
     @swagger_auto_schema(
         responses={
-            '200': sample_message_response("Konto zostało pomyślnie usunięte")
+            '200': sample_message_response("Dane zostały pomyślnie zmienione"),
+            '400': "Błędy walidacji"
         },
-        operation_description="Api pozwalające użytkownikowi usunąć swoje konto",
+        request_body=StaffAccountSerializer,
+        operation_description="Api pozwalające pracownikowi zmienić swoje dane (do hasła jest inne api). Uprawnień nie można zmieniać",
     )
-    def delete(self, request):
+    def put(self, request):
         account = request.user
-        account.delete()
-        return MessageResponse("Konto zostało pomyślnie usunięte")
+        serializer = StaffAccountSerializer(data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.update(account, serializer.validated_data)
 
+        return MessageResponse("Dane zostały pomyślnie zmienione")
+       
 
 class AdminUserAdmissionView(views.APIView):
     permission_classes = [CanStaffVerifyUsers]
@@ -256,6 +289,7 @@ class AdminUserAdmissionView(views.APIView):
                 return ErrorResponse('Nie znaleziono użytkownika', status.HTTP_404_NOT_FOUND)
             user.status = AccountStatus.VERIFIED.value
             user.save()
+            send_verification_email(user_id)
             return MessageResponse('Użytkownik został pomyślnie zweryfikowany')
 
         return ErrorResponse('Nie podano id użytkownika', status.HTTP_400_BAD_REQUEST)
@@ -422,26 +456,27 @@ class AdminUserDataEditView(views.APIView):
         responses={
             '200': sample_message_response("Dane konta zostały zaktualizowane"),
             '400': "Błędy walidacji",
-            '404': sample_error_response('Użytkownik o podanym id nie został znaleziony.')
+            '403': sample_error_response("Nie możesz edytować danych tego użytkownika"),
+            '404': sample_error_response('Użytkownik o podanym id nie został znaleziony')
         },
         manual_parameters=[
             openapi.Parameter('pk', openapi.IN_PATH, type='string($uuid)',
                               description='String UUID będący id danego użytkownika')
         ],
-        operation_description="Api dla admina do edycji danych użytkowników.",
+        operation_description="Api dla admina do edycji danych użytkowników (w tym hasła).",
     )
     def put(self, request, pk):
         try:
             account = Account.objects.get(pk=pk)
         except Account.DoesNotExist:
-            return ErrorResponse('Użytkownik o podanym id nie został znaleziony.', status.HTTP_404_NOT_FOUND)
+            return ErrorResponse('Użytkownik o podanym id nie został znaleziony', status.HTTP_404_NOT_FOUND)
 
         if account.type == AccountType.STANDARD.value:
             serializer = DefaultAccountSerializer(account, data=request.data, partial=True)
         elif account.type == AccountType.EMPLOYER.value:
             serializer = EmployerAccountSerializer(account, data=request.data, partial=True)
         elif account.type == AccountType.STAFF.value:
-            serializer = StaffAccountSerializer(account, data=request.data, partial=True)
+            return ErrorResponse("Nie możesz edytować danych tego użytkownika", status.HTTP_403_FORBIDDEN)
 
         if serializer.is_valid():
             serializer.update(account, serializer.validated_data)
