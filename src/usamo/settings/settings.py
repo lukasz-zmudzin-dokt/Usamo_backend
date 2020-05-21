@@ -130,7 +130,7 @@ CHANNEL_LAYERS = {
     },
 }
 
-CHANNEL_LAYERS['default']["hosts"] = [os.environ.get('REDIS_URL', 'redis://localhost:6379')]
+CHANNEL_LAYERS['default']["CONFIG"]["hosts"] = [os.environ.get('REDIS_URL', 'redis://localhost:6379')]
 
 def _get_pdfkit_config():
     if platform.system() == 'Windows':
