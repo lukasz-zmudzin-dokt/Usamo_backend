@@ -40,7 +40,7 @@ class UnreadNotificationsCount(views.APIView):
     @swagger_auto_schema(
         responses={
             '200': '"unread_count": int',
-            '403': 'User has no permission to perform this action.',
+            '403': 'Nie podano danych uwierzytelniających.',
         },
         operation_description='Zwraca liczbę nieprzeczytanych powiadomień danego użytkownika'
     )
@@ -55,8 +55,8 @@ class MarkAsRead(views.APIView):
                               description='Liczba slug będąca identyfikatorem powiadomienia')
         ],
         responses={
-            '200': 'Oznaczono powiadomienie jako przeczytane/nieprzeczytane',
-            '403': 'User has no permission to perform this action.',
+            '200': '"message": Oznaczono powiadomienie jako przeczytane/nieprzeczytane',
+            '403': 'Nie podano danych uwierzytelniających.',
             '404': 'Nie ma takiego powiadomienia!'
         },
         operation_description='Ustawia status powiadomienia na'
@@ -78,8 +78,8 @@ class MarkAsRead(views.APIView):
 class MarkAllAsRead(views.APIView):
     @swagger_auto_schema(
         responses={
-            '200': 'Oznaczono wszystkie powiadomienia jako przeczytane',
-            '403': 'User has no permission to perform this action.',
+            '200': '"message": Oznaczono wszystkie powiadomienia jako przeczytane',
+            '403': 'Nie podano danych uwierzytelniających.',
         },
         operation_description='Ustawia status wszystkich powiadomień użytkownika na przeczytane'
     )
@@ -95,8 +95,8 @@ class Delete(views.APIView):
                               description='Liczba slug będąca identyfikatorem powiadomienia')
         ],
         responses={
-            '200': 'Pomyślnie usunięto powiadomienie',
-            '403': 'User has no permission to perform this action.',
+            '200': '"message": Pomyślnie usunięto powiadomienie',
+            '403': 'Nie podano danych uwierzytelniających.',
             '404': 'Nie ma takiego powiadomienia!'
         },
         operation_description='Usuwa wybrane powiadomienie użytkownika'
@@ -113,8 +113,8 @@ class Delete(views.APIView):
 class DeleteAll(views.APIView):
     @swagger_auto_schema(
         responses={
-            '200': 'Usunięto wszystkie twoje powiadomienia!',
-            '403': 'User has no permission to perform this action.',
+            '200': '"message": Usunięto wszystkie twoje powiadomienia!',
+            '403': 'Nie podano danych uwierzytelniających.',
         },
         operation_description='Usuwa wszystkie powiadomienia użytkownika'
     )
@@ -124,6 +124,12 @@ class DeleteAll(views.APIView):
 
 
 class StartDailyNotifications(views.APIView):
+    @swagger_auto_schema(
+        responses={
+            '200': '"message": Powiadomienia będą wysyłane na adres mailowy codziennie o 06:00'
+        },
+        operation_description='Włącza dzienne podsumowania mailowe powiadomień'
+    )
     def post(self, request):
         pk = request.user.id
         start_scheduler(pk)
@@ -131,6 +137,12 @@ class StartDailyNotifications(views.APIView):
 
 
 class StopDailyNotifications(views.APIView):
+    @swagger_auto_schema(
+        responses={
+            '200': '"message": Powiadomienia nie będą już wysyłane na adres mailowy'
+        },
+        operation_description='Wyłącza dzienne podsumowania mailowe powiadomień'
+    )
     def post(self, request):
         pk = request.user.id
         stop_scheduler(pk)
