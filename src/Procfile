@@ -1,2 +1,3 @@
 release: bash release-tasks.sh
-web: gunicorn usamo.asgi --log-file -
+web: gunicorn usamo.wsgi --log-file -
+channelsworker: python manage.py runworker -v2
