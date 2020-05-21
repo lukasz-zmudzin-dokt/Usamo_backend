@@ -255,7 +255,7 @@ class StaffDataChangeView(views.APIView):
             '400': "Błędy walidacji"
         },
         request_body=StaffAccountSerializer,
-        operation_description="Api pozwalające pracownikowi zmienić swoje dane (do hasła jest inne api)",
+        operation_description="Api pozwalające pracownikowi zmienić swoje dane (do hasła jest inne api). Uprawnień nie można zmieniać",
     )
     def put(self, request):
         account = request.user
@@ -463,7 +463,7 @@ class AdminUserDataEditView(views.APIView):
             openapi.Parameter('pk', openapi.IN_PATH, type='string($uuid)',
                               description='String UUID będący id danego użytkownika')
         ],
-        operation_description="Api dla admina do edycji danych użytkowników.",
+        operation_description="Api dla admina do edycji danych użytkowników (w tym hasła).",
     )
     def put(self, request, pk):
         try:
