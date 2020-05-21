@@ -1,4 +1,4 @@
-from django.db.models.signals import post_save
+from django.db.models.signals import post_save, pre_delete
 from django.dispatch import receiver
 from django_rest_passwordreset.signals import reset_password_token_created
 
@@ -8,6 +8,7 @@ from sendgrid.helpers.mail import Mail, PlainTextContent
 from usamo.settings.settings import PASS_RESET_URL
 from django.utils import timezone
 from django.contrib.auth.signals import user_logged_in
+from .models import Account
 
 
 @receiver(reset_password_token_created)
@@ -36,3 +37,8 @@ def commit_last_login(sender, user, request, **kwargs):
 
 
 user_logged_in.connect(commit_last_login)
+
+
+@receiver(pre_delete, sender=Account)
+def delete_category_header(sender, instance, using, **kwargs):
+    instance.delete_image_if_exists()

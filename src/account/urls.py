@@ -10,6 +10,7 @@ urlpatterns = [
     url(r'login/', LoginView.as_view(), name='knox_login'),
     url(r'logout/', LogoutView.as_view(), name='knox_logout'),
     url(r'logout_all/', LogoutAllView.as_view(), name='knox_logout_all'),
+    path('profile_picture/', ProfilePictureView.as_view(), name='profile_picture'),
     path('data/', UserDataView.as_view(), name='user_data'),
     path('status/', UserStatusView.as_view(), name='user_status'),
     url(r'^admin/user_list/all/$',

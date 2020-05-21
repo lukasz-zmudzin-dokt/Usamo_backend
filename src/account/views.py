@@ -6,17 +6,22 @@ from drf_yasg.utils import swagger_auto_schema
 from knox.views import LoginView as KnoxLoginView
 from knox.views import LogoutView as KnoxLogoutView
 from knox.views import LogoutAllView as KnoxLogoutAllView
+from notifications.signals import notify
 from rest_framework import status
 from rest_framework import views
 from rest_framework.authtoken.serializers import AuthTokenSerializer
 from rest_framework.generics import ListAPIView, RetrieveAPIView
+from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+
+from notification.jobs import send_verification_email
 from .permissions import CanStaffVerifyUsers, IsStaffMember
 from .serializers import *
 from .models import *
 from .filters import *
+from .swagger import sample_default_account_request_schema, sample_employer_account_request_schema, sample_registration_response, sample_login_response, get_delete_picture_decorator, get_post_picture_decorator
 from .swagger import *
 from rest_framework.pagination import PageNumberPagination
 from job.views import ErrorResponse, MessageResponse, sample_error_response, sample_message_response
@@ -42,6 +47,12 @@ class AbstractRegistrationView(KnoxLoginView):
 
         token_data = self.__create_token(request)
         response_data['token_data'] = token_data
+        if isinstance(serializer, (DefaultAccountSerializer, EmployerAccountSerializer)):
+            notify.send(user, recipient=Account.objects.filter(groups__name__contains='staff_verification'),
+                        verb=f'Założono nowe konto do weryfikacji: {user.username}',
+                        app='account/admin/user-details/',
+                        object_id=user.id
+                        )
         return Response(response_data, status.HTTP_201_CREATED)
 
     def __create_token(self, request):
@@ -230,7 +241,7 @@ class UserDataView(views.APIView):
         account.delete()
         return MessageResponse("Konto zostało pomyślnie usunięte")
 
-    
+
 class AdminUserAdmissionView(views.APIView):
     permission_classes = [CanStaffVerifyUsers]
 
@@ -254,6 +265,7 @@ class AdminUserAdmissionView(views.APIView):
                 return ErrorResponse('Nie znaleziono użytkownika', status.HTTP_404_NOT_FOUND)
             user.status = AccountStatus.VERIFIED.value
             user.save()
+            send_verification_email(user_id)
             return MessageResponse('Użytkownik został pomyślnie zweryfikowany')
 
         return ErrorResponse('Nie podano id użytkownika', status.HTTP_400_BAD_REQUEST)
@@ -315,7 +327,7 @@ class AdminUserBlockView(views.APIView):
 
             if user.type == AccountType.STAFF.value:
                 return ErrorResponse('Nie możesz zablokować tego użytkownika', status.HTTP_403_FORBIDDEN)
-                
+
             user.status = AccountStatus.BLOCKED.value
             user.save()
             return MessageResponse('Użytkownik został pomyślnie zablokowany')
@@ -468,3 +480,25 @@ class AdminUserDataEditView(views.APIView):
             return MessageResponse("Konto zostało usunięte")
         except Account.DoesNotExist:
             return ErrorResponse("Użytkownik o podanym id nie został znaleziony", status.HTTP_404_NOT_FOUND)
+
+class ProfilePictureView(views.APIView):
+
+    permission_classes = (IsAuthenticated,)
+    parser_classes = (MultiPartParser, )
+
+    @method_decorator(name='post', decorator=get_post_picture_decorator())
+    def post(self, request):
+        serializer = ProfilePictureSerializer(data=request.data, context={'user': request.user})
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'message': 'Pomyślnie dodano zdjęcie'}, status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+    @method_decorator(name='delete', decorator=get_delete_picture_decorator())
+    def delete(self, request):
+        user = request.user
+        had_picture = user.delete_image_if_exists()
+        if had_picture:
+            return Response({'message': 'Pomyślnie usunięto zdjęcie'}, status.HTTP_200_OK)
+        return Response({'message': 'Użytkownik nie ma zdjęcia'}, status.HTTP_404_NOT_FOUND)
