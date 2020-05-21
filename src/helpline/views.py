@@ -54,7 +54,6 @@ class PhoneContactView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-    query_serializer=PhoneContactSerializer,
     responses={
         403: 'Nie masz uprawnień, by wykonać tę czynność.',
         404: 'Not found'
