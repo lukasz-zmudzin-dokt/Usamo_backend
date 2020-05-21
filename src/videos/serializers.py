@@ -3,7 +3,7 @@ from .models import *
 
 
 class VideoCategorySerializer(serializers.ModelSerializer):
-    videos = serializers.StringRelatedField(many=True)
+    videos = serializers.StringRelatedField(many=True, read_only=True)
 
     class Meta:
         model = VideoCategory

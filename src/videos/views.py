@@ -18,16 +18,24 @@ class CategoriesNewView(generics.CreateAPIView):
     queryset = VideoCategory.objects.all()
 
 
-class CategoryUpdateOrDeleteOrListView(generics.DestroyAPIView, generics.UpdateAPIView, generics.ListAPIView):
-    permission_classes = (IsAuthenticated, IsStaffMember, )
+class CategoryRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    permission_classes = (AllowAny, )
     serializer_class = VideoCategorySerializer
 
     def get_queryset(self):
         return VideoCategory.objects.filter(pk=self.kwargs['pk'])
 
+    # Allows anyone to view the category, but only a staff member can modify it
+    def check_permissions(self, request):
+        super(CategoryRetrieveUpdateDestroyView, self).check_permissions(request)
+        permissions = (IsAuthenticated, IsStaffMember)
+        if request.method != 'GET':
+            for permission in permissions:
+                if not permission().has_permission(request, self):
+                    self.permission_denied(request)
+
 
 # Videos
-
 class VideosAllView(generics.ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = VideoSerializer
