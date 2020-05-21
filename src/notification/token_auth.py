@@ -3,6 +3,7 @@ from django.contrib.auth.models import AnonymousUser
 from knox.models import AuthToken
 from knox.auth import TokenAuthentication
 from rest_framework import HTTP_HEADER_ENCODING
+from django.db import close_old_connections
 
 
 class TokenAuthMiddleware:
@@ -17,6 +18,7 @@ class TokenAuthMiddleware:
         headers = dict(scope['headers'])
         if b'sec-websocket-protocol' in headers:
             try:
+                close_old_connections()
                 token_key = headers[b'sec-websocket-protocol'].decode('utf-8')
                 knoxAuth = TokenAuthentication()
                 try:
