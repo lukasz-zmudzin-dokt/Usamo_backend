@@ -222,7 +222,7 @@ class UserDataView(views.APIView):
 
 
 class PasswordChangeView(views.APIView):
-    permission_classes = (IsAuthenticated)
+    permission_classes = (IsAuthenticated, )
 
     @swagger_auto_schema(
         responses={
@@ -247,7 +247,7 @@ class PasswordChangeView(views.APIView):
 
 
 class StaffDataChangeView(views.APIView):
-    permission_classes = (IsStaffMember)
+    permission_classes = (IsStaffMember, )
 
     @swagger_auto_schema(
         responses={
@@ -455,7 +455,7 @@ class AdminUserDataEditView(views.APIView):
         responses={
             '200': sample_message_response("Dane konta zostały zaktualizowane"),
             '400': "Błędy walidacji",
-            '403': sample_error_response("Nie możesz edytować danych tego użytkownika")
+            '403': sample_error_response("Nie możesz edytować danych tego użytkownika"),
             '404': sample_error_response('Użytkownik o podanym id nie został znaleziony')
         },
         manual_parameters=[
