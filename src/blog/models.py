@@ -1,7 +1,7 @@
 from django.db import models
 from django.db.models.signals import post_save
 from django.dispatch import receiver
-from .utils import create_blog_attachment_file_path, create_blog_header_file_path
+from .utils import create_blog_attachment_file_path, create_blog_header_file_path, create_category_header_file_path
 import re
 import os
 import uuid
@@ -18,7 +18,19 @@ class BlogPostTag(models.Model):
 
 
 class BlogPostCategory(models.Model):
-    name = models.CharField(max_length=60)
+    name = models.CharField(max_length=60, unique=True)
+    header = models.ImageField(upload_to=create_category_header_file_path, null=True)
+
+    @property
+    def header_url(self):
+        return self.header.url if self.header.name else None
+
+    def delete_header_if_exists(self, *args, **kwargs) -> bool:
+        if self.header.name:
+            storage, path = self.header.storage, self.header.path
+            self.header.delete()
+            storage.delete(path)
+        return self.header.name is None
 
 
 class BlogPostReservation(models.Model):

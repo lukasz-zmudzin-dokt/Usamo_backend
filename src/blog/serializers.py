@@ -17,17 +17,29 @@ class BlogPostTagSerializer(serializers.ModelSerializer):
         return instance.name
 
 
+class BlogPostCategoryHeaderSerializer(serializers.Serializer):
+
+    header = serializers.ImageField()
+
+    def update(self, instance, validated_data):
+        return self.__update_or_create_profile_picture(validated_data)
+
+    def create(self, validated_data):
+        return self.__update_or_create_profile_picture(validated_data)
+
+    def __update_or_create_profile_picture(self, validated_data):
+        category = self.context['category']
+        category.delete_header_if_exists()
+        category.header = validated_data['header']
+        category.save()
+        return category
+
+
 class BlogPostCategorySerializer(serializers.ModelSerializer):
+
     class Meta:
         model = BlogPostCategory
-        fields = ['name']
-
-    def to_internal_value(self, data):
-        formatted_data = {'name': data}
-        return super().to_internal_value(formatted_data)
-
-    def to_representation(self, instance):
-        return instance.name
+        fields = ['name', 'header_url', 'id']
 
 
 class BlogAuthorSerializer(serializers.ModelSerializer):
@@ -71,7 +83,7 @@ class BlogPostCommentSerializer(serializers.ModelSerializer):
 
 
 class BlogPostSerializer(serializers.ModelSerializer):
-    category = BlogPostTagSerializer()
+    category = serializers.CharField()
     tags = BlogPostTagSerializer(many=True)
     author = BlogAuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
@@ -94,8 +106,8 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags')
-        category_data = validated_data.pop('category')
-        category, _ = BlogPostCategory.objects.get_or_create(name=category_data['name'])
+        category_name = validated_data.pop('category')
+        category, _ = BlogPostCategory.objects.get_or_create(name=category_name)
         blog_post = BlogPost.objects.create(category=category, **validated_data)
         for tag_data in tags_data:
             tag, _ = BlogPostTag.objects.get_or_create(name=tag_data['name'])
@@ -104,8 +116,8 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if 'category' in validated_data:
-            category_data = validated_data['category']
-            category, _ = BlogPostCategory.objects.get_or_create(name=category_data['name'])
+            category_name = validated_data['category']
+            category, _ = BlogPostCategory.objects.get_or_create(name=category_name)
             instance.category = category
 
         if 'tags' in validated_data:
@@ -149,5 +161,6 @@ class BlogPostAttachmentSerializer(serializers.ModelSerializer):
             'file': {'write_only': True},
             'id': {'required': False}
         }
+
 
 
