@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
     'notification.apps.NotificationConfig',
+    'steps.apps.StepsConfig',
     'notifications',
     'drf_yasg',
     'django_rest_passwordreset',
