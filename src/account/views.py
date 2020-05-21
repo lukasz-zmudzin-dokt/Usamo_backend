@@ -6,6 +6,7 @@ from drf_yasg.utils import swagger_auto_schema
 from knox.views import LoginView as KnoxLoginView
 from knox.views import LogoutView as KnoxLogoutView
 from knox.views import LogoutAllView as KnoxLogoutAllView
+from notifications.signals import notify
 from rest_framework import status
 from rest_framework import views
 from rest_framework.authtoken.serializers import AuthTokenSerializer
@@ -14,6 +15,8 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
+
+from notification.jobs import send_verification_email
 from .permissions import CanStaffVerifyUsers, IsStaffMember
 from .serializers import *
 from .models import *
@@ -44,6 +47,12 @@ class AbstractRegistrationView(KnoxLoginView):
 
         token_data = self.__create_token(request)
         response_data['token_data'] = token_data
+        if isinstance(serializer, (DefaultAccountSerializer, EmployerAccountSerializer)):
+            notify.send(user, recipient=Account.objects.filter(groups__name__contains='staff_verification'),
+                        verb=f'Założono nowe konto do weryfikacji: {user.username}',
+                        app='account/admin/user-details/',
+                        object_id=user.id
+                        )
         return Response(response_data, status.HTTP_201_CREATED)
 
     def __create_token(self, request):
@@ -256,6 +265,7 @@ class AdminUserAdmissionView(views.APIView):
                 return ErrorResponse('Nie znaleziono użytkownika', status.HTTP_404_NOT_FOUND)
             user.status = AccountStatus.VERIFIED.value
             user.save()
+            send_verification_email(user_id)
             return MessageResponse('Użytkownik został pomyślnie zweryfikowany')
 
         return ErrorResponse('Nie podano id użytkownika', status.HTTP_400_BAD_REQUEST)

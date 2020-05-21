@@ -1,6 +1,8 @@
 import os
 from functools import wraps
 from django.utils.datastructures import MultiValueDictKeyError
+from notifications.signals import notify
+
 from account.models import StaffAccount, DefaultAccount, Account
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
@@ -455,6 +457,11 @@ class BlogPostCommentCreateView(views.APIView):
                 instance.author = author
                 instance.blog_post = blog_post
                 instance.save()
+                notify.send(request.user, recipient=Account.objects.filter(groups__name__contains='staff_blog_moderator'),
+                            verb=f'Użytkownik {author.username} skomentował_a post {blog_post.title}',
+                            app='blog/blogpost/',
+                            object_id=post_id
+                            )
                 return BlogPostCommentIdResponse(instance.id)
             else:
                 return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)

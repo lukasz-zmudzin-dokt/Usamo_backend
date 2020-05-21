@@ -16,7 +16,6 @@ import subprocess
 import sys
 import pdfkit
 import platform
-
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from datetime import timedelta
 
@@ -33,7 +32,6 @@ PASS_RESET_URL = os.getenv('PASS_RESET_URL')
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 # Application definition
 
 INSTALLED_APPS = [
@@ -43,15 +41,20 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'channels',
+    'django_apscheduler',
     'phonenumber_field',
     'rest_framework',
     'rest_framework.authtoken',
-    'whitenoise.runserver_nostatic',
+    # 'whitenoise.runserver_nostatic',
     'corsheaders',
     'job.apps.JobConfig',
+    'chat',
     'cv.apps.CvConfig',
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
+    'notification.apps.NotificationConfig',
+    'notifications',
     'drf_yasg',
     'django_rest_passwordreset',
     'django_filters',
@@ -67,7 +70,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
+    # 'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -82,7 +85,6 @@ REST_KNOX = {
 }
 
 ROOT_URLCONF = 'usamo.urls'
-
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -99,7 +101,8 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'usamo.wsgi.application'
+#WSGI_APPLICATION = 'usamo.wsgi.application'
+ASGI_APPLICATION = "usamo.routing.application"
 
 # Database
 # https://docs.djangoproject.com/en/2.2/ref/settings/#databases
@@ -113,11 +116,21 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432'
     }
-}
+} 
 
 db_from_env = dj_database_url.config(conn_max_age=600)
 DATABASES['default'].update(db_from_env)
 
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("localhost", 6379)],
+        },
+    },
+}
+
+CHANNEL_LAYERS['default']["CONFIG"]["hosts"] = [os.environ.get('REDIS_URL', 'redis://localhost:6379')]
 
 def _get_pdfkit_config():
     if platform.system() == 'Windows':
@@ -181,7 +194,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
@@ -208,5 +221,17 @@ SWAGGER_SETTINGS = {
         'post',
     ],
 }
+DJANGO_NOTIFICATIONS_CONFIG = { 'USE_JSONFIELD': True}
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
+
+# APScheduler
+SCHEDULER_CONFIG = {
+    "apscheduler.jobstores.default": {
+        "class": "django_apscheduler.jobstores:DjangoJobStore"
+    },
+    'apscheduler.executors.processpool': {
+        "type": "threadpool"
+    },
+}
+SCHEDULER_AUTOSTART = True

@@ -11,6 +11,8 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
+from account.account_type import StaffGroupType
+from account.models import StaffAccount
 from account.permissions import IsStandardUser
 
 from .filters import CvOrderingFilter, CVListFilter, DjangoFilterDescriptionInspector
@@ -19,6 +21,8 @@ from .serializers import *
 from .permissions import *
 from job.views import sample_message_response, ErrorResponse, MessageResponse
 import base64
+from notifications.signals import notify
+
 
 
 class CVPagination(PageNumberPagination):
@@ -55,6 +59,11 @@ class CreateCVView(views.APIView):
         if serializer.is_valid():
             cv = serializer.create(serializer.validated_data)
             response = {"cv_id": cv.pk}
+            notify.send(request.user, recipient=Account.objects.filter(groups__name__contains='staff_cv'),
+                        verb=f'Użytkownik {def_account.user.username} utworzył_a nowe CV',
+                        app='cv/generator/',
+                        object_id=cv.cv_id
+                        )
             return Response(response, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -341,6 +350,11 @@ class AdminFeedback(views.APIView):
 
         if serializer.is_valid():
             feedback = serializer.create(serializer.validated_data)
+            notify.send(request.user, recipient=cv.cv_user.user,
+                        verb=f'Osoba z fundacji skomentowała twoje CV: {cv.name}',
+                        app='cv/feedback/',
+                        object_id=cv.cv_id
+                        )
             return MessageResponse('Feedback stworzono pomyślnie')
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -403,8 +417,12 @@ class AdminCVVerificationView(views.APIView):
                 return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
             cv.is_verified = True
             cv.save()
+            notify.send(request.user, recipient=cv.cv_user.user,
+                        verb=f'Osoba z fundacji zatwierdziła twoje CV: {cv.name}',
+                        app='cv/generator/',
+                        object_id=cv.cv_id
+                        )
             return MessageResponse('CV zweryfikowano pomyślnie')
-
         return ErrorResponse('Nie podano cv_id', status.HTTP_400_BAD_REQUEST)
 
 
