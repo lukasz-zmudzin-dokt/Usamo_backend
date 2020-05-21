@@ -254,6 +254,7 @@ class StaffDataChangeView(views.APIView):
             '200': sample_message_response("Dane zostały pomyślnie zmienione"),
             '400': "Błędy walidacji"
         },
+        request_body=StaffAccountSerializer,
         operation_description="Api pozwalające pracownikowi zmienić swoje dane (do hasła jest inne api)",
     )
     def put(self, request):
