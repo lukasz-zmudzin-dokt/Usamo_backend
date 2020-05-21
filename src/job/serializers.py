@@ -19,6 +19,7 @@ class JobOfferTypeSerializer(serializers.ModelSerializer):
 
 class JobOfferSerializer(serializers.ModelSerializer):
     voivodeship = serializers.ChoiceField(choices=Voivodeships.choices)
+    company_logo = serializers.CharField(source='employer.user.picture_url', read_only=True)
     company_address = AddressSerializer()
     category = serializers.CharField(source='category.name')
     type = serializers.CharField(source='offer_type.name')
@@ -72,7 +73,7 @@ class JobOfferSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = JobOffer
-        fields = ['id', 'offer_name', 'offer_image', 'category', 'type', 'salary_min', 'salary_max', 'company_name',
+        fields = ['id', 'company_logo', 'offer_name', 'offer_image', 'category', 'type', 'salary_min', 'salary_max', 'company_name',
                   'company_address', 'voivodeship', 'expiration_date', 'description']
         read_only_fields = ['offer_image']
 
