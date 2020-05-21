@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'job.apps.JobConfig',
     'chat',
     'cv.apps.CvConfig',
+    'videos.apps.VideosConfig',
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
     'notification.apps.NotificationConfig',
