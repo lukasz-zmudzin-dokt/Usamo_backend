@@ -382,10 +382,7 @@ class BlogPostView(views.APIView):
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-        operation_description="Zwraca listę wszystkich kategorii",
-        responses={
-            200: sample_string_response()
-        }
+        operation_description="Zwraca listę wszystkich kategorii"
     ))
 class BlogPostCategoryListView(generics.ListAPIView):
     serializer_class = BlogPostCategorySerializer
@@ -497,6 +494,16 @@ class BlogPostCategoryHeaderUploadView(views.APIView):
     permission_classes = (IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator, )
     parser_classes = (MultiPartParser, )
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('category_id', IN_PATH, type='integer')
+        ],
+        responses={
+            200: "message: Pomyślnie dodano zdjęcie do kategorii",
+            400: "Błędy walidacji",
+            404: ''
+        }
+    )
     def post(self, request, category_id):
         category = self.__get_category(category_id)
         serializer = BlogPostCategoryHeaderSerializer(data=request.data, context={'category': category})
@@ -505,10 +512,19 @@ class BlogPostCategoryHeaderUploadView(views.APIView):
             return Response({"message": "Pomyślnie dodano zdjęcie do kategorii"}, status.HTTP_200_OK)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('category_id', IN_PATH, type='integer')
+        ],
+        responses={
+            200: "message: Zdjęcie kategorii zostało usunięte",
+            404: ''
+        }
+    )
     def delete(self, request, category_id):
         category = self.__get_category(category_id)
         is_success = category.delete_header_if_exists()
-        return Response('', status.HTTP_204_NO_CONTENT) if is_success \
+        return Response({"message": "Zdjęcie kategorii zostało usunięte."}, status.HTTP_200_OK) if is_success \
             else ErrorResponse('Kategoria nie ma zdjęcia', status.HTTP_404_NOT_FOUND)
 
     @staticmethod
@@ -519,16 +535,33 @@ class BlogPostCategoryHeaderUploadView(views.APIView):
             raise Http404()
 
 
+@method_decorator(name='post', decorator=swagger_auto_schema(
+        operation_description="Pozwala utworzyć nową kategorię"    
+))
 class BlogPostCategoryCreateView(generics.CreateAPIView):
     permission_classes = (IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator, )
     serializer_class = BlogPostCategorySerializer
     queryset = BlogPostCategory.objects.all()
 
 
-class BlogPostCategoryDeleteView(generics.DestroyAPIView):
+class BlogPostCategoryDeleteView(views.APIView):
     permission_classes = (IsAuthenticated, IsStaffBlogCreator | IsStaffBlogModerator, )
     serializer_class = BlogPostCategorySerializer
 
-    def get_queryset(self):
-        return BlogPostCategory.objects.filter(pk=self.kwargs['pk'])
-
+    @swagger_auto_schema(
+        manual_parameters=[
+            Parameter('category_id', IN_PATH, type='integer')
+        ],
+        responses={
+            200: "message: Kategoria została usunięta",
+            404: '"error": "Kategoria o podanym id nie istnieje"'
+        }
+    )
+    def delete(self, request, category_id):
+        try:
+            category = BlogPostCategory.objects.get(pk=category_id)
+        except BlogPostCategory.DoesNotExist:
+            return ErrorResponse("Kategoria o podanym id nie istnieje", status.HTTP_404_NOT_FOUND)
+        category.delete_header_if_exists()
+        category.delete()
+        return MessageResponse("Kategoria została usunięta") 

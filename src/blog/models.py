@@ -18,7 +18,7 @@ class BlogPostTag(models.Model):
 
 
 class BlogPostCategory(models.Model):
-    name = models.CharField(max_length=60)
+    name = models.CharField(max_length=60, unique=True)
     header = models.ImageField(upload_to=create_category_header_file_path, null=True)
 
     @property
@@ -30,7 +30,7 @@ class BlogPostCategory(models.Model):
             storage, path = self.header.storage, self.header.path
             self.header.delete()
             storage.delete(path)
-        return self.header.name is not None
+        return self.header.name is None
 
 
 class BlogPostReservation(models.Model):

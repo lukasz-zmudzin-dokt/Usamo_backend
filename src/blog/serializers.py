@@ -83,7 +83,7 @@ class BlogPostCommentSerializer(serializers.ModelSerializer):
 
 
 class BlogPostSerializer(serializers.ModelSerializer):
-    category = BlogPostCategorySerializer()
+    category = serializers.CharField()
     tags = BlogPostTagSerializer(many=True)
     author = BlogAuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
@@ -106,8 +106,8 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags')
-        category_data = validated_data.pop('category')
-        category, _ = BlogPostCategory.objects.get_or_create(name=category_data['name'])
+        category_name = validated_data.pop('category')
+        category, _ = BlogPostCategory.objects.get_or_create(name=category_name)
         blog_post = BlogPost.objects.create(category=category, **validated_data)
         for tag_data in tags_data:
             tag, _ = BlogPostTag.objects.get_or_create(name=tag_data['name'])
@@ -116,8 +116,8 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if 'category' in validated_data:
-            category_data = validated_data['category']
-            category, _ = BlogPostCategory.objects.get_or_create(name=category_data['name'])
+            category_name = validated_data['category']
+            category, _ = BlogPostCategory.objects.get_or_create(name=category_name)
             instance.category = category
 
         if 'tags' in validated_data:

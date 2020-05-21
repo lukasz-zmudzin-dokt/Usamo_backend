@@ -16,6 +16,6 @@ urlpatterns = [
     path('<uuid:post_id>/comment/', views.BlogPostCommentCreateView.as_view()),
     path('comment/<uuid:comment_id>/', views.BlogPostCommentUpdateView.as_view()),
     path('category/', views.BlogPostCategoryCreateView.as_view()),
-    path('category/<int:pk>/', views.BlogPostCategoryDeleteView.as_view()),
+    path('category/<int:category_id>/', views.BlogPostCategoryDeleteView.as_view()),
     path('category/<int:category_id>/header/', views.BlogPostCategoryHeaderUploadView.as_view())
 ]
