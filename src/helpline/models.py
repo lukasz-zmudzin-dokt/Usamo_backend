@@ -4,7 +4,5 @@ import uuid
 
 
 class PhoneContact(models.Model):
-    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    title = models.CharField(max_length=120, blank=False, null=False)
-    description = models.TextField()
+    title = models.CharField(max_length=120)
     phone_number = models.CharField(max_length=12)

@@ -8,6 +8,8 @@ from drf_yasg.openapi import Parameter, IN_PATH
 from drf_yasg.utils import swagger_auto_schema
 from django.utils.decorators import method_decorator
 from .serializers import *
+from job.views import ErrorResponse, MessageResponse, sample_message_response, sample_error_response
+from rest_framework.filters import OrderingFilter
 
 # Create your views here.
 
@@ -18,7 +20,7 @@ class PhoneContactCreateView(views.APIView):
     @swagger_auto_schema(
         request_body=PhoneContactSerializer,
         responses={
-            201: 'Kontakt został pomyślnie utworzony',
+            201: sample_message_response("Kontakt został pomyślnie dodany"),
             400: 'Błędy walidacji (np. brak jakiegoś pola)'
         }
     )
@@ -26,8 +28,8 @@ class PhoneContactCreateView(views.APIView):
         serializer = PhoneContactSerializer(data=request.data)
         if serializer.is_valid():
             instance = serializer.create(serializer.validated_data)
-            instance.save()
-            return Response("Kontakt został pomyślnie dodany", status.HTTP_201_CREATED)
+            # instance.save()
+            return Response({"message": "Kontakt został pomyślnie dodany"}, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -37,32 +39,30 @@ class PhoneContactView(views.APIView):
 
     @swagger_auto_schema(
         manual_parameters=[
-            Parameter('contact_id', IN_PATH, type='string($uuid)'),
+            Parameter('contact_id', IN_PATH, type='integer'),
         ],
         responses={
-            200: 'Kontakt został pomyślnie usunięty',
-            404: 'Nie znaleziono kontaktu o podanym id'
+            200: sample_message_response('Kontakt został pomyślnie usunięty'),
+            404: sample_message_response("Nie znaleziono kontaktu o podanym id")
         }
     )
     def delete(self, request, contact_id):
         try:
             instance = PhoneContact.objects.get(pk=contact_id)
         except ObjectDoesNotExist:
-            return Response("Nie znaleziono kontaktu o podanym id", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie znaleziono kontaktu o podanym id", status.HTTP_404_NOT_FOUND)
         instance.delete()
-        return Response("Kontakt został pomyślnie usunięty", status.HTTP_200_OK)
+        return MessageResponse("Kontakt został pomyślnie usunięty")
 
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
-    responses={
-        403: 'Nie masz uprawnień, by wykonać tę czynność.',
-        404: 'Not found'
-    },
-    operation_description="Zwraca listę kontaków"
+    operation_description="Zwraca listę telefonów"
 ))
 class PhoneContactListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     serializer_class = PhoneContactSerializer
+    filter_backends = [OrderingFilter]
+    ordering = ['pk']
 
     def get_queryset(self):
         queryset = PhoneContact.objects.all()
