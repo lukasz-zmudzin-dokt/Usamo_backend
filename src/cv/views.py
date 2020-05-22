@@ -19,6 +19,7 @@ from .filters import CvOrderingFilter, CVListFilter, DjangoFilterDescriptionInsp
 from .models import *
 from .serializers import *
 from .permissions import *
+from .templates.templates import *
 from job.views import sample_message_response, ErrorResponse, MessageResponse
 import base64
 from notifications.signals import notify
@@ -553,4 +554,17 @@ class UserCVAvailabilityView(views.APIView):
         return Response({"can_post_cv" : response_val}, status=status.HTTP_200_OK)
 
 
+class TemplatesListView(views.APIView):
+    permission_classes = [IsStandardUser]
+
+    @swagger_auto_schema(
+        operation_description="Lista możliwych templatek",
+        responses={
+            200: 'Lista templatek',
+            403: 'Nie masz uprawnień do wykonania tej czynności',
+        }
+    )
+    def get(self, request):
+        templates = [v for (k, v) in TEMPLATES_CHOICES]
+        return Response({"templates": templates}, status=status.HTTP_200_OK)
 

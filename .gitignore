@@ -16,4 +16,4 @@ usamodzielnieni/
 
 # cv pdfs and htmls
 *.pdf
-*-generated.html
+*generated.html

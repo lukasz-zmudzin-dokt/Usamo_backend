@@ -1,7 +1,6 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <link href="https://fonts.googleapis.com/css?family=Montserrat:200,400,600,800&display=swap&subset=latin-ext" rel="stylesheet"> 
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
         <script type="text/javascript">
             var autoSizeText;
@@ -46,8 +45,8 @@
             }
 
             header {
-              background-color: lightblue;
-              color: white;
+              background-color: bisque;
+              color: black;
               padding: 7%;
               margin-bottom: 70px;
               padding-right: 10%;
