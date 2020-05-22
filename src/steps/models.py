@@ -3,6 +3,8 @@ import uuid
 from django.db import models
 from django.db.models import Max
 
+from account.models import DefaultAccount
+
 
 class BaseStep(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -23,6 +25,13 @@ class Step(BaseStep):
             child.parent = self.parent
             child.save()
         super().delete(using=using, keep_parents=keep_parents)
+
+    def reorder(self):
+        previous = -1
+        for substep in self.substeps.all():
+            substep.order = previous + 1
+            substep.save(new=False)
+            previous += 1
 
 
 class Root(Step):
@@ -47,14 +56,22 @@ class SubStep(BaseStep):
         self.order, other.order = other.order, self.order
         self.save(new=False)
         other.save(new=False)
+        self.parent.reorder()
 
     def move_to_spot(self, new_order):
-        max_order = self.parent.substeps.aggregate(Max('order'))['order__max']
-        if new_order > max_order:
-            new_order = max_order
         for substep in self.parent.substeps.filter(order__gte=new_order):
             substep.order += 1
             substep.save(new=False)
         self.order = new_order
         self.save(new=False)
+        self.parent.reorder()
 
+    def delete(self, using=None, keep_parents=True):
+        super().delete(using=using, keep_parents=keep_parents)
+        self.parent.reorder()
+
+
+class UserPerspective(models.Model):
+    user = models.OneToOneField(DefaultAccount, primary_key=True, parent_link=True, on_delete=models.CASCADE)
+    step = models.OneToOneField(Step, on_delete=models.CASCADE)
+    substep_order = models.PositiveIntegerField(default=0)
