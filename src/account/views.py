@@ -18,6 +18,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 
 from notification.jobs import send_verification_email
 from .permissions import *
+from blog.permissions import IsStaffBlogModerator
 from .serializers import *
 from .models import *
 from .filters import *
@@ -328,7 +329,7 @@ class AdminUserRejectionView(views.APIView):
 
 
 class AdminUserBlockView(views.APIView):
-    permission_classes = [CanStaffVerifyUsers]
+    permission_classes = (CanStaffVerifyUsers | IsStaffBlogModerator, )
 
     @swagger_auto_schema(
         responses={
