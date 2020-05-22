@@ -1,4 +1,5 @@
 from django.utils.crypto import get_random_string
+from rest_framework import serializers
 from usamo.settings import settings
 import os
 import random
@@ -7,6 +8,8 @@ import jinja2
 import pdfkit
 import platform
 import io
+
+from .templates.templates import TEMPLATES_CHOICES
 
 
 def create_unique_filename(prefix, ext):
@@ -30,7 +33,11 @@ def create_unique_filename(prefix, ext):
     return unique_filename
 
 
-def generate(data):
+def generate(data, template):
+    template_filename = next((filename for (name, filename) in TEMPLATES_CHOICES if name == template), None)
+    if not template_filename:
+        raise serializers.ValidationError("Not valid template name")
+
     # options for the pdf
     options = {
         'page-size': 'Letter',
@@ -43,14 +50,14 @@ def generate(data):
     # get paths
     module_dir = os.path.dirname(__file__)
     template_path = os.path.join(module_dir, 'templates/')
-    html_path = os.path.join(module_dir, 'templates/cv2-generated.html')
+    html_path = os.path.join(module_dir, 'templates/generated.html')
     # get data and jinja
     env = jinja2.environment.Environment(
         loader=jinja2.FileSystemLoader(template_path)
     )
 
     # generate html and pdf
-    template = env.get_template('template2.tpl')
+    template = env.get_template(template_filename)
     with io.open(html_path, "w", encoding="utf-8") as f:
         f.write(template.render(**data))
     if platform.system() != 'Windows':

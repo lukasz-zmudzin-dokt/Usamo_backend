@@ -1,6 +1,8 @@
 from phonenumber_field.validators import validate_international_phonenumber
 from rest_framework import serializers
 from django.core.files.base import ContentFile
+
+from .templates.templates import TEMPLATES_CHOICES
 from .utilities import *
 from .models import *
 
@@ -75,13 +77,14 @@ class CVSerializer(serializers.ModelSerializer):
     experiences = ExperienceSerializer(many=True, required=False)
     skills = SkillSerializer(many=True)
     languages = LanguageSerializer(many=True)
+    template = serializers.ChoiceField(choices=TEMPLATES_CHOICES, default='bisque')
     is_verified = serializers.BooleanField(default=False, read_only=True)
     was_reviewed = serializers.BooleanField(read_only=True)
     has_picture = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'user_id', 'name', 'date_created', 'is_verified', 'was_reviewed', 'has_picture',
+        fields = ['cv_id', 'template', 'user_id', 'name', 'date_created', 'is_verified', 'was_reviewed', 'has_picture',
         'cv_user', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
         
         extra_kwargs = {
@@ -96,13 +99,18 @@ class CVSerializer(serializers.ModelSerializer):
         }
 
     def create(self, validated_data):
-        pdf = generate(validated_data)
+        template = validated_data.pop('template')
+        pdf = generate(validated_data, template)
         django_file = ContentFile(pdf)
         django_file.name = create_unique_filename('cv_docs', 'pdf')
         name = None
         if 'name' in validated_data:
             name = validated_data['name']
-        cv = CV.objects.create(cv_user=validated_data['cv_user'], is_verified=False, document=django_file, name=name)
+        cv = CV.objects.create(cv_user=validated_data['cv_user'],
+                               is_verified=False,
+                               document=django_file,
+                               name=name,
+                               template=template)
         basic_info_data = validated_data.pop('basic_info')
         BasicInfo.objects.create(cv=cv, **basic_info_data)
         return self.create_lists(cv, validated_data)
@@ -118,9 +126,9 @@ class CVSerializer(serializers.ModelSerializer):
         Language.objects.filter(cv=cv).delete()
         Skill.objects.filter(cv=cv).delete()
         self.create_lists(cv, validated_data)
-        
+        template = validated_data.get('template')
         validated_data['basic_info'] = cv.basic_info
-        pdf = generate(validated_data)
+        pdf = generate(validated_data, template)
         django_file = ContentFile(pdf)
         django_file.name = create_unique_filename('cv_docs', 'pdf')
         cv.document = django_file

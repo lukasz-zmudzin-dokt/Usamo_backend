@@ -7,6 +7,7 @@
       "name": "standard2_standard2_CV_1",
       "is_verified": true,
       "was_reviewed": false,
+      "template": "bisque",
       "document": "blank_test_cv",
       "date_created": "2020-04-26T20:22:36.208Z"
    }
@@ -19,6 +20,7 @@
       "name": "Moje CV",
       "is_verified": true,
       "was_reviewed": true,
+      "template": "bisque",
       "document": "blank_test_cv",
       "date_created": "2020-04-04T11:21:19.023Z"
    }
@@ -31,6 +33,7 @@
       "name": "standard2_standard2_CV_2",
       "is_verified": false,
       "was_reviewed": false,
+      "template": "bisque",
       "document": "blank_test_cv",
       "date_created": "2020-04-26T20:23:36.409Z"
    }
