@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework import views, status, generics
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from account.permissions import IsStaffMember
 from rest_framework.response import Response
 from django.core.exceptions import ObjectDoesNotExist
@@ -20,7 +20,7 @@ class PhoneContactCreateView(views.APIView):
     @swagger_auto_schema(
         request_body=PhoneContactSerializer,
         responses={
-            201: sample_message_response("Kontakt został pomyślnie dodany"),
+            201: "id: 1 itd.",
             400: 'Błędy walidacji (np. brak jakiegoś pola)'
         }
     )
@@ -28,8 +28,7 @@ class PhoneContactCreateView(views.APIView):
         serializer = PhoneContactSerializer(data=request.data)
         if serializer.is_valid():
             instance = serializer.create(serializer.validated_data)
-            # instance.save()
-            return Response({"message": "Kontakt został pomyślnie dodany"}, status.HTTP_201_CREATED)
+            return Response({"id": instance.pk}, status.HTTP_201_CREATED)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
@@ -59,7 +58,7 @@ class PhoneContactView(views.APIView):
     operation_description="Zwraca listę telefonów"
 ))
 class PhoneContactListView(generics.ListAPIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
     serializer_class = PhoneContactSerializer
     filter_backends = [OrderingFilter]
     ordering = ['pk']
