@@ -1,3 +1,4 @@
+from phonenumber_field.validators import validate_international_phonenumber
 from rest_framework import serializers
 from django.core.files.base import ContentFile
 from .utilities import *
@@ -30,6 +31,13 @@ class LanguageSerializer(serializers.ModelSerializer):
 
 class BasicInfoSerializer(serializers.ModelSerializer):
     picture = serializers.ImageField(required=False)
+
+    def validate_phone_number(self, value):
+        try:
+            validate_international_phonenumber(value)
+        except ValidationError as error:
+            raise error
+        return value
 
     class Meta:
         model = BasicInfo
