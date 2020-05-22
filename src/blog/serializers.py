@@ -83,7 +83,7 @@ class BlogPostCommentSerializer(serializers.ModelSerializer):
 
 
 class BlogPostSerializer(serializers.ModelSerializer):
-    category = serializers.CharField()
+    category = serializers.CharField(source='category.name')
     tags = BlogPostTagSerializer(many=True)
     author = BlogAuthorSerializer(read_only=True)
     comments = BlogPostCommentSerializer(many=True, read_only=True)
@@ -107,7 +107,7 @@ class BlogPostSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         tags_data = validated_data.pop('tags')
         category_name = validated_data.pop('category')
-        category, _ = BlogPostCategory.objects.get_or_create(name=category_name)
+        category, _ = BlogPostCategory.objects.get_or_create(**category_name)
         blog_post = BlogPost.objects.create(category=category, **validated_data)
         for tag_data in tags_data:
             tag, _ = BlogPostTag.objects.get_or_create(name=tag_data['name'])
