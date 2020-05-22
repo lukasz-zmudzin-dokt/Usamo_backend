@@ -44,7 +44,7 @@
       "last_name": "Kowalski",
       "email": "jan.kowalski@gmail.com",
       "picture": "",
-      "phone_number": "123213789",
+      "phone_number": "+48123213789",
       "date_of_birth": "02-04-2005"
    }
 },
@@ -57,7 +57,7 @@
       "last_name": "Cejrowski",
       "email": "w.cejrowski@wp.pl",
       "picture": "",
-      "phone_number": "602416789",
+      "phone_number": "+48602416789",
       "date_of_birth": "03-07-2001"
    }
 },
@@ -70,7 +70,7 @@
       "last_name": "Cejrowski2",
       "email": "w.cejrowski2@wp.pl",
       "picture": "",
-      "phone_number": "602416789",
+      "phone_number": "+48602416789",
       "date_of_birth": "03-07-2001"
    }
 },
