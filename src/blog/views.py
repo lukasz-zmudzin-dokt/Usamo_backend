@@ -274,7 +274,7 @@ class BlogPostAttachmentUploadView(views.APIView):
         else:
             return ErrorResponse(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-        response_data = {"attachment_url": attachment.file.url}
+        response_data = {"id": attachment.id, "attachment_url": attachment.file.url}
         return Response(response_data, status.HTTP_200_OK)
 
 

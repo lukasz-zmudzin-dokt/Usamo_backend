@@ -39,7 +39,7 @@ class BlogPostReservation(models.Model):
 
 
 class BlogPost(models.Model):
-    id = models.OneToOneField(BlogPostReservation, primary_key=True, on_delete=models.CASCADE)
+    id = models.OneToOneField(BlogPostReservation, primary_key=True, related_name='blog_post', on_delete=models.CASCADE)
     author = models.ForeignKey(StaffAccount, null=True, on_delete=models.SET_NULL)
     category = models.ForeignKey(BlogPostCategory, on_delete=models.CASCADE)
     tags = models.ManyToManyField(BlogPostTag, blank=True)

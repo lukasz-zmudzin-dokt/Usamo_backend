@@ -12,6 +12,8 @@ urlpatterns = [
     url(r'logout_all/', LogoutAllView.as_view(), name='knox_logout_all'),
     path('profile_picture/', ProfilePictureView.as_view(), name='profile_picture'),
     path('data/', UserDataView.as_view(), name='user_data'),
+    path('data/password_change/', PasswordChangeView.as_view(), name='user_password_change'),
+    path('admin/data/edit/', StaffDataChangeView.as_view(), name='staff_data_change'),
     path('status/', UserStatusView.as_view(), name='user_status'),
     url(r'^admin/user_list/all/$',
         AdminAllAccountsListView.as_view(), name='user_list_all'),

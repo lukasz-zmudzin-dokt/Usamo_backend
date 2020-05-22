@@ -46,13 +46,15 @@ INSTALLED_APPS = [
     'phonenumber_field',
     'rest_framework',
     'rest_framework.authtoken',
-    # 'whitenoise.runserver_nostatic',
+    'whitenoise.runserver_nostatic',
     'corsheaders',
     'job.apps.JobConfig',
     'chat',
     'cv.apps.CvConfig',
+    'videos.apps.VideosConfig',
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
+    'helpline.apps.HelplineConfig',
     'notification.apps.NotificationConfig',
     'steps.apps.StepsConfig',
     'notifications',
@@ -71,7 +73,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    # 'whitenoise.middleware.WhiteNoiseMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
 
 REST_FRAMEWORK = {
@@ -119,7 +121,7 @@ DATABASES = {
     }
 } 
 
-db_from_env = dj_database_url.config(conn_max_age=600)
+db_from_env = dj_database_url.config()
 DATABASES['default'].update(db_from_env)
 
 CHANNEL_LAYERS = {
@@ -195,7 +197,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-# STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
