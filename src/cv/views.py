@@ -565,6 +565,6 @@ class TemplatesListView(views.APIView):
         }
     )
     def get(self, request):
-        templates = [v for (k, v) in TEMPLATES_CHOICES]
+        templates = [k for (k, v) in TEMPLATES_CHOICES]
         return Response({"templates": templates}, status=status.HTTP_200_OK)
 

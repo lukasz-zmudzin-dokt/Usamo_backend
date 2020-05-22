@@ -69,15 +69,15 @@ class CVSerializer(serializers.ModelSerializer):
     experiences = ExperienceSerializer(many=True, required=False)
     skills = SkillSerializer(many=True)
     languages = LanguageSerializer(many=True)
-    template = serializers.ChoiceField(choices=TEMPLATES_CHOICES)
+    template = serializers.ChoiceField(choices=TEMPLATES_CHOICES, default='bisque')
     is_verified = serializers.BooleanField(default=False, read_only=True)
     was_reviewed = serializers.BooleanField(read_only=True)
     has_picture = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = CV
-        fields = ['cv_id', 'user_id', 'name', 'date_created', 'is_verified', 'was_reviewed', 'has_picture',
-        'cv_user', 'basic_info', 'schools', 'experiences', 'skills', 'languages', 'template']
+        fields = ['cv_id', 'template', 'user_id', 'name', 'date_created', 'is_verified', 'was_reviewed', 'has_picture',
+        'cv_user', 'basic_info', 'schools', 'experiences', 'skills', 'languages']
         
         extra_kwargs = {
             'cv_user': {'required': False, 'write_only': True},

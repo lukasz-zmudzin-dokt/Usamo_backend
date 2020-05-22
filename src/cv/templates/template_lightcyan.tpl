@@ -45,7 +45,7 @@
             }
 
             header {
-              background-color: mistyrose;
+              background-color: lightcyan;
               color: black;
               padding: 7%;
               margin-bottom: 70px;

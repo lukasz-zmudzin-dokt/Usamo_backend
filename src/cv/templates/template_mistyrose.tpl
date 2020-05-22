@@ -45,8 +45,8 @@
             }
 
             header {
-              background-color: lightblue;
-              color: white;
+              background-color: mistyrose;
+              color: black;
               padding: 7%;
               margin-bottom: 70px;
               padding-right: 10%;
