@@ -35,25 +35,25 @@
             * {
               margin: 0;
             }
-
+ 
             body {
               font-family: 'Montserrat', sans-serif;
             }
-
+ 
             .container {
               margin: 0 10%;
             }
-
+ 
             header {
               background-color: mistyrose;
               color: black;
-              padding: 7%;
+              padding: 3%;
               margin-bottom: 70px;
               padding-right: 10%;
               padding-left: 10%;
-              padding-top: 7%;
+              padding-top: 5%;
             }
-
+ 
             h2 {
               text-align: left;
               font-weight: 600;
@@ -61,45 +61,46 @@
               margin-top: 2rem;
               margin-bottom: 0.5rem;
             }
-
+ 
             #info {
                 display: flow-root;
             }
-
+ 
             #name {
-              font-size: 4rem;
+              font-size: 4.25rem;
               text-align: left;
               max-height: 120px;
               width: 600px;
               display: inline-block;
             }
-
+ 
             h3 {
               font-weight: 600;
               margin-bottom: 0.5rem;
             }
-
+ 
             h4 {
               font-weight: 200;
               margin-bottom: 0.5rem;
               text-align: right;
             }
-
+ 
             p {
               margin: 0;
+              margin-top: 0.5rem;
             }
-
+ 
             .picture {
-                width: 164px;
-                height: 211px;
+                width: 196px;
+                height: 250px;
                 display: inline-block;
                 float: right;
             }
-
+ 
             .item {
               padding-bottom: 10px;
             }
-
+ 
             #klauzula {
               margin-top: 30px;
               margin-bottom: 30px;
