@@ -41,6 +41,7 @@ class Root(Step):
 class SubStep(BaseStep):
     parent = models.ForeignKey(Step, related_name='substeps', null=False, on_delete=models.CASCADE)
     order = models.PositiveIntegerField(default=0)
+    video = models.URLField(null=True)
 
     class Meta:
         ordering = ['order']
