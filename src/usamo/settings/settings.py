@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'videos.apps.VideosConfig',
     'account.apps.AccountConfig',
     'blog.apps.BlogConfig',
+    'helpline.apps.HelplineConfig',
     'notification.apps.NotificationConfig',
     'notifications',
     'drf_yasg',

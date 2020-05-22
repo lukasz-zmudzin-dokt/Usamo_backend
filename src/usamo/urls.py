@@ -41,6 +41,7 @@ urlpatterns = [
     path('cv/', include('cv.urls')),
     path('job/', include('job.urls')),
     path('blog/', include('blog.urls')),
+    path('helpline/', include('helpline.urls')),
     path('videos/', include('videos.urls')),
     #url('api/', get_swagger_view(title='Usamodzielnieni API')),
     path('notification/', include('notification.urls')),
