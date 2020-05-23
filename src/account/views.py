@@ -234,7 +234,7 @@ class PasswordChangeView(views.APIView):
         request_body=PasswordChangeRequestSerializer,
         operation_description="Api pozwalające użytkownikowi zmienić swoje hasło",
     )
-    def put(self, request):
+    def patch(self, request):
         account = request.user
         serializer = PasswordChangeRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -258,7 +258,7 @@ class StaffDataChangeView(views.APIView):
         request_body=StaffAccountSerializer,
         operation_description="Api pozwalające pracownikowi zmienić swoje dane (do hasła jest inne api). Uprawnień nie można zmieniać",
     )
-    def put(self, request):
+    def patch(self, request):
         account = request.user
         serializer = StaffAccountSerializer(data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
@@ -466,7 +466,7 @@ class AdminUserDataEditView(views.APIView):
         ],
         operation_description="Api dla admina do edycji danych użytkowników (w tym hasła).",
     )
-    def put(self, request, pk):
+    def patch(self, request, pk):
         try:
             account = Account.objects.get(pk=pk)
         except Account.DoesNotExist:
