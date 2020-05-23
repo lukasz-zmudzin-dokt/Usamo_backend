@@ -42,13 +42,6 @@
   }
 },
 {
-  "model": "blog.blogpostreservation",
-  "pk": "fa79346d-44b0-4921-8e56-29362cabe9d7",
-  "fields": {
-    "date_created": "2020-05-07T20:34:49.740Z"
-  }
-},
-{
   "model": "blog.blogpost",
   "pk": "f7bd018f-472a-4012-b8dc-fb4a960d8d2c",
   "fields": {
@@ -63,6 +56,13 @@
       3,
       2
     ]
+  }
+},
+{
+  "model": "blog.blogpostreservation",
+  "pk": "fa79346d-44b0-4921-8e56-29362cabe9d7",
+  "fields": {
+    "date_created": "2020-05-07T20:34:49.740Z"
   }
 },
 {
