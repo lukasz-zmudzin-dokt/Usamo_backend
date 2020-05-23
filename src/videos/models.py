@@ -10,7 +10,6 @@ class VideoCategory(models.Model):
 class Video(models.Model):
     description = models.TextField(blank=True)
     category = models.ForeignKey(VideoCategory, on_delete=models.CASCADE, null=True, related_name='videos')
-    title = models.CharField(max_length=60)
     url = models.URLField()
 
     def __str__(self):
