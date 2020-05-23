@@ -7,5 +7,5 @@ urlpatterns = [
     path('category/<int:pk>/', CategoryRetrieveUpdateDestroyView.as_view()),
     path('all-videos/', VideosAllView.as_view()),
     path('new-video/', VideosNewView.as_view()),
-    path('video/<int:pk>/', VideoUpdateOrDeleteView.as_view())
+    path('video/<int:pk>/', VideoRetrieveOrUpdateOrDeleteView.as_view())
 ]
