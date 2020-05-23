@@ -37,7 +37,8 @@ class CategoryRetrieveUpdateDestroyView(BaseRetrieveUpdateDestroyView):
     serializer_class = VideoCategorySerializer
 
     def get_queryset(self):
-        return VideoCategory.objects.filter(pk=self.kwargs['pk'])
+        if 'pk' in self.kwargs:
+            return VideoCategory.objects.filter(pk=self.kwargs['pk'])
 
 
 # Videos
@@ -60,4 +61,5 @@ class VideoRetrieveOrUpdateOrDeleteView(BaseRetrieveUpdateDestroyView):
     serializer_class = VideoSerializer
 
     def get_queryset(self):
-        return Video.objects.filter(pk=self.kwargs['pk'])
+        if 'pk' in self.kwargs:
+            return Video.objects.filter(pk=self.kwargs['pk'])
