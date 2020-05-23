@@ -13,9 +13,6 @@ class SubStepSerializer(serializers.ModelSerializer):
             'id': {
                 'read_only': True
             },
-            'parent': {
-                'required': False
-            },
             'video': {
                 'required': False
             }
@@ -40,6 +37,9 @@ class StepSerializer(serializers.ModelSerializer):
         extra_kwargs = {
             'id': {
                 'read_only': True
+            },
+            'parent': {
+                'required': True
             }
         }
 

@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 
 from account.permissions import IsStaffMember
-from blog.permissions import IsStaffBlogModerator
+from steps.permissions import IsStaffStepsModerator
 from job.views import ErrorResponse, MessageResponse
 from steps.serializers import *
 
@@ -32,7 +32,7 @@ def sample_move_substep_body():
 
 
 class CreateRoot(generics.CreateAPIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
     serializer_class = RootSerializer
     queryset = Root.objects.all()
 
@@ -44,7 +44,7 @@ class CreateRoot(generics.CreateAPIView):
 
 
 class UpdateRoot(generics.UpdateAPIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
     serializer_class = RootSerializer
 
     def get_object(self):
@@ -52,13 +52,13 @@ class UpdateRoot(generics.UpdateAPIView):
 
 
 class CreateStep(generics.CreateAPIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
     serializer_class = StepSerializer
     queryset = Step.objects.all()
 
 
 class CreateSubStep(generics.CreateAPIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
     serializer_class = SubStepSerializer
     queryset = SubStep.objects.all()
 
@@ -113,31 +113,31 @@ class GetStep(generics.RetrieveAPIView):
 
 
 class UpdateStep(generics.UpdateAPIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
     serializer_class = StepSerializer
     queryset = Step.objects.all()
 
 
 class UpdateSubStep(generics.UpdateAPIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
     serializer_class = SubStepSerializer
     queryset = SubStep.objects.all()
 
 
 class DestroyStep(generics.DestroyAPIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
     serializer_class = StepSerializer
     queryset = Step.objects.all()
 
 
 class DestroySubStep(generics.DestroyAPIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
     serializer_class = SubStepSerializer
     queryset = SubStep.objects.all()
 
 
 class SwitchSubSteps(views.APIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
 
     @swagger_auto_schema(
         request_body=sample_switch_substeps_body(),
@@ -166,7 +166,7 @@ class SwitchSubSteps(views.APIView):
 
 
 class MoveSubStep(views.APIView):
-    permission_classes = (IsStaffBlogModerator,)
+    permission_classes = (IsStaffStepsModerator,)
 
     @swagger_auto_schema(
         request_body=sample_move_substep_body(),
