@@ -720,6 +720,16 @@ class JobOfferTypeView(views.APIView):
 class GetZipFileView(views.APIView):
     permission_classes = [IsEmployer]
 
+    @swagger_auto_schema(
+        responses={
+            '200': '"url": ścieżka-do-pliku-zip',
+            '401': '"detail": Nie podano danych uwierzytelniających.',
+            '403': sample_error_response('Oferta nie należy do Ciebie'),
+            '404': sample_error_response('Nie znaleziono oferty')
+        },
+        operation_description="Zwraca pracodawcy plik zip ze spakowanymi plikami CV wszystkich użytkowników, "
+                              "którzy aplikowali na daną ofertę",
+    )
     def get(self, request, offer_id):
         try:
             offer = JobOffer.objects.get(id=offer_id)

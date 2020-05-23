@@ -96,7 +96,6 @@ class JobOfferFiltersSerializer(serializers.Serializer):
 
 
 class JobOfferApplicationSerializer(serializers.ModelSerializer):
-    #cv_url = serializers.CharField(source='cv.document.url', read_only=True)
     user_id = serializers.UUIDField(source='cv.cv_user.user.id', read_only=True)
     first_name = serializers.CharField(source='cv.basic_info.first_name', read_only=True)
     last_name = serializers.CharField(source='cv.basic_info.last_name', read_only=True)
