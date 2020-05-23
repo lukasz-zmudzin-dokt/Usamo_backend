@@ -35,15 +35,15 @@
             * {
               margin: 0;
             }
- 
+
             body {
               font-family: 'Montserrat', sans-serif;
             }
- 
+
             .container {
               margin: 0 10%;
             }
- 
+
             header {
               background-color: lightblue;
               color: black;
@@ -53,7 +53,7 @@
               padding-left: 10%;
               padding-top: 5%;
             }
- 
+
             h2 {
               text-align: left;
               font-weight: 600;
@@ -61,46 +61,47 @@
               margin-top: 2rem;
               margin-bottom: 0.5rem;
             }
- 
+
             #info {
                 display: flow-root;
             }
- 
+
             #name {
-              font-size: 4.25rem;
+              font-size: 4rem;
               text-align: left;
               max-height: 120px;
               width: 600px;
               display: inline-block;
             }
- 
-            h3 {
+
+            .item-name {
               font-weight: 600;
               margin-bottom: 0.5rem;
             }
- 
-            h4 {
+
+            .item-date {
               font-weight: 200;
               margin-bottom: 0.5rem;
               text-align: right;
+              float: right;
             }
- 
+
             p {
               margin: 0;
               margin-top: 0.5rem;
             }
- 
+
             .picture {
                 width: 196px;
                 height: 250px;
                 display: inline-block;
                 float: right;
             }
- 
+
             .item {
               padding-bottom: 10px;
             }
- 
+
             #klauzula {
               margin-top: 30px;
               margin-bottom: 30px;
@@ -108,7 +109,7 @@
             }
         </style>
     </head>
-    <body onload="autoSizeText()"">
+    <body onload="autoSizeText()">
         <header>
             <div>
                 {% if basic_info.picture %}<img class="picture" src="{{"../../usamo" + basic_info.picture.url}}"/>{% endif %}
@@ -127,8 +128,8 @@
             <h2>Wykształcenie</h2>
             {% for item in schools %}
             <div class="item">
-                <h4>{{item.year_start | escape}} - {% if item.year_end %}{{item.year_end | escape}}{% else %}...{% endif %}</h4>
-                <h3>{{item.name | escape}}</h3>
+                <span class="item-name">{{item.name | escape}}</span>
+                <span class="item-date">{{item.date_start | escape}} - {% if item.date_end %}{{item.date_end | escape}}{% else %}...{% endif %}</span>
                 <p>{{item.additional_info | escape}}</p>
             </div>
             {% endfor %}
@@ -138,8 +139,8 @@
             <h2>Doświadczenie</h2>
             {% for item in experiences %}
             <div class="item">
-                <h4>{{item.year_start | escape}} - {% if item.year_end %}{{item.year_end | escape}}{% else %}...{% endif %}</h4>
-                <h3>{{item.title | escape}}</h3>
+                <span class="item-name">{{item.title | escape}}</span>
+                <span class="item-date">{{item.date_start | escape}} - {% if item.date_end %}{{item.date_end | escape}}{% else %}...{% endif %}</span>
                 <p>{{item.description | escape}}</p>
             </div>
             {% endfor %}

@@ -5,17 +5,51 @@ from .templates.templates import TEMPLATES_CHOICES
 from .utilities import *
 from .models import *
 
+import datetime
 
-class SchoolSerializer(serializers.ModelSerializer):
+
+class EnhancedDatesSerializer(serializers.ModelSerializer):
+    date_start = serializers.CharField()
+    date_end = serializers.CharField(required=False)
+
+    def validate_date_start(self, value):
+        short_date_format = re.compile("([0-9]{2})-([0-9]{4})")
+        short_date_match = re.match(short_date_format, value)
+        if short_date_match:
+            year = int(short_date_match.group(2))
+            if year < 1990:
+                raise ValidationError("date_start year must be greater than 1990")
+            if year > current_year():
+                raise ValidationError("date_start year must not be greater than current year")
+        else:
+            raise ValidationError("Incorrect date_start format, should be MM-YYYY")
+        return value
+
+    def validate_date_end(self, value):
+        short_date_format = re.compile("([0-9]{2})-([0-9]{4})")
+        short_date_match = re.match(short_date_format, value)
+        if short_date_match:
+            year = int(short_date_match.group(2))
+            if year < 1990:
+                raise ValidationError("date_end year must be greater than 1990")
+            if year > current_year():
+                raise ValidationError("date_end year must not be greater than current year")
+        else:
+            raise ValidationError("Incorrect date_end format, should be MM-YYYY")
+        return value
+
+
+class SchoolSerializer(EnhancedDatesSerializer):
+
     class Meta:
         model = School
-        fields = ['name', 'year_start', 'year_end', 'additional_info']
+        fields = ['name', 'date_start', 'date_end', 'additional_info']
 
 
-class ExperienceSerializer(serializers.ModelSerializer):
+class ExperienceSerializer(EnhancedDatesSerializer):
     class Meta:
         model = Experience
-        fields = ['title', 'description', 'year_start', 'year_end']
+        fields = ['title', 'description', 'date_start', 'date_end']
 
 
 class SkillSerializer(serializers.ModelSerializer):
