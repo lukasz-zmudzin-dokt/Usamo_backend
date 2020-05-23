@@ -1,5 +1,6 @@
 import os
 import uuid
+from datetime import datetime
 from zipfile import ZipFile
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
@@ -58,7 +59,8 @@ class JobOffer(models.Model):
             zip_file = ZipFile(path, mode='x')
 
         for application in JobOfferApplication.objects.filter(job_offer=self):
-            file_name = application.cv.cv_user.user.first_name + '_' + application.cv.cv_user.user.last_name + '.pdf'
+            file_name = application.cv.cv_user.user.first_name + '_' + application.cv.cv_user.user.last_name + '_' +\
+                        datetime.now().strftime('%d-%m-%y') + '.pdf'
             zip_file.write(application.document.path, arcname=file_name)
         zip_file.close()
         self.zip_file = path
