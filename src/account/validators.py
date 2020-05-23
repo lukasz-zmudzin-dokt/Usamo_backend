@@ -33,7 +33,7 @@ def validate_street_number(street_number: str):
 class PasswordValidator:
     password_regex = re.compile("^(?=.*\d)(?=.*[a-z])(?=.*[\!\@\#\$\%\^\&\*])(?=.*[A-Z])(?!.*\s).{8,}$")
     password_help_text_pl = \
-        gettext('Hasło powinno zawierać co najmniej 8 znaków, w tym litery od A do Z oraz od a do z, cyfry 0-9 oraz znaki specjalne !@#$%^&*')
+        gettext('Hasło powinno zawierać co najmniej 8 znaków, w tym małą literę, dużą literę, cyfrę oraz znak specjalny: !@#$%^&*')
 
     def validate(self, password, user=None):
         if self.password_regex.match(password) is None:
