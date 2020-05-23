@@ -517,7 +517,7 @@ class ProfilePictureView(views.APIView):
         serializer = ProfilePictureSerializer(data=request.data, context={'user': request.user})
         if serializer.is_valid():
             serializer.save()
-            return Response({'message': 'Pomyślnie dodano zdjęcie'}, status.HTTP_200_OK)
+            return Response({'picture_url': request.user.picture_url}, status.HTTP_200_OK)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
