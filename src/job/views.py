@@ -715,3 +715,18 @@ class JobOfferTypeView(views.APIView):
                 return ErrorResponse("Nie znaleziono takiego typu oferty pracy", status.HTTP_404_NOT_FOUND)
             return MessageResponse("Typ oferty pracy usunięty")
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class GetZipFileView(views.APIView):
+    permission_classes = [IsEmployer]
+
+    def get(self, request, offer_id):
+        try:
+            offer = JobOffer.objects.get(id=offer_id)
+            if IsEmployer().has_object_permission(request, self, offer):
+                offer.generate_zip()
+                return Response({"url": offer.zip_file}, status=status.HTTP_200_OK)
+            else:
+                return ErrorResponse("Oferta nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
