@@ -27,7 +27,7 @@ def validate_postal_code(postal_code: str):
 def validate_street_number(street_number: str):
     street_number_regex = re.compile("\d{1,3}")
     if street_number_regex.match(street_number) is None:
-        raise ValidationError('Niepoprawny kod pocztowy')
+        raise ValidationError('Niepoprawny numer ulicy')
 
 
 class PasswordValidator:
