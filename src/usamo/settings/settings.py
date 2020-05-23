@@ -74,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'usamo.middlewares.FilesSizeValidatorMiddleware'
 ]
 
 REST_FRAMEWORK = {
@@ -88,6 +89,8 @@ REST_KNOX = {
 }
 
 ROOT_URLCONF = 'usamo.urls'
+
+MAX_UPLOAD_MB_SIZE = "15"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
