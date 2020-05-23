@@ -330,7 +330,10 @@ class CreateJobOfferApplicationView(views.APIView):
     def post(self, request):
         user = DefaultAccount.objects.get(user=request.user)
         try:
-            CV.objects.get(cv_user=user, cv_id=request.data['cv'])
+            try:
+                CV.objects.get(cv_user=user, cv_id=request.data['cv'])
+            except KeyError:
+                return ErrorResponse('Należy podać, jakie CV złożyć w aplikacji', status.HTTP_400_BAD_REQUEST)
         except CV.DoesNotExist:
             return ErrorResponse("CV o podanym id nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
 
@@ -347,8 +350,8 @@ class CreateJobOfferApplicationView(views.APIView):
                 "id": application.id
             }
             job_offer = JobOffer.objects.get(id=request.data['job_offer'])
-            notify.send(user, recipient=job_offer.employer,
-                        verb=f'Użytkownik {user.username} aplikował_a na Twoją ofertę pracy!',
+            notify.send(user, recipient=job_offer.employer.user,
+                        verb=f'Użytkownik {user.user.username} aplikował_a na Twoją ofertę pracy!',
                         app='job/employer/application_list/',
                         object_id=request.data['job_offer']
                         )

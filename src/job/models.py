@@ -1,8 +1,13 @@
+import os
 import uuid
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.db.models import SET_NULL
+from django.db.models.signals import post_delete, post_save
+from django.dispatch import receiver
+
 from .enums import Voivodeships
 from .utils import create_job_offer_image_path
 from account.models import DefaultAccount, EmployerAccount, Address
@@ -44,6 +49,12 @@ class JobOfferApplication(models.Model):
     job_offer = models.ForeignKey(JobOffer, on_delete=models.CASCADE)
     date_posted = models.DateTimeField(auto_now_add=True)
     was_read = models.BooleanField(default=False)
+    document = models.FileField(upload_to='application_docs/', null=True)
+
+    def duplicate_docs(self):
+        document_copy = ContentFile(self.cv.document.read())
+        name = self.cv.document.name
+        self.document.save(name, document_copy)
 
 
 class JobOfferFilters:
@@ -65,3 +76,17 @@ class JobOfferFilters:
             offer_type__in=self.types
         )
         return {k: v for k, v in filters.items() if v is not None}
+
+
+@receiver(post_delete, sender=JobOfferApplication)
+def delete_document(sender, instance, **kwargs):
+    if instance.document:
+        print(instance.document.path)
+        if os.path.isfile(instance.document.path):
+            os.remove(instance.document.path)
+
+
+@receiver(post_save, sender=JobOffer)
+def delete_applications(sender, instance, **kwargs):
+    if instance.removed:
+        JobOfferApplication.objects.filter(job_offer=instance).delete()
