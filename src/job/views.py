@@ -103,8 +103,8 @@ class JobOfferCreateView(views.APIView):
                 instance = serializer.create(serializer.validated_data)
                 instance.employer_id = employer.id
                 instance.save()
-                notify.send(employer, recipient=Account.objects.filter(groups__name__contains='staff_jobs'),
-                            verb=f'Użytkownik {employer.username} utworzył_a nową ofertę pracy',
+                notify.send(employer.user, recipient=Account.objects.filter(groups__name__contains='staff_jobs'),
+                            verb=f'Użytkownik {employer.user.username} utworzył_a nową ofertę pracy',
                             app='cv/generator/',
                             object_id=instance.id
                             )
@@ -205,7 +205,7 @@ class JobOfferView(views.APIView):
             instance.removed = True
             instance.save()
             if IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                notify.send(request.user, recipient=instance.employer,
+                notify.send(request.user, recipient=instance.employer.user,
                             verb=f'Twoja oferta pracy została usunięta',
                             app='job/job-offer/',
                             object_id=offer_id
@@ -347,8 +347,8 @@ class CreateJobOfferApplicationView(views.APIView):
                 "id": application.id
             }
             job_offer = JobOffer.objects.get(id=request.data['job_offer'])
-            notify.send(user, recipient=job_offer.employer,
-                        verb=f'Użytkownik {user.username} aplikował_a na Twoją ofertę pracy!',
+            notify.send(user.user, recipient=job_offer.employer.user,
+                        verb=f'Użytkownik {user.user.username} aplikował_a na Twoją ofertę pracy!',
                         app='job/employer/application_list/',
                         object_id=request.data['job_offer']
                         )
@@ -571,7 +571,7 @@ class AdminConfirmJobOfferView(views.APIView):
             confirmed = request.data['confirmed']
             instance.confirmed = confirmed
             instance.save()
-            notify.send(request.user, recipient=instance.employer,
+            notify.send(request.user, recipient=instance.employer.user,
                         verb=f'Twoja oferta pracy została zatwierdzona',
                         app='job/job-offer/',
                         object_id=instance.id
