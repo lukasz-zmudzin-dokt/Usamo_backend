@@ -149,12 +149,8 @@ def _get_pdfkit_config():
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'account.validators.PasswordValidator',
     },
-   
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    }
     # {
     #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     # },
