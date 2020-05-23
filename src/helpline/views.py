@@ -35,7 +35,7 @@ class PhoneContactCreateView(views.APIView):
 
 
 class PhoneContactView(views.APIView):
-    permission_classes = [IsStaffMember]
+    permission_classes = [IsStaffBlogModerator]
 
     @swagger_auto_schema(
         manual_parameters=[
