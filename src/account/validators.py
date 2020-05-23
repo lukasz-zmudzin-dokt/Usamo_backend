@@ -1,6 +1,7 @@
 import re
 
 from django.core.exceptions import ValidationError
+from django.utils.translation import gettext
 
 
 def validate_nip(nip: str):
@@ -27,3 +28,16 @@ def validate_street_number(street_number: str):
     street_number_regex = re.compile("\d{1,3}")
     if street_number_regex.match(street_number) is None:
         raise ValidationError('Niepoprawny kod pocztowy')
+
+
+class PasswordValidator:
+    password_regex = re.compile("^(?=.*\d)(?=.*[a-z])(?=.*[\!\@\#\$\%\^\&\*])(?=.*[A-Z])(?!.*\s).{8,}$")
+    password_help_text_pl = \
+        gettext('Hasło powinno składać się z przynajmniej 8 znaków, zawierać litery od A do Z oraz od a do z, cyfry 0-9 oraz znaki specjalne !@#$%^&*')
+
+    def validate(self, password, user=None):
+        if self.password_regex.match(password) is None:
+            raise ValidationError(self.password_help_text_pl)
+
+    def get_help_text(self):
+        return self.password_help_text_pl
