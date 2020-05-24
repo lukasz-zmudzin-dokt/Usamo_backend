@@ -26,6 +26,7 @@ TYPE_TO_INT_MAP = {
 }
 
 class StaffGroupType(Enum):
+    STAFF_GUEST = 'staff_guest'
     STAFF_VERIFICATION = 'staff_verification'
     STAFF_CV = 'staff_cv'
     STAFF_JOBS = 'staff_jobs'
@@ -39,6 +40,7 @@ class StaffGroupType(Enum):
 
 
 STAFF_GROUP_CHOICES = [
+    (StaffGroupType.STAFF_GUEST.value, 'staff_guest'),
     (StaffGroupType.STAFF_VERIFICATION.value, 'staff_verification'),
     (StaffGroupType.STAFF_CV.value, 'staff_cv'),
     (StaffGroupType.STAFF_JOBS.value, 'staff_jobs'),

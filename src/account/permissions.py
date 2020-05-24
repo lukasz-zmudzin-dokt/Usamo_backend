@@ -96,3 +96,15 @@ class GetRequestPublicPermission(permissions.BasePermission):
 
     def has_permission(self, request, view):
         return request.method == "GET"
+
+
+class GetGuestStaffPermission(AbstractIsAllowedStaff):
+
+    def has_permission(self, request, view):
+        return request.method == "GET" and super().has_permission(request, view)
+
+    def _get_allowed_staff_type(self):
+        return StaffGroupType.STAFF_GUEST
+
+    def has_object_permission(self, request, view, obj):
+        return super().has_permission(request, view) # can view everything if only have request permission
