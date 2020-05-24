@@ -51,13 +51,17 @@ class EmailLowerCaseField(models.EmailField):
 
 class Account(AbstractBaseUser, PermissionsMixin):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False, verbose_name='id')
-    email = EmailLowerCaseField(verbose_name='email', max_length=60, unique=True)
-    username = models.CharField(max_length=30, unique=True)
-    first_name = models.CharField(max_length=30, verbose_name='first_name')
-    last_name = models.CharField(max_length=30, verbose_name='last_name')
-    date_joined = models.DateTimeField(verbose_name='date_joined', null=True)
-    last_login = models.DateTimeField(verbose_name='last_login', null=True)
-    profile_picture = models.ImageField(null=True, upload_to=create_profile_picture_file_path)
+    email = EmailLowerCaseField(verbose_name='email', max_length=60, unique=True, error_messages={
+        'unique': 'Założono już konto na ten adres email.'
+    })
+    username = models.CharField(max_length=30, unique=True, verbose_name="nazwa użytkownika", error_messages={
+        'unique': 'Nazwa użytkownika jest już zajęta.'
+    })
+    first_name = models.CharField(max_length=30, verbose_name='imię')
+    last_name = models.CharField(max_length=30, verbose_name='nazwisko')
+    date_joined = models.DateTimeField(verbose_name='dołączył', null=True)
+    last_login = models.DateTimeField(verbose_name='ostatnio zalogowany', null=True)
+    profile_picture = models.ImageField(null=True, upload_to=create_profile_picture_file_path, verbose_name='zdjęcie profilowe')
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
@@ -70,6 +74,9 @@ class Account(AbstractBaseUser, PermissionsMixin):
     REQUIRED_FIELDS = ['email', 'first_name', 'last_name']
 
     objects = AccountManager()
+
+    class Meta:
+        verbose_name = 'konto'
 
     def __str__(self):
         return self.username
@@ -98,25 +105,25 @@ class Account(AbstractBaseUser, PermissionsMixin):
 
 
 class Address(models.Model):
-    city = models.CharField(max_length=40)
-    street = models.CharField(max_length=120)
-    street_number = models.CharField(max_length=20)
-    postal_code = models.CharField(max_length=6)
+    city = models.CharField(max_length=40, verbose_name='nazwa miasta')
+    street = models.CharField(max_length=120, verbose_name='ulica')
+    street_number = models.CharField(max_length=20, verbose_name='numer budynku')
+    postal_code = models.CharField(max_length=6, verbose_name='kod pocztowy')
 
 
 class DefaultAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='account')
-    phone_number = PhoneNumberField()
-    facility_name = models.CharField(max_length=60)
-    facility_address = models.OneToOneField(Address, on_delete=models.CASCADE, null=True, blank=True)
+    phone_number = PhoneNumberField(verbose_name='numer telefonu')
+    facility_name = models.CharField(max_length=60, verbose_name='nazwa placówki')
+    facility_address = models.OneToOneField(Address, on_delete=models.CASCADE, null=True, blank=True, verbose_name='adres placówki')
 
 
 class EmployerAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='employer_account')
-    phone_number = PhoneNumberField()
-    company_name = models.CharField(max_length=60)
-    company_address = models.OneToOneField(Address, on_delete=models.CASCADE)
-    nip = models.CharField(max_length=10)
+    phone_number = PhoneNumberField(verbose_name='numer telefonu')
+    company_name = models.CharField(max_length=60, verbose_name='nazwa firmy')
+    company_address = models.OneToOneField(Address, on_delete=models.CASCADE, verbose_name='adres firmy')
+    nip = models.CharField(max_length=10, verbose_name='NIP')
 
 
 class StaffAccount(models.Model):
