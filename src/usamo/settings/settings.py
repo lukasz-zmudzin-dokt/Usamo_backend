@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'whitenoise.runserver_nostatic',
     'corsheaders',
     'job.apps.JobConfig',
-    'chat',
+    'chat.apps.ChatConfig',
     'cv.apps.CvConfig',
     'videos.apps.VideosConfig',
     'account.apps.AccountConfig',

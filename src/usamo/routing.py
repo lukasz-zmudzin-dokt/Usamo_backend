@@ -4,14 +4,14 @@ from channels.auth import AuthMiddlewareStack
 from channels.security.websocket import AllowedHostsOriginValidator, OriginValidator
 from chat.consumers import ChatConsumer
 from notification.consumers import NotificationConsumer
-from notification.token_auth import TokenAuthMiddleware
+from notification.token_auth import TokenAuthMiddlewareStack
 application = ProtocolTypeRouter({
     # Empty for now (http->django views is added by default)
     'websocket': AllowedHostsOriginValidator(
-        TokenAuthMiddleware(
+        TokenAuthMiddlewareStack(
             URLRouter(
                 [
-                    # url(r"^chat/(?P<username>[\w.@+-]+)/$", ChatConsumer),
+                    url(r"^chat/(?P<username>[\w.@+-]+)/$", ChatConsumer),
                     url("notification/count/unread", NotificationConsumer)
                 ]
             )

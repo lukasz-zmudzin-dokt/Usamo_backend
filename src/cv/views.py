@@ -3,7 +3,6 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg import openapi
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
-from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework import status, generics
 from rest_framework import views
@@ -23,7 +22,6 @@ from .templates.templates import *
 from job.views import sample_message_response, ErrorResponse, MessageResponse
 import base64
 from notifications.signals import notify
-
 
 
 class CVPagination(PageNumberPagination):

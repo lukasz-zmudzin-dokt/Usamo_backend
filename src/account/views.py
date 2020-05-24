@@ -15,7 +15,6 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-
 from notification.jobs import send_verification_email
 from .permissions import *
 from blog.permissions import IsStaffBlogModerator

@@ -31,6 +31,7 @@ class StaffGroupType(Enum):
     STAFF_JOBS = 'staff_jobs'
     STAFF_BLOG_CREATOR = 'staff_blog_creator'
     STAFF_BLOG_MODERATOR = 'staff_blog_moderator'
+    STAFF_CHAT_ACCESS = 'staff_chat_access'
 
     @staticmethod
     def get_all_types():
@@ -42,5 +43,6 @@ STAFF_GROUP_CHOICES = [
     (StaffGroupType.STAFF_CV.value, 'staff_cv'),
     (StaffGroupType.STAFF_JOBS.value, 'staff_jobs'),
     (StaffGroupType.STAFF_BLOG_CREATOR.value, 'staff_blog_creator'),
-    (StaffGroupType.STAFF_BLOG_MODERATOR.value, 'staff_blog_moderator')
+    (StaffGroupType.STAFF_BLOG_MODERATOR.value, 'staff_blog_moderator'),
+    (StaffGroupType.STAFF_CHAT_ACCESS.value, 'staff_chat_access')
 ]
