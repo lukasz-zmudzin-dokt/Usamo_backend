@@ -12,30 +12,49 @@ from account.models import Account
 from django.contrib.auth.models import Group
 from .serializers import *
 from .models import *
+from .filters import *
 from job.views import ErrorResponse, MessageResponse, sample_error_response, sample_message_response
 from django.db.models import Q
+from rest_framework.filters import OrderingFilter
+from rest_framework.pagination import PageNumberPagination
+from django.utils.decorators import method_decorator
+from drf_yasg import openapi
+from drf_yasg.utils import swagger_auto_schema
+
+
+class ChatPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
 
 
 class InboxView(ListAPIView):
     serializer_class = ThreadSerializer
+    pagination_class = ChatPagination
     permission_classes = (IsStaffWithChatAccess | IsEmployer | IsStandardUser, )
-    # filter_backends = (DjangoFilterBackend, UserListOrderingFilter,)
-    # filterset_class = DefaultAccountListFilter
-    # ordering_fields = ['username', 'date_joined', 'last_login']
-    # ordering = ['-date_joined']
+    filter_backends = (OrderingFilter,)
+    ordering = ['-updated']
 
     def get_queryset(self):
         user = self.request.user
         return Thread.objects.by_user(user)
 
 
+@method_decorator(name='get', decorator=swagger_auto_schema(
+    filter_inspectors=[DjangoFilterDescriptionInspector],
+    responses={
+        200: ChatUserSerializer(many=True),
+        2137: StaffAccountSerializer(many=True) 
+    },
+    operation_description="Zwraca listę dostępnych kontaktów (nie mylić z rozmowami). Paginacja jak wszędzie indziej.\n Zwraca zawsze 200 :)"
+))
 class ContactListView(ListAPIView):
     serializer_class = ThreadSerializer
     permission_classes = (IsStaffWithChatAccess | IsEmployer | IsStandardUser, )
-    # filter_backends = (DjangoFilterBackend, UserListOrderingFilter,)
-    # filterset_class = DefaultAccountListFilter
-    # ordering_fields = ['username', 'date_joined', 'last_login']
-    # ordering = ['-date_joined']
+    pagination_class = ChatPagination
+    filter_backends = (OrderingFilter, DjangoFilterBackend)
+    filterset_class = ContactListFilter
+    ordering = ['first_name', 'last_name']
 
     def get_queryset(self):
         user = self.request.user
@@ -60,6 +79,9 @@ class ContactListView(ListAPIView):
 class ThreadView(ListAPIView):
     permission_classes = (IsStaffWithChatAccess | IsEmployer | IsStandardUser, )
     serializer_class = ChatMessageSerializer
+    filter_backends = (OrderingFilter,)
+    ordering = ['timestamp']
+
 
     def get_queryset(self):
         user = self.request.user
