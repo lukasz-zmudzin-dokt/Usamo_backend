@@ -48,6 +48,8 @@ class JobOffer(models.Model):
         return self.offer_name
 
     def generate_zip(self):
+        url = settings.MEDIA_URL + 'application_docs/zip_files/' + \
+               self.offer_name.replace(' ', '_') + '_pliki_cv.zip'
         path = settings.MEDIA_ROOT + '/application_docs/zip_files/' + \
                self.offer_name.replace(' ', '_') + '_pliki_cv.zip'
         if os.path.isfile(path):
@@ -63,7 +65,7 @@ class JobOffer(models.Model):
                         datetime.now().strftime('%d-%m-%y') + '.pdf'
             zip_file.write(application.document.path, arcname=file_name)
         zip_file.close()
-        self.zip_file = path
+        self.zip_file = url
         self.save()
         delete_zip_file_after_delay(path)
         
