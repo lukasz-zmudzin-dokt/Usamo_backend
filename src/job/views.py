@@ -330,7 +330,10 @@ class CreateJobOfferApplicationView(views.APIView):
     def post(self, request):
         user = DefaultAccount.objects.get(user=request.user)
         try:
-            CV.objects.get(cv_user=user, cv_id=request.data['cv'])
+            try:
+                CV.objects.get(cv_user=user, cv_id=request.data['cv'])
+            except KeyError:
+                return ErrorResponse('Należy podać, jakie CV złożyć w aplikacji', status.HTTP_400_BAD_REQUEST)
         except CV.DoesNotExist:
             return ErrorResponse("CV o podanym id nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
 
@@ -347,7 +350,9 @@ class CreateJobOfferApplicationView(views.APIView):
                 "id": application.id
             }
             job_offer = JobOffer.objects.get(id=request.data['job_offer'])
+            
             notify.send(user.user, recipient=job_offer.employer.user,
+
                         verb=f'Użytkownik {user.user.username} aplikował_a na Twoją ofertę pracy!',
                         app='job/employer/application_list/',
                         object_id=request.data['job_offer']
@@ -744,3 +749,28 @@ class JobOfferTypeView(views.APIView):
                 return ErrorResponse("Nie znaleziono takiego typu oferty pracy", status.HTTP_404_NOT_FOUND)
             return MessageResponse("Typ oferty pracy usunięty")
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class GetZipFileView(views.APIView):
+    permission_classes = [IsEmployer]
+
+    @swagger_auto_schema(
+        responses={
+            '200': '"url": ścieżka-do-pliku-zip',
+            '401': '"detail": Nie podano danych uwierzytelniających.',
+            '403': sample_error_response('Oferta nie należy do Ciebie'),
+            '404': sample_error_response('Nie znaleziono oferty')
+        },
+        operation_description="Zwraca pracodawcy plik zip ze spakowanymi plikami CV wszystkich użytkowników, "
+                              "którzy aplikowali na daną ofertę",
+    )
+    def get(self, request, offer_id):
+        try:
+            offer = JobOffer.objects.get(id=offer_id)
+            if IsEmployer().has_object_permission(request, self, offer):
+                offer.generate_zip()
+                return Response({"url": offer.zip_file}, status=status.HTTP_200_OK)
+            else:
+                return ErrorResponse("Oferta nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
