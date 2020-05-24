@@ -345,7 +345,10 @@ class CreateJobOfferApplicationView(views.APIView):
 
         serializer = JobOfferApplicationSerializer(data=request.data)
         if serializer.is_valid():
-            application = serializer.create(serializer.validated_data)
+            try:
+                application = serializer.create(serializer.validated_data)
+            except FileNotFoundError:
+                return ErrorResponse("Nie znaleziono pliku zawierającego CV", status.HTTP_404_NOT_FOUND)
             response = {
                 "id": application.id
             }

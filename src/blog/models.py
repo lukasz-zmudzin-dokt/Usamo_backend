@@ -14,12 +14,15 @@ def clean_html(string):
 
 
 class BlogPostTag(models.Model):
-    name = models.CharField(max_length=60)
+    name = models.CharField(max_length=60, verbose_name='nazwa')
 
 
 class BlogPostCategory(models.Model):
-    name = models.CharField(max_length=60, unique=True)
-    header = models.ImageField(upload_to=create_category_header_file_path, null=True)
+    name = models.CharField(max_length=60, unique=True, verbose_name='nazwa')
+    header = models.ImageField(upload_to=create_category_header_file_path, null=True, verbose_name='nagłówek')
+
+    class Meta:
+        verbose_name = 'kategoria'
 
     @property
     def header_url(self):
@@ -40,14 +43,17 @@ class BlogPostReservation(models.Model):
 
 class BlogPost(models.Model):
     id = models.OneToOneField(BlogPostReservation, primary_key=True, related_name='blog_post', on_delete=models.CASCADE)
-    author = models.ForeignKey(StaffAccount, null=True, on_delete=models.SET_NULL)
-    category = models.ForeignKey(BlogPostCategory, on_delete=models.CASCADE)
-    tags = models.ManyToManyField(BlogPostTag, blank=True)
-    content = models.TextField()
-    title = models.CharField(max_length=120, blank=False, null=False)
-    date_created = models.DateTimeField(auto_now_add=True)
-    date_modified = models.DateTimeField(auto_now=True)
+    author = models.ForeignKey(StaffAccount, null=True, on_delete=models.SET_NULL, verbose_name='autor')
+    category = models.ForeignKey(BlogPostCategory, on_delete=models.CASCADE, verbose_name='kategoria')
+    tags = models.ManyToManyField(BlogPostTag, blank=True, verbose_name='tagi')
+    content = models.TextField(verbose_name='treść')
+    title = models.CharField(max_length=120, blank=False, null=False, verbose_name='tytuł')
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name='data stworzenia')
+    date_modified = models.DateTimeField(auto_now=True, verbose_name='data ostatniej modyfikacji')
     _summary = models.TextField(null=True)
+
+    class Meta:
+        verbose_name = 'post'
 
     @property
     def summary(self):
@@ -56,8 +62,11 @@ class BlogPost(models.Model):
 
 
 class BlogPostHeader(models.Model):
-    file = models.ImageField(upload_to=create_blog_header_file_path)
-    blog_post = models.OneToOneField(BlogPost, on_delete=models.CASCADE)
+    file = models.ImageField(upload_to=create_blog_header_file_path, verbose_name='plik')
+    blog_post = models.OneToOneField(BlogPost, on_delete=models.CASCADE, verbose_name='post')
+
+    class Meta:
+        verbose_name = 'nagłówek posta'
 
     def delete(self, **kwargs):
         self.file.delete()
@@ -67,8 +76,11 @@ class BlogPostHeader(models.Model):
 
 class BlogPostAttachment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    file = models.ImageField(upload_to=create_blog_attachment_file_path)
-    blog_post = models.ForeignKey(BlogPostReservation, on_delete=models.CASCADE)
+    file = models.ImageField(upload_to=create_blog_attachment_file_path, verbose_name='plik')
+    blog_post = models.ForeignKey(BlogPostReservation, on_delete=models.CASCADE, verbose_name='post')
+
+    class Meta:
+        verbose_name = 'załącznik'
 
     def delete(self, **kwargs):
         self.file.delete()
@@ -77,10 +89,13 @@ class BlogPostAttachment(models.Model):
 
 class BlogPostComment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    author = models.ForeignKey(Account, null=True, on_delete=models.SET_NULL)
-    content = models.TextField()
-    blog_post = models.ForeignKey(BlogPost, related_name='comments', on_delete=models.CASCADE)
-    date_created = models.DateTimeField(auto_now_add=True)
+    author = models.ForeignKey(Account, null=True, on_delete=models.SET_NULL, verbose_name='autor')
+    content = models.TextField(verbose_name='treść')
+    blog_post = models.ForeignKey(BlogPost, related_name='comments', on_delete=models.CASCADE, verbose_name='post')
+    date_created = models.DateTimeField(auto_now_add=True, verbose_name='data utworzenia')
+
+    class Meta:
+        verbose_name = 'komentarz'
 
 
 @receiver(models.signals.post_delete, sender=BlogPostAttachment)

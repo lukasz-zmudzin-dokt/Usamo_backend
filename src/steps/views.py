@@ -117,6 +117,16 @@ class UpdateStep(generics.UpdateAPIView):
     serializer_class = StepSerializer
     queryset = Step.objects.all()
 
+    def put(self, request, *args, **kwargs):
+        if str(request.data['parent']) == str(kwargs['pk']):
+            return ErrorResponse('Krok nie może następować po sobie', status.HTTP_400_BAD_REQUEST)
+        return super().put(request, *args, **kwargs)
+
+    def patch(self, request, *args, **kwargs):
+        if str(request.data['parent']) == str(kwargs['pk']):
+            return ErrorResponse('Krok nie może następować po sobie', status.HTTP_400_BAD_REQUEST)
+        return super().patch(request, *args, **kwargs)
+
 
 class UpdateSubStep(generics.UpdateAPIView):
     permission_classes = (IsStaffStepsModerator,)
@@ -159,8 +169,17 @@ class SwitchSubSteps(views.APIView):
             sub2 = request.data['sub2']
         except KeyError:
             return ErrorResponse('Nie podano, które podkroki mają być zamienione miejscami', status.HTTP_400_BAD_REQUEST)
-        sub1 = parent.substeps.get(order=sub1)
-        sub2 = parent.substeps.get(order=sub2)
+        n_substeps = parent.substeps.count() - 1
+        try:
+            sub1 = parent.substeps.get(order=sub1)
+        except SubStep.DoesNotExist:
+            return ErrorResponse(f'Numer pierwszego podanego podkroku nie mieści się w zakresie 0-{n_substeps}',
+                                 status.HTTP_400_BAD_REQUEST)
+        try:
+            sub2 = parent.substeps.get(order=sub2)
+        except SubStep.DoesNotExist:
+            return ErrorResponse(f'Numer drugiego podanego podkroku nie mieści się w zakresie 0-{n_substeps}',
+                                 status.HTTP_400_BAD_REQUEST)
         sub1.switch_places(sub2)
         return Response(StepSerializer(instance=parent).data, status=status.HTTP_200_OK)
 
