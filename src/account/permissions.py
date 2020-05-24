@@ -57,6 +57,12 @@ class IsStaffMember(AbstractIsAllowedUser):
         return AccountType.STAFF        
 
 
+class IsStaffWithChatAccess(AbstractIsAllowedStaff):
+
+    def _get_allowed_staff_type(self):
+        return StaffGroupType.STAFF_CHAT_ACCESS
+
+
 class IsStaffResponsibleForJobs(AbstractIsAllowedStaff):
 
     def _get_allowed_staff_type(self):

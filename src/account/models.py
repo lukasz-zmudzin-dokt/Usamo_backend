@@ -121,6 +121,7 @@ class EmployerAccount(models.Model):
 
 class StaffAccount(models.Model):
     user = models.OneToOneField(Account, on_delete=models.CASCADE, related_name='staff_account')
+    role = models.CharField(max_length=60, null=True, blank=True)
 
 
 @receiver(post_save, sender=Token)

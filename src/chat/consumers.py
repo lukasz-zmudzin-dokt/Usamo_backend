@@ -11,7 +11,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         try:        
             other_user = self.scope['url_route']['kwargs']['username']
-            this_user = self.scope['user'].username
+            this_user = self.scope['user'].username 
             thread_obj = await self.get_thread(this_user, other_user)
             
             if thread_obj is not None:
@@ -19,16 +19,22 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 self.chat_room = chat_room
                 self.thread_obj = thread_obj
                 await self.channel_layer.group_add(self.chat_room, self.channel_name)
-            await self.accept(self.scope['subprotocols'][0])
+                await self.accept(self.scope['subprotocols'][0])
+            else: 
+                self.close()
         except Account.DoesNotExist:
             self.close()
 
     async def receive_json(self, content):
         msg = content.get("message", None)
-        await self.create_chat_message(msg)
+        this_user = self.scope['user']
+        instance = await self.create_chat_message(msg)
         response = {
             "message": msg,
-            "sender": self.scope['user'].username
+            "username": this_user.username,
+            "first_name": this_user.first_name,
+            "last_name": this_user.last_name,
+            "timestamp": instance.timestamp.__str__()
         }
         
         await self.channel_layer.group_send(

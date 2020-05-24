@@ -290,11 +290,12 @@ class GroupsField(serializers.MultipleChoiceField):
 
 class StaffAccountSerializer(AbstractAccountSerializer):
     group_type = GroupsField(choices=STAFF_GROUP_CHOICES, required=True)
+    role = serializers.CharField(source='staff_account.role')
 
     class Meta:
         model = Account
-        fields = ['email', 'username', 'last_name',
-                  'first_name', 'password', 'group_type', 'picture_url']
+        fields = ['email', 'username', 'first_name', 'last_name',
+                'password', 'group_type', 'role', 'picture_url']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
