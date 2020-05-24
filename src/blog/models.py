@@ -21,6 +21,9 @@ class BlogPostCategory(models.Model):
     name = models.CharField(max_length=60, unique=True, verbose_name='nazwa')
     header = models.ImageField(upload_to=create_category_header_file_path, null=True, verbose_name='nagłówek')
 
+    class Meta:
+        verbose_name = 'kategoria'
+
     @property
     def header_url(self):
         return self.header.url if self.header.name else None
@@ -49,6 +52,9 @@ class BlogPost(models.Model):
     date_modified = models.DateTimeField(auto_now=True, verbose_name='data ostatniej modyfikacji')
     _summary = models.TextField(null=True)
 
+    class Meta:
+        verbose_name = 'post'
+
     @property
     def summary(self):
         content = clean_html(self.content)
@@ -58,6 +64,9 @@ class BlogPost(models.Model):
 class BlogPostHeader(models.Model):
     file = models.ImageField(upload_to=create_blog_header_file_path, verbose_name='plik')
     blog_post = models.OneToOneField(BlogPost, on_delete=models.CASCADE, verbose_name='post')
+
+    class Meta:
+        verbose_name = 'nagłówek posta'
 
     def delete(self, **kwargs):
         self.file.delete()
@@ -70,6 +79,9 @@ class BlogPostAttachment(models.Model):
     file = models.ImageField(upload_to=create_blog_attachment_file_path, verbose_name='plik')
     blog_post = models.ForeignKey(BlogPostReservation, on_delete=models.CASCADE, verbose_name='post')
 
+    class Meta:
+        verbose_name = 'załącznik'
+
     def delete(self, **kwargs):
         self.file.delete()
         super().delete(**kwargs)
@@ -81,6 +93,9 @@ class BlogPostComment(models.Model):
     content = models.TextField(verbose_name='treść')
     blog_post = models.ForeignKey(BlogPost, related_name='comments', on_delete=models.CASCADE, verbose_name='post')
     date_created = models.DateTimeField(auto_now_add=True, verbose_name='data utworzenia')
+
+    class Meta:
+        verbose_name = 'komentarz'
 
 
 @receiver(models.signals.post_delete, sender=BlogPostAttachment)
