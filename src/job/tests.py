@@ -68,16 +68,19 @@ def create_offer_edit_data():
         "description": "EDIT EDIT"
     }
 
-def create_cv(user):
+def create_mock_document():
     mock_file = MagicMock(spec=File)
     mock_file.name = 'TestFileName'
     mock_file.read.return_value = "fake file contents"
-    return CV.objects.create(cv_user=user, document=mock_file)
+    return mock_file
+
+def create_cv(user, document):
+    return CV.objects.create(cv_user=user, document=document)
 
 
-def create_job_application(cv_user, offer):
-    cv = create_cv(cv_user)
-    return JobOfferApplication.objects.create(cv=cv, job_offer=offer)
+def create_job_application(cv_user, offer, document):
+    cv = create_cv(cv_user, document)
+    return JobOfferApplication.objects.create(cv=cv, job_offer=offer, document=document)
 
 
 
@@ -224,7 +227,8 @@ class JobOfferDeleteTestCase(APITestCase):
     def setUp(cls):
         cls.url = lambda self, id: '/job/job-offer/%s/' % id
         cls.user = create_user()
-        cls.offer = create_test_offer_instance()
+        cls.employer = create_employer(create_user(username='default_employer'))
+        cls.offer = create_test_offer_instance(employer=cls.employer)
 
     def test_offer_delete_success(self):
         staff = create_staff(self.user)
@@ -329,11 +333,12 @@ class JobOfferInterestedUsersAddTestCase(APITestCase):
     def setUp(cls):
         cls.url = '/job/job-offers/application/'
         cls.user = create_user()
-        cls.offer = create_test_offer_instance()
+        cls.employer = create_employer(create_user(username='default_employer'))
+        cls.offer = create_test_offer_instance(employer=cls.employer)
 
     def test_offer_insterested_users_add_success(self):
         default_user = create_default(self.user)
-        cv = create_cv(default_user)
+        cv = create_cv(default_user, create_mock_document())
         application_data = {'cv': cv.cv_id, 'job_offer': self.offer.id}
         self.assertEquals(self.offer.jobofferapplication_set.count(), 0)
         self.client.force_authenticate(user=self.user)
@@ -345,7 +350,7 @@ class JobOfferInterestedUsersAddTestCase(APITestCase):
 
     def test_offer_insterested_users_add_again_error(self):
         default_user = create_default(self.user)
-        cv = create_cv(default_user)
+        cv = create_cv(default_user, create_mock_document())
         application_data = {'cv': cv.cv_id, 'job_offer': self.offer.id}
         self.client.force_authenticate(user=self.user)
         response1 = self.client.post(self.url, application_data, format='json')
@@ -367,14 +372,14 @@ class EmployerJobOfferInterestedUsersListTestCase(APITestCase):
         cls.user = create_user()
         cls.default_user = create_default(cls.user)
         cls.offer = create_test_offer_instance(employer=cls.employer)
-        cls.application = create_job_application(cls.default_user, cls.offer)
+        cls.application = create_job_application(cls.default_user, cls.offer, create_mock_document())
 
     def test_employer_offer_insterested_users_list_success(self):
         self.client.force_authenticate(user=self.employer_user)
         response = self.client.get(self.url(self.offer.id))
         self.assertEquals(response.status_code, status.HTTP_200_OK)
-        self.assertEquals(len(response.data), 1)
-        self.assertEquals(response.data[0]['user_id'], str(self.user.id))
+        self.assertEquals(len(response.data['results']), 1)
+        self.assertEquals(response.data['results'][0]['user_id'], str(self.user.id))
 
     def test_employer_offer_insterested_users_bad_offer(self):
         self.client.force_authenticate(user=self.employer_user)
@@ -403,7 +408,8 @@ class OfferAdminConfirmTestCase(APITestCase):
     def setUp(cls):
         cls.url = lambda self, id: '/job/admin/confirm/%s/' % id
         cls.user = create_user()
-        cls.offer = create_test_offer_instance(confirmed=False)
+        cls.employer = create_employer(create_user(username='default_employer'))
+        cls.offer = create_test_offer_instance(employer=cls.employer, confirmed=False)
 
     def test_offer_confirm_not_admin(self):
         self.client.force_authenticate(user=self.user)
