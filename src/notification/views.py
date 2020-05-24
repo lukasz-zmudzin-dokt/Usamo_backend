@@ -153,5 +153,11 @@ class StopDailyNotifications(views.APIView):
 class SubscribeToWS(views.APIView):
     permission_classes = (AllowAny, )
 
+    @swagger_auto_schema(
+        responses={
+            '200': '"message": Nawiązano kontakt z WebSocketem'
+        },
+        operation_description='Służy do nawiązania połączenia z WebSocketem'
+    )
     def get(self, request):
         return MessageResponse('Nawiązano kontakt z WebSocketem')
