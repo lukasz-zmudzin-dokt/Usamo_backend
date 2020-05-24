@@ -1,6 +1,7 @@
 from drf_yasg import openapi
 from drf_yasg.utils import swagger_auto_schema
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import views, generics, status
 
@@ -147,3 +148,10 @@ class StopDailyNotifications(views.APIView):
         pk = request.user.id
         stop_scheduler(pk)
         return MessageResponse('Powiadomienia nie będą już wysyłane na adres mailowy')
+
+
+class SubscribeToWS(views.APIView):
+    permission_classes = (AllowAny, )
+
+    def get(self, request):
+        return MessageResponse('Nawiązano kontakt z WebSocketem')
