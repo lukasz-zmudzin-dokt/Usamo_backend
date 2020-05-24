@@ -30,9 +30,6 @@ from .models import *
 from .filters import *
 
 
-
-
-
 class ErrorResponse(Response):
     def __init__(self, error_message, status_code):
         super().__init__(data={"error": error_message}, status=status_code)
@@ -420,16 +417,7 @@ class BlogPostListView(generics.ListAPIView):
     ordering_fields = ['date_created']
     ordering = ['-date_created']
     pagination_class = BlogPostListPagination
-
-    def get_queryset(self):
-        queryset = BlogPost.objects.all()
-        category = self.request.query_params.get('category', None)
-        tag = self.request.query_params.get('tag', None)
-        if category is not None:
-            queryset = queryset.filter(category__name=category)
-        if tag is not None:
-            queryset = queryset.filter(tags__name__contains=tag)
-        return queryset
+    queryset = BlogPost.objects.all()
 
 
 class BlogPostCommentCreateView(views.APIView):
