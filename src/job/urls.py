@@ -17,6 +17,8 @@ urlpatterns = [
      path('employer/job-offers/', views.EmployerJobOffersView.as_view()),
      path('employer/application_list/<uuid:offer_id>/', views.EmployerApplicationListView.as_view()),
      path('employer/application_list/mark-as-read/<uuid:application_id>/', views.EmployerApplicationMarkAsReadView.as_view()),
+     path('employer/application_list/zip/<uuid:offer_id>/', views.GetZipFileView.as_view()),
+     path('employer/application_list/mark-as-unread/<uuid:application_id>/', views.EmployerApplicationMarkAsUnreadView.as_view()),
      # job offers for admins
      path('admin/job-offers/unconfirmed/', views.AdminUnconfirmedJobOffersView.as_view()),
      path('admin/confirm/<uuid:offer_id>/', views.AdminConfirmJobOfferView.as_view()),

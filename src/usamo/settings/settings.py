@@ -56,6 +56,7 @@ INSTALLED_APPS = [
     'blog.apps.BlogConfig',
     'helpline.apps.HelplineConfig',
     'notification.apps.NotificationConfig',
+    'steps.apps.StepsConfig',
     'notifications',
     'drf_yasg',
     'django_rest_passwordreset',
@@ -73,6 +74,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'usamo.middlewares.FilesSizeValidatorMiddleware'
 ]
 
 REST_FRAMEWORK = {
@@ -87,6 +89,8 @@ REST_KNOX = {
 }
 
 ROOT_URLCONF = 'usamo.urls'
+
+MAX_UPLOAD_MB_SIZE = "15"
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -149,12 +153,8 @@ def _get_pdfkit_config():
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': 'account.validators.PasswordValidator',
     },
-   
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    }
     # {
     #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
     # },

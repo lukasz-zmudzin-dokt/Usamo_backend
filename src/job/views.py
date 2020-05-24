@@ -103,8 +103,8 @@ class JobOfferCreateView(views.APIView):
                 instance = serializer.create(serializer.validated_data)
                 instance.employer_id = employer.id
                 instance.save()
-                notify.send(employer, recipient=Account.objects.filter(groups__name__contains='staff_jobs'),
-                            verb=f'Użytkownik {employer.username} utworzył_a nową ofertę pracy',
+                notify.send(employer.user, recipient=Account.objects.filter(groups__name__contains='staff_jobs'),
+                            verb=f'Użytkownik {employer.user.username} utworzył_a nową ofertę pracy',
                             app='cv/generator/',
                             object_id=instance.id
                             )
@@ -205,7 +205,7 @@ class JobOfferView(views.APIView):
             instance.removed = True
             instance.save()
             if IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
-                notify.send(request.user, recipient=instance.employer,
+                notify.send(request.user, recipient=instance.employer.user,
                             verb=f'Twoja oferta pracy została usunięta',
                             app='job/job-offer/',
                             object_id=offer_id
@@ -330,7 +330,10 @@ class CreateJobOfferApplicationView(views.APIView):
     def post(self, request):
         user = DefaultAccount.objects.get(user=request.user)
         try:
-            CV.objects.get(cv_user=user, cv_id=request.data['cv'])
+            try:
+                CV.objects.get(cv_user=user, cv_id=request.data['cv'])
+            except KeyError:
+                return ErrorResponse('Należy podać, jakie CV złożyć w aplikacji', status.HTTP_400_BAD_REQUEST)
         except CV.DoesNotExist:
             return ErrorResponse("CV o podanym id nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
 
@@ -347,8 +350,10 @@ class CreateJobOfferApplicationView(views.APIView):
                 "id": application.id
             }
             job_offer = JobOffer.objects.get(id=request.data['job_offer'])
-            notify.send(user, recipient=job_offer.employer,
-                        verb=f'Użytkownik {user.username} aplikował_a na Twoją ofertę pracy!',
+            
+            notify.send(user.user, recipient=job_offer.employer.user,
+
+                        verb=f'Użytkownik {user.user.username} aplikował_a na Twoją ofertę pracy!',
                         app='job/employer/application_list/',
                         object_id=request.data['job_offer']
                         )
@@ -469,6 +474,38 @@ class EmployerApplicationMarkAsReadView(views.APIView):
         return MessageResponse("Aplikacja została oznaczona jako przeczytana")
 
 
+class EmployerApplicationMarkAsUnreadView(views.APIView):
+    permission_classes = [IsEmployer]
+
+    @swagger_auto_schema(
+        responses={
+            '200': sample_message_response("Aplikacja została oznaczona jako nieprzeczytana"),
+            '403': sample_error_response("Aplikacja nie została złożona na ofertę należącą Ciebie"),
+            '404': sample_error_response("Nie znaleziono aplikacji o podanym id")
+        },
+        manual_parameters=[
+            Parameter('application_id', IN_PATH, type='string($uuid)',
+                description='ID aplikacji na ofertę pracy')
+        ],
+        operation_description="Pozwala oznaczyć aplikację jako przeczytaną"
+    )
+    def post(self, request, application_id):
+        try:
+            application = JobOfferApplication.objects.get(id=application_id)
+        except JobOfferApplication.DoesNotExist:
+            return ErrorResponse("Nie znaleziono aplikacji o podanym id", status.HTTP_404_NOT_FOUND)
+
+        offer = application.job_offer
+        if not IsEmployer().has_object_permission(request, self, offer):
+            return ErrorResponse("Aplikacja nie została złożona na ofertę należącą do \
+                                Ciebie", status.HTTP_403_FORBIDDEN)
+
+        application.was_read = False
+        application.save()
+
+        return MessageResponse("Aplikacja została oznaczona jako nieprzeczytana")
+
+
 @method_decorator(name='get', decorator=swagger_auto_schema(
     filter_inspectors=[DjangoFilterDescriptionInspector],
     query_serializer=JobOfferFiltersSerializer,
@@ -571,7 +608,7 @@ class AdminConfirmJobOfferView(views.APIView):
             confirmed = request.data['confirmed']
             instance.confirmed = confirmed
             instance.save()
-            notify.send(request.user, recipient=instance.employer,
+            notify.send(request.user, recipient=instance.employer.user,
                         verb=f'Twoja oferta pracy została zatwierdzona',
                         app='job/job-offer/',
                         object_id=instance.id
@@ -712,3 +749,28 @@ class JobOfferTypeView(views.APIView):
                 return ErrorResponse("Nie znaleziono takiego typu oferty pracy", status.HTTP_404_NOT_FOUND)
             return MessageResponse("Typ oferty pracy usunięty")
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
+
+
+class GetZipFileView(views.APIView):
+    permission_classes = [IsEmployer]
+
+    @swagger_auto_schema(
+        responses={
+            '200': '"url": ścieżka-do-pliku-zip',
+            '401': '"detail": Nie podano danych uwierzytelniających.',
+            '403': sample_error_response('Oferta nie należy do Ciebie'),
+            '404': sample_error_response('Nie znaleziono oferty')
+        },
+        operation_description="Zwraca pracodawcy plik zip ze spakowanymi plikami CV wszystkich użytkowników, "
+                              "którzy aplikowali na daną ofertę",
+    )
+    def get(self, request, offer_id):
+        try:
+            offer = JobOffer.objects.get(id=offer_id)
+            if IsEmployer().has_object_permission(request, self, offer):
+                offer.generate_zip()
+                return Response({"url": offer.zip_file}, status=status.HTTP_200_OK)
+            else:
+                return ErrorResponse("Oferta nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
+        except ObjectDoesNotExist:
+            return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)

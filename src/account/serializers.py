@@ -35,7 +35,6 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         email = validated_data.get('email', instance.email)
         first_name = validated_data.get('first_name', instance.first_name)
         last_name = validated_data.get('last_name', instance.last_name)
-        email = validated_data.get('email', instance.email)
         password = validated_data.get('password', None)
 
         if password is not None:
@@ -151,10 +150,9 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
         account_data = validated_data.pop('account', None)
         if account_data:
             new_address_data = account_data.pop('facility_address', None)
-            if new_address_data:
-                new_address = Address.objects.create(**new_address_data)
-                def_account.facility_address.delete()
-                def_account.facility_address = new_address
+            if new_address_data: 
+                serializer = AddressSerializer(def_account.facility_address, data=new_address_data, partial=True)
+                serializer.update(def_account.facility_address, new_address_data)
             phone_number = account_data.pop('phone_number', None)
             if phone_number:
                 def_account.phone_number = phone_number
@@ -171,11 +169,13 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
         return DefaultAccount.objects.update_or_create(user=user, defaults=account_data, facility_address=address_created)
 
     def perform_additional_validation(self, data):
-        try:
-            super(DefaultAccountSerializer, self)._validate_phone_number(
-                data['phone_number'])
-        except ValidationError as error:
-            raise error
+        phone_number = data.get('phone_number', None)
+        if phone_number:
+            try:
+                super(DefaultAccountSerializer, self)._validate_phone_number(
+                    phone_number)
+            except ValidationError as error:
+                raise error
 
     def validate(self, data):
         account_data = data.get('account', None)
@@ -235,9 +235,8 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
         if account_data:
             new_address_data = account_data.pop('company_address', None)
             if new_address_data:
-                new_address = Address.objects.create(**new_address_data)
-                employer_account.company_address.delete()
-                employer_account.company_address = new_address
+                serializer = AddressSerializer(employer_account.company_address, data=new_address_data, partial=True)
+                serializer.update(employer_account.company_address, new_address_data)
             phone_number = account_data.pop('phone_number', None)
             if phone_number:
                 employer_account.phone_number = phone_number
@@ -257,7 +256,7 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
         try:
             if phone_number:
                 super(EmployerAccountSerializer, self)._validate_phone_number(
-                    data['phone_number'])
+                   phone_number)
             if nip:
                 self.__validate_nip(data['nip'])
         except ValidationError as error:
@@ -332,7 +331,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
 
     def validate(self, attrs):
         attrs.pop('group_type', None)
-        return super().validate(attrs)
+        return attrs
 
 
 class AccountListSerializer(serializers.ModelSerializer):

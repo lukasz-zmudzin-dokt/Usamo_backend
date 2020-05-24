@@ -96,7 +96,6 @@ class JobOfferFiltersSerializer(serializers.Serializer):
 
 
 class JobOfferApplicationSerializer(serializers.ModelSerializer):
-    cv_url = serializers.CharField(source='cv.document.url', read_only=True)
     user_id = serializers.UUIDField(source='cv.cv_user.user.id', read_only=True)
     first_name = serializers.CharField(source='cv.basic_info.first_name', read_only=True)
     last_name = serializers.CharField(source='cv.basic_info.last_name', read_only=True)
@@ -104,11 +103,18 @@ class JobOfferApplicationSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(source='cv.basic_info.phone_number', read_only=True)
     date_posted = serializers.DateTimeField(read_only=True)
     was_read = serializers.BooleanField(read_only=True)
+    cv_url = serializers.URLField(source='document.url', read_only=True)
     
     class Meta:
         model = JobOfferApplication
-        fields = ['id', 'cv', 'job_offer', 'cv_url', 'user_id', 'first_name', 'last_name', 'email','phone_number', 
+        fields = ['id', 'cv', 'job_offer', 'cv_url', 'user_id', 'first_name', 'last_name', 'email','phone_number',
                 'date_posted', "was_read"]
         extra_kwargs = {
             'cv': {'write_only': True}
         }
+
+    def create(self, validated_data):
+        instance = super().create(validated_data)
+        instance.duplicate_docs()
+        instance.save()
+        return instance

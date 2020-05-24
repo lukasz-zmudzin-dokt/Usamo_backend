@@ -154,7 +154,7 @@ class CVDataView(views.APIView):
                 description='A UUID string identifying this cv')
         ],
         responses={
-            '200': 'message: CV edytowany pomyślnie',
+            '200': 'message: CV edytowane pomyślnie',
             '400': 'Błędy walidacji (np. brak jakiegoś pola)',
             '403': "Nie masz uprawnień do wykonania tej czynności",
             '404': "Nie znaleziono cv"
@@ -177,7 +177,7 @@ class CVDataView(views.APIView):
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
-        response = {'message': 'CV edytowany pomyślnie'}
+        response = {'message': 'CV edytowane pomyślnie'}
         return Response(response, status.HTTP_200_OK)
 
 

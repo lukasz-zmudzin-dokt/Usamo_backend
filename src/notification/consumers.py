@@ -6,12 +6,15 @@ from rest_framework.authtoken.models import Token
 
 class NotificationConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
-        user = self.scope['user']
-        await self.channel_layer.group_add(
-            user.username,
-            self.channel_name,
-        )
-        await self.accept(self.scope['subprotocols'][0])
+        try:
+            user = self.scope['user']
+            await self.channel_layer.group_add(
+                user.username,
+                self.channel_name,
+            )
+            await self.accept(self.scope['subprotocols'][0])
+        except KeyError:
+            await self.close(403)
 
     async def websocket_disconnect(self, event):
         try:
@@ -24,6 +27,7 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
             await self.channel_layer.group_discard(group_name, self.channel_name)
         except Exception as e:
             logger.error(e)
+        await super().disconnect(event)
 
     async def new_notification(self, event):
         content = event['data']

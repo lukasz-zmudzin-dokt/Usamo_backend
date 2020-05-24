@@ -10,12 +10,13 @@ from django.utils.decorators import method_decorator
 from .serializers import *
 from job.views import ErrorResponse, MessageResponse, sample_message_response, sample_error_response
 from rest_framework.filters import OrderingFilter
+from blog.permissions import IsStaffBlogModerator
 
 # Create your views here.
 
 
 class PhoneContactCreateView(views.APIView):
-    permission_classes = [IsStaffMember]
+    permission_classes = [IsStaffBlogModerator]
 
     @swagger_auto_schema(
         request_body=PhoneContactSerializer,
@@ -34,7 +35,7 @@ class PhoneContactCreateView(views.APIView):
 
 
 class PhoneContactView(views.APIView):
-    permission_classes = [IsStaffMember]
+    permission_classes = [IsStaffBlogModerator]
 
     @swagger_auto_schema(
         manual_parameters=[
