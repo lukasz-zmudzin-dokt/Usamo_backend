@@ -18,11 +18,11 @@ class EnhancedDatesSerializer(serializers.ModelSerializer):
         if short_date_match:
             year = int(short_date_match.group(2))
             if year < 1990:
-                raise ValidationError("date_start year must be greater than 1990")
+                raise ValidationError("Data startu musi być większa niż 1990")
             if year > current_year():
-                raise ValidationError("date_start year must not be greater than current year")
+                raise ValidationError("Data startu nie może być większa niż aktualny rok")
         else:
-            raise ValidationError("Incorrect date_start format, should be MM-YYYY")
+            raise ValidationError("Niewłaściwy format daty startu, powinien być: MM-YYYY")
         return value
 
     def validate_date_end(self, value):
@@ -31,11 +31,11 @@ class EnhancedDatesSerializer(serializers.ModelSerializer):
         if short_date_match:
             year = int(short_date_match.group(2))
             if year < 1990:
-                raise ValidationError("date_end year must be greater than 1990")
+                raise ValidationError("Data końca musi być większa niż 1990")
             if year > current_year():
-                raise ValidationError("date_end year must not be greater than current year")
+                raise ValidationError("Data końca nie może być większa niż aktualny rok")
         else:
-            raise ValidationError("Incorrect date_end format, should be MM-YYYY")
+            raise ValidationError("Niewłaściwy format daty końca, powinien być: MM-YYYY")
         return value
 
 
