@@ -12,7 +12,7 @@ application = ProtocolTypeRouter({
             URLRouter(
                 [
                     url(r"^chat/(?P<username>[\w.@+-]+)/$", ChatConsumer),
-                    url("notification/count/unread", NotificationConsumer)
+                    url("notification/ws", NotificationConsumer)
                 ]
             )
         )

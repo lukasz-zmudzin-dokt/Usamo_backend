@@ -1,11 +1,16 @@
 {
-	"username": "employer",
-	"password": "employer",
-	"email": "employer@user.com",
-	"company_name": "company",
-	"company_address": "address",
-	"phone_number": "+48123456789",
-	"last_name": "user",
-	"first_name": "user",
-	"nip": "1234563218"
+  "username": "employer",
+  "password": "Test^employer123",
+  "email": "employer@user.com",
+  "company_name": "company",
+  "company_address": {
+    "city": "Warszawa",
+    "street": "Miodowa",
+    "street_number": "2",
+    "postal_code": "11-111"
+  },
+  "phone_number": "+48123456789",
+  "last_name": "user",
+  "first_name": "user",
+  "nip": "1234563218"
 }

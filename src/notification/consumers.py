@@ -13,8 +13,8 @@ class NotificationConsumer(AsyncJsonWebsocketConsumer):
                 self.channel_name,
             )
             await self.accept(self.scope['subprotocols'][0])
-        except KeyError:
-            await self.close(403)
+        except (KeyError, TypeError):
+            await self.close()
 
     async def websocket_disconnect(self, event):
         try:

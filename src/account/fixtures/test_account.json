@@ -1,43 +1,203 @@
 [
-  {
-    "model": "auth.group",
-    "pk": 1,
-    "fields": {
-      "name": "staff_verification",
-      "permissions": []
-    }
+{
+  "model": "account.address",
+  "pk": 1,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Miodowa",
+    "street_number": "2",
+    "postal_code": "11-111"
+  }
 },
 {
-    "model": "auth.group",
-    "pk": 2,
-    "fields": {
-      "name": "staff_cv",
-      "permissions": []
-    }
+  "model": "account.address",
+  "pk": 2,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Wolska",
+    "street_number": "1/4",
+    "postal_code": "22-222"
+  }
 },
 {
-    "model": "auth.group",
-    "pk": 3,
-    "fields": {
-      "name": "staff_jobs",
-      "permissions": []
-    }
+  "model": "account.address",
+  "pk": 3,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Wolska",
+    "street_number": "1c",
+    "postal_code": "22-222"
+  }
 },
 {
-    "model": "auth.group",
-    "pk": 4,
-    "fields": {
-      "name": "staff_blog_creator",
-      "permissions": []
-    }
+  "model": "account.address",
+  "pk": 4,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Wolska",
+    "street_number": "1",
+    "postal_code": "22-222"
+  }
 },
 {
-    "model": "auth.group",
-    "pk": 5,
-    "fields": {
-      "name": "staff_blog_moderator",
-      "permissions": []
-    }
+  "model": "account.address",
+  "pk": 5,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Wolska",
+    "street_number": "1",
+    "postal_code": "22-222"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 6,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Wolska",
+    "street_number": "1",
+    "postal_code": "22-222"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 7,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Wolska",
+    "street_number": "1",
+    "postal_code": "22-222"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 8,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Wolska",
+    "street_number": "1",
+    "postal_code": "22-222"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 9,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Miodowa",
+    "street_number": "334a/11",
+    "postal_code": "02-997"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 10,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Polna",
+    "street_number": "9/11",
+    "postal_code": "02-996"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 11,
+  "fields": {
+    "city": "Pozna\u0144",
+    "street": "Grundwaldzka",
+    "street_number": "2",
+    "postal_code": "01-996"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 12,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Emilii Plater",
+    "street_number": "53",
+    "postal_code": "00-113"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 13,
+  "fields": {
+    "city": "Pozna\u0144",
+    "street": "Jana Paw\u0142a",
+    "street_number": "2",
+    "postal_code": "02-371"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 14,
+  "fields": {
+    "city": "Gdynia",
+    "street": "Wiejska",
+    "street_number": "25",
+    "postal_code": "03-371"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 15,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Al. Jerzego Waszyngtona",
+    "street_number": "420",
+    "postal_code": "02-377"
+  }
+},
+{
+  "model": "account.address",
+  "pk": 16,
+  "fields": {
+    "city": "Warszawa",
+    "street": "Wo\u0142oska",
+    "street_number": "9",
+    "postal_code": "02-371"
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 1,
+  "fields": {
+    "name": "staff_verification",
+    "permissions": []
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 2,
+  "fields": {
+    "name": "staff_cv",
+    "permissions": []
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 3,
+  "fields": {
+    "name": "staff_jobs",
+    "permissions": []
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 4,
+  "fields": {
+    "name": "staff_blog_creator",
+    "permissions": []
+  }
+},
+{
+  "model": "auth.group",
+  "pk": 5,
+  "fields": {
+    "name": "staff_blog_moderator",
+    "permissions": []
+  }
 },
 {
   "model": "auth.group",
@@ -46,7 +206,7 @@
     "name": "staff_chat_access",
     "permissions": []
   }
-},    
+},
 {
   "model": "account.account",
   "pk": "02cf43c6-7e60-4c55-b41e-303adf193980",
@@ -147,7 +307,7 @@
     "first_name": "staff1",
     "last_name": "staff1",
     "date_joined": "2020-04-04T11:04:26.287Z",
-    "last_login": "2020-04-26T20:09:51.592Z",
+    "last_login": "2020-05-25T14:56:28.850Z",
     "profile_picture": "",
     "is_active": true,
     "is_admin": false,
@@ -157,6 +317,30 @@
     "type": 2,
     "groups": [
       1
+    ],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.account",
+  "pk": "21c76b96-9ca3-46c1-b373-139e3b9d9632",
+  "fields": {
+    "password": "pbkdf2_sha256$150000$5MLieOgWwUTb$QfsecaZZdiGKYp+qc4Uc3qqubwjDGPSL5wWN7bHxh/g=",
+    "email": "staff6@staff6.com",
+    "username": "staff6",
+    "first_name": "staff6",
+    "last_name": "staff",
+    "date_joined": "2020-05-25T14:57:21.077Z",
+    "last_login": "2020-05-25T14:57:21.374Z",
+    "profile_picture": "",
+    "is_active": true,
+    "is_admin": false,
+    "is_staff": false,
+    "is_superuser": false,
+    "status": 1,
+    "type": 2,
+    "groups": [
+      6
     ],
     "user_permissions": []
   }
@@ -237,31 +421,6 @@
 },
 {
   "model": "account.account",
-  "pk": "3957fa7f-3a34-431d-be2b-cc08bca52388",
-  "fields": {
-    "password": "pbkdf2_sha256$150000$bJ9OzJr4rePt$PMKVPWtbsEGGyaJXB+mT2yrlQCLR3QGwSpsxs6KHOdU=",
-    "email": "staff7@staff7.com",
-    "username": "staff7",
-    "first_name": "staff7",
-    "last_name": "staff7",
-    "date_joined": "2020-05-24T13:52:23.012Z",
-    "last_login": "2020-05-24T13:52:23.330Z",
-    "profile_picture": "",
-    "is_active": true,
-    "is_admin": false,
-    "is_staff": false,
-    "is_superuser": false,
-    "status": 1,
-    "type": 2,
-    "groups": [
-      6,
-      1
-    ],
-    "user_permissions": []
-  }
-},
-{
-  "model": "account.account",
   "pk": "51b91011-6707-4218-8441-d1da38aaed0b",
   "fields": {
     "password": "pbkdf2_sha256$150000$1IDoObFI1jJ6$GmNNxiDf16Qv1fdwe4elDtGEWc2XABhGnJtI6Hd7pRs=",
@@ -279,30 +438,6 @@
     "status": 2,
     "type": 1,
     "groups": [],
-    "user_permissions": []
-  }
-},
-{
-  "model": "account.account",
-  "pk": "51efe764-284b-48fa-89c9-35ccefd5569c",
-  "fields": {
-    "password": "pbkdf2_sha256$150000$wRUAXIDb5WqB$u9BGNpWmbX+mDqouzfz49WV8M8byRo1dBiyzZOg02zY=",
-    "email": "staff6@staff6.com",
-    "username": "staff6",
-    "first_name": "staff6",
-    "last_name": "staff6",
-    "date_joined": "2020-05-24T13:51:15.748Z",
-    "last_login": "2020-05-24T13:51:16.034Z",
-    "profile_picture": "",
-    "is_active": true,
-    "is_admin": false,
-    "is_staff": false,
-    "is_superuser": false,
-    "status": 1,
-    "type": 2,
-    "groups": [
-      6
-    ],
     "user_permissions": []
   }
 },
@@ -488,6 +623,31 @@
 },
 {
   "model": "account.account",
+  "pk": "e436732b-3e30-4f64-94d2-16751421f9c9",
+  "fields": {
+    "password": "pbkdf2_sha256$150000$LHnzkwIOvc3q$mr8+gYcsmC4SClMVZFpgrUkCsj599dxPQd5mrzranJk=",
+    "email": "staff7@staff7.com",
+    "username": "staff7",
+    "first_name": "staff7",
+    "last_name": "staff7",
+    "date_joined": "2020-05-25T14:56:52.586Z",
+    "last_login": "2020-05-25T14:56:52.895Z",
+    "profile_picture": "",
+    "is_active": true,
+    "is_admin": false,
+    "is_staff": false,
+    "is_superuser": false,
+    "status": 1,
+    "type": 2,
+    "groups": [
+      6,
+      1
+    ],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.account",
   "pk": "f3939bf9-dfd8-4cd5-8d38-bd848119dd1f",
   "fields": {
     "password": "pbkdf2_sha256$150000$oi2ixWhPMgcH$jSykf7I6owoLbGJfAgojWhlYFl0gpAcIxRHquwZ6apY=",
@@ -528,166 +688,6 @@
     "type": 3,
     "groups": [],
     "user_permissions": []
-  }
-},
-{
-  "model": "account.address",
-  "pk": 1,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Miodowa",
-    "street_number": "2",
-    "postal_code": "11-111"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 2,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Wolska",
-    "street_number": "1/4",
-    "postal_code": "22-222"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 3,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Wolska",
-    "street_number": "1c",
-    "postal_code": "22-222"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 4,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Wolska",
-    "street_number": "1",
-    "postal_code": "22-222"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 5,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Wolska",
-    "street_number": "1",
-    "postal_code": "22-222"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 6,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Wolska",
-    "street_number": "1",
-    "postal_code": "22-222"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 7,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Wolska",
-    "street_number": "1",
-    "postal_code": "22-222"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 8,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Wolska",
-    "street_number": "1",
-    "postal_code": "22-222"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 9,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Miodowa",
-    "street_number": "334a/11",
-    "postal_code": "02-997"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 10,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Polna",
-    "street_number": "9/11",
-    "postal_code": "02-996"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 11,
-  "fields": {
-    "city": "Pozna\u0144",
-    "street": "Grundwaldzka",
-    "street_number": "2",
-    "postal_code": "01-996"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 12,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Emilii Plater",
-    "street_number": "53",
-    "postal_code": "00-113"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 13,
-  "fields": {
-    "city": "Pozna\u0144",
-    "street": "Jana Paw\u0142a",
-    "street_number": "2",
-    "postal_code": "02-371"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 14,
-  "fields": {
-    "city": "Gdynia",
-    "street": "Wiejska",
-    "street_number": "25",
-    "postal_code": "03-371"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 15,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Al. Jerzego Waszyngtona",
-    "street_number": "420",
-    "postal_code": "02-377"
-  }
-},
-{
-  "model": "account.address",
-  "pk": 16,
-  "fields": {
-    "city": "Warszawa",
-    "street": "Wo\u0142oska",
-    "street_number": "9",
-    "postal_code": "02-371"
   }
 },
 {
@@ -877,16 +877,16 @@
   "model": "account.staffaccount",
   "pk": 7,
   "fields": {
-    "user": "51efe764-284b-48fa-89c9-35ccefd5569c",
-    "role": "Psycholog"
+    "user": "e436732b-3e30-4f64-94d2-16751421f9c9",
+    "role": "Weryfikacja u\u017cytkownik\u00f3w"
   }
 },
 {
   "model": "account.staffaccount",
   "pk": 8,
   "fields": {
-    "user": "3957fa7f-3a34-431d-be2b-cc08bca52388",
-    "role": "Weryfikacja u\u017cytkownik\u00f3w"
+    "user": "21c76b96-9ca3-46c1-b373-139e3b9d9632",
+    "role": "Psycholog"
   }
 }
 ]

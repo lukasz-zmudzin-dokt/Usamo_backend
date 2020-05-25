@@ -289,7 +289,7 @@ class GroupsField(serializers.MultipleChoiceField):
 
 class StaffAccountSerializer(AbstractAccountSerializer):
     group_type = GroupsField(choices=STAFF_GROUP_CHOICES, required=True)
-    role = serializers.CharField(source='staff_account.role')
+    role = serializers.CharField(source='staff_account.role', required=False)
 
     class Meta:
         model = Account
@@ -331,7 +331,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
 
     def validate(self, attrs):
         attrs.pop('group_type', None)
-        return attrs
+        return super().validate(attrs)
 
 
 class AccountListSerializer(serializers.ModelSerializer):
@@ -358,7 +358,7 @@ class StaffDetailSerializer(StaffAccountSerializer, AccountListSerializer):
     class Meta:
         model = Account
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'group_type',
-                  'date_joined', 'last_login', 'status', 'picture_url']
+                  'date_joined', 'last_login', 'role', 'status', 'picture_url']
 
 
 class DefaultAccountDetailSerializer(DefaultAccountSerializer, AccountListSerializer):
