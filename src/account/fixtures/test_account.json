@@ -208,6 +208,14 @@
   }
 },
 {
+  "model": "auth.group",
+  "pk": 7,
+  "fields": {
+    "name": "staff_guest",
+    "permissions": []
+  }
+},
+{
   "model": "account.account",
   "pk": "02cf43c6-7e60-4c55-b41e-303adf193980",
   "fields": {
