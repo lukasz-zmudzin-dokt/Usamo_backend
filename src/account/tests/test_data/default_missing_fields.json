@@ -1,7 +1,7 @@
 {
   "username": "testusername",
   "email": "test@email.com",
-  "password": "testpassword",
+  "password": "Test^password123",
   "first_name": "testname",
   "last_name": "testlastname",
   "phone_number": "+48123456789"

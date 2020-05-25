@@ -1,8 +1,10 @@
+from unittest.mock import Mock
+
 from rest_framework import status
 from ..account_status import AccountStatus
 from ..account_type import AccountType, ACCOUNT_TYPE_CHOICES
 from ..account_type import StaffGroupType
-from ..models import StaffAccount, Account
+from account.models import StaffAccount, Account
 from .test_registration import RegistrationTestCase
 
 
@@ -13,9 +15,15 @@ class StaffRegistrationTestCase(RegistrationTestCase):
     def __test_success(self, filename, staff_type):
         registration_data = self.read_test_data(filename)
         self.assertEquals(StaffAccount.objects.count(), 0)
+        groups = Mock()
+        groups.filter(name=StaffGroupType.STAFF_VERIFICATION.value).exists.return_value = True
+        user = Mock()
+        user.configure_mock(type=AccountType.STAFF.value, status=AccountStatus.VERIFIED.value,
+                                         groups=groups, is_anonymous=False)
+        self.client.force_authenticate(user=user)
         response = self.client.post(self.url, registration_data, format='json')
 
-        self.assertEquals(response.status_code, status.HTTP_201_CREATED)
+        self.assertEquals(response.status_code, status.HTTP_201_CREATED, msg=response.data)
         self.assertEquals(response.__dict__['data']['type'], dict(ACCOUNT_TYPE_CHOICES)[AccountType.STAFF.value])
         self.assertEquals(Account.objects.count(), 1)
         self.assertEquals(StaffAccount.objects.count(), 1)
@@ -42,7 +50,13 @@ class StaffRegistrationTestCase(RegistrationTestCase):
     def test_registration_staff_no_group_provided(self):
         registration_data = self.read_test_data('staff_no_group_provided.json')
         self.assertEquals(StaffAccount.objects.count(), 0)
+        groups = Mock()
+        groups.filter(name=StaffGroupType.STAFF_VERIFICATION.value).exists.return_value = True
+        user = Mock()
+        user.configure_mock(type=AccountType.STAFF.value, status=AccountStatus.VERIFIED.value,
+                                         groups=groups, is_anonymous=False)
+        self.client.force_authenticate(user=user)
         response = self.client.post(self.url, registration_data, format='json')
-        self.assertEquals(response.status_code, status.HTTP_406_NOT_ACCEPTABLE)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST, msg=response.data)
         self.assertEquals(StaffAccount.objects.count(), 0)
 

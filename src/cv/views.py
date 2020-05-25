@@ -12,12 +12,11 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from account.account_type import StaffGroupType
 from account.models import StaffAccount
-from account.permissions import IsStandardUser
+from account.permissions import IsStandardUser, IsCVOwner, IsStaffResponsibleForCVs
 
 from .filters import CvOrderingFilter, CVListFilter, DjangoFilterDescriptionInspector
 from .models import *
 from .serializers import *
-from .permissions import *
 from .templates.templates import *
 from job.views import sample_message_response, ErrorResponse, MessageResponse
 import base64

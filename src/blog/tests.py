@@ -74,7 +74,7 @@ class BlogPostCreateTestCase(APITestCase):
         self.assertEquals(BlogPost.objects.count(), 0)
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, create_test_blogpost(), format='json')
-        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN, msg=response.data)
         self.assertEquals(BlogPost.objects.count(), 0)
 
     def test_blogpost_create_success(self):
@@ -94,7 +94,7 @@ class BlogPostCreateTestCase(APITestCase):
         self.assertEquals(BlogPost.objects.count(), 0)
         self.client.force_authenticate(user=self.user)
         response = self.client.post(self.url, create_test_blogpost(category=""), format='json')
-        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEquals(response.status_code, status.HTTP_400_BAD_REQUEST, msg=response.data)
         self.assertEquals(BlogPost.objects.count(), 0)
 
 
@@ -134,7 +134,7 @@ class BlogPostEditTestCase(APITestCase):
         bad_user = create_user(username="baduser")
         self.client.force_authenticate(user=bad_user)
         response = self.client.put(self.url(self.blogpost.pk), create_test_blogpost(category='edited'), format='json')
-        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN, msg=response.data)
 
     def test_blogpost_edit_success(self):
         self.client.force_authenticate(user=self.user)
@@ -160,7 +160,7 @@ class BlogPostDeleteTestCase(APITestCase):
         bad_user = create_user(username="baduser")
         self.client.force_authenticate(user=bad_user)
         response = self.client.delete(self.url(self.blogpost.pk), create_test_blogpost(category='edited'), format='json')
-        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEquals(response.status_code, status.HTTP_403_FORBIDDEN, msg=response.data)
         self.assertEquals(BlogPost.objects.count(), 1)
 
     def test_blogpost_delete_success(self):

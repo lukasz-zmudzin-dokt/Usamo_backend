@@ -1,6 +1,6 @@
 {
 	"username": "employer",
-	"password": "employer",
+	"password": "Test^employer123",
 	"email": "employer@user.com",
 	"phone_number": "+48123456789",
 	"last_name": "user",
