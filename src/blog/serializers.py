@@ -106,8 +106,8 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags')
-        category_name = validated_data.pop('category')
-        category, _ = BlogPostCategory.objects.get_or_create(**category_name)
+        category_data = validated_data.pop('category')
+        category, _ = BlogPostCategory.objects.get_or_create(name=category_data['name'])
         blog_post = BlogPost.objects.create(category=category, **validated_data)
         for tag_data in tags_data:
             tag, _ = BlogPostTag.objects.get_or_create(name=tag_data['name'])
@@ -116,8 +116,8 @@ class BlogPostSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         if 'category' in validated_data:
-            category_name = validated_data['category']
-            category, _ = BlogPostCategory.objects.get_or_create(name=category_name)
+            category_data = validated_data['category']
+            category, _ = BlogPostCategory.objects.get_or_create(name=category_data['name'])
             instance.category = category
 
         if 'tags' in validated_data:

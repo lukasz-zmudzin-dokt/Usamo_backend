@@ -4,5 +4,5 @@
 	"email": "staff@user.com",
 	"last_name": "Pan",
 	"first_name": "Laska",
-	"group_type": "staff_cv"
+	"group_type": ["staff_cv"]
 }

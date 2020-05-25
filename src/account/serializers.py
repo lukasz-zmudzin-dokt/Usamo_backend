@@ -289,7 +289,7 @@ class GroupsField(serializers.MultipleChoiceField):
 
 class StaffAccountSerializer(AbstractAccountSerializer):
     group_type = GroupsField(choices=STAFF_GROUP_CHOICES, required=True)
-    role = serializers.CharField(source='staff_account.role')
+    role = serializers.CharField(source='staff_account.role', required=False)
 
     class Meta:
         model = Account

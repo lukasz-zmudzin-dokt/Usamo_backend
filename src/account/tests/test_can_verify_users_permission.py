@@ -4,13 +4,13 @@ from unittest.mock import Mock
 from ..account_status import AccountStatus
 from ..account_type import AccountType
 from ..account_type import StaffGroupType
-from ..permissions import CanStaffVerifyUsers
+from ..permissions import IsStaffResponsibleForCVs
 
 
 class CanVerifyUsersPermissionTest(unittest.TestCase):
 
     def setUp(self):
-        self.permission = CanStaffVerifyUsers()
+        self.permission = IsStaffResponsibleForCVs()
         self.request = Mock()
         self.view = Mock()
         self.request.user = Mock()
@@ -22,7 +22,7 @@ class CanVerifyUsersPermissionTest(unittest.TestCase):
         groups = Mock()
         groups.filter(name=StaffGroupType.STAFF_VERIFICATION.value).exists.return_value = True
         self.request.user.configure_mock(type=AccountType.STAFF.value, status=AccountStatus.VERIFIED.value,
-                                         groups=groups)
+                                         groups=groups, is_anonymous=False)
         self.assertTrue(self.permission.has_permission(self.request, self.view))
 
     def test_user_is_staff_and_can_not_verify_users(self):
