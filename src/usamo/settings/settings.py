@@ -237,3 +237,5 @@ SCHEDULER_CONFIG = {
     },
 }
 SCHEDULER_AUTOSTART = True
+
+TEST_RUNNER = 'usamo.tests.TempMediaRunner'
