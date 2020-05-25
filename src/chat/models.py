@@ -28,7 +28,7 @@ class ThreadManager(models.Manager):
     def get_or_new(self, username, other_username): 
         if username == other_username:
             return None, False
-        
+          
         try:
             user1 = Account.objects.get(username=username)
             user2 = Account.objects.get(username=other_username)

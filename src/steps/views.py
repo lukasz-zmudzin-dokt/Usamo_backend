@@ -113,6 +113,12 @@ class GetStep(generics.RetrieveAPIView):
         return super().get(request, *args, **kwargs)
 
 
+class GetStepList(generics.ListAPIView):
+    permission_classes = (AllowAny,)
+    serializer_class = StepSerializer
+    queryset = Step.objects.all()
+
+
 class UpdateStep(generics.UpdateAPIView):
     permission_classes = (IsStaffStepsModerator,)
     serializer_class = StepSerializer
