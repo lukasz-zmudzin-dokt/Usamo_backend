@@ -508,6 +508,7 @@ class AdminUserDataEditView(views.APIView):
         except Account.DoesNotExist:
             return ErrorResponse("Użytkownik o podanym id nie został znaleziony", status.HTTP_404_NOT_FOUND)
 
+
 class ProfilePictureView(views.APIView):
 
     permission_classes = (IsAuthenticated,)

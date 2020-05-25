@@ -1,7 +1,5 @@
 from abc import abstractmethod
-
 from rest_framework import permissions
-
 from .account_status import AccountStatus
 from .account_type import AccountType, StaffGroupType
 
@@ -10,7 +8,8 @@ class AbstractIsAllowedStaff(permissions.BasePermission):
 
     def has_permission(self, request, view):
         user = request.user
-        return user and not user.is_anonymous and user.status == AccountStatus.VERIFIED.value and self._is_allowed_staff(user)
+        return user and not user.is_anonymous and user.status == AccountStatus.VERIFIED.value and self._is_allowed_staff(user) \
+            and not user.groups.filter(name=StaffGroupType.STAFF_GUEST.value).exists() 
 
     def _is_allowed_staff(self, user) -> bool:
         staff_group_type = self._get_allowed_staff_type().value
@@ -51,10 +50,27 @@ class IsEmployer(AbstractIsAllowedUser):
                and obj.employer.user_id == request.user.id
 
 
-class IsStaffMember(AbstractIsAllowedUser):
+class IsStaffMember(permissions.BasePermission):
 
-    def _get_allowed_user_type(self):
-        return AccountType.STAFF        
+    def has_permission(self, request, view):
+        user = request.user
+        return user and not user.is_anonymous and user.type == AccountType.STAFF.value and \
+            not user.groups.filter(name=StaffGroupType.STAFF_GUEST.value).exists()    
+
+
+class IsNotAGuest(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        user = request.user
+        return user and not user.is_anonymous and not user.groups.filter(name=StaffGroupType.STAFF_GUEST.value).exists()                
+
+
+class IsAGuest(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        user = request.user
+        return request.method == "GET" and user and not user.is_anonymous and user.type == AccountType.STAFF.value and \
+            user.groups.filter(name=StaffGroupType.STAFF_GUEST.value).exists() 
 
 
 class IsStaffWithChatAccess(AbstractIsAllowedStaff):
@@ -112,15 +128,3 @@ class IsStaffResponsibleForCVs(AbstractIsAllowedStaff):
 
     def has_object_permission(self, request, view, obj):
         return super().has_permission(request, view) and hasattr(obj, 'cv_user')
-
-
-class GetGuestStaffPermission(AbstractIsAllowedStaff):
-
-    def has_permission(self, request, view):
-        return request.method == "GET" and super().has_permission(request, view)
-
-    def _get_allowed_staff_type(self):
-        return StaffGroupType.STAFF_GUEST
-
-    def has_object_permission(self, request, view, obj):
-        return super().has_permission(request, view) # can view everything if only have request permission

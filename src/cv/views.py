@@ -12,7 +12,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from account.account_type import StaffGroupType
 from account.models import StaffAccount
-from account.permissions import IsStandardUser, IsCVOwner, IsStaffResponsibleForCVs, GetGuestStaffPermission
+from account.permissions import IsStandardUser, IsCVOwner, IsStaffResponsibleForCVs, IsAGuest
 
 from .filters import CvOrderingFilter, CVListFilter, DjangoFilterDescriptionInspector
 from .models import *
@@ -68,7 +68,7 @@ class CreateCVView(views.APIView):
 
 
 class CVView(views.APIView):
-    permissions_classes = [GetGuestStaffPermission | IsCVOwner | IsStaffResponsibleForCVs]
+    permissions_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -86,8 +86,7 @@ class CVView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv) \
-                    and not GetGuestStaffPermission().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return ErrorResponse("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
@@ -120,7 +119,7 @@ class CVView(views.APIView):
 
 
 class CVDataView(views.APIView):
-    permissions_classes = [GetGuestStaffPermission | IsCVOwner | IsStaffResponsibleForCVs]
+    permissions_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
     @swagger_auto_schema(
         operation_description="Zwraca dane do CV w formacie json",
@@ -138,8 +137,7 @@ class CVDataView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv) \
-                    and not GetGuestStaffPermission().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return ErrorResponse("Nie znaleziono CV. Upewnij się, że uwzględniono cv_id w url-u", status.HTTP_404_NOT_FOUND)
@@ -180,7 +178,7 @@ class CVDataView(views.APIView):
 
 
 class CVPictureView(views.APIView):
-    permissions_classes = [GetGuestStaffPermission | IsCVOwner | IsStaffResponsibleForCVs]
+    permissions_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
     @swagger_auto_schema(
         operation_description="Posts picture to be used in CV.",
@@ -254,8 +252,7 @@ class CVPictureView(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv) \
-                    and not GetGuestStaffPermission().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
@@ -372,14 +369,13 @@ class AdminFeedback(views.APIView):
     operation_description="Zwraca feedback do danego cv"
 ))
 class CVFeedback(views.APIView):
-    permission_classes = [GetGuestStaffPermission | IsCVOwner | IsStaffResponsibleForCVs]
+    permission_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
     def get(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv) \
-                    and not GetGuestStaffPermission().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
@@ -427,7 +423,7 @@ class AdminCVVerificationView(views.APIView):
 
 
 class CVStatus(views.APIView):
-    permission_classes = [GetGuestStaffPermission | IsCVOwner | IsStaffResponsibleForCVs]
+    permission_classes = [IsCVOwner | IsStaffResponsibleForCVs]
 
     @swagger_auto_schema(
         operation_description="Zwraca status weryfikacji danego CV",
@@ -445,8 +441,7 @@ class CVStatus(views.APIView):
         try:
             cv = CV.objects.get(cv_id=cv_id)
             if not IsCVOwner().has_object_permission(request, self, cv) \
-                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv) \
-                    and not GetGuestStaffPermission().has_object_permission(request, self, cv):
+                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return ErrorResponse('Nie znaleziono CV o podanym id', status.HTTP_404_NOT_FOUND)
@@ -465,7 +460,7 @@ class CVStatus(views.APIView):
 class AdminCVListView(generics.ListAPIView):
     queryset = CV.objects.all()
     serializer_class = CVSerializer
-    permission_classes = [IsStaffResponsibleForCVs | GetGuestStaffPermission]
+    permission_classes = [IsStaffResponsibleForCVs]
     pagination_class = CVPagination
     filter_backends = (DjangoFilterBackend, CvOrderingFilter,)
     filterset_class = CVListFilter
@@ -555,7 +550,7 @@ class UserCVAvailabilityView(views.APIView):
 
 
 class TemplatesListView(views.APIView):
-    permission_classes = [IsStandardUser]
+    permission_classes = [IsStandardUser | IsAGuest]
 
     @swagger_auto_schema(
         operation_description="Lista możliwych templatek",
