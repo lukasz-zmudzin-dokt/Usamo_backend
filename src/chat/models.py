@@ -11,7 +11,7 @@ import uuid
 class ThreadManager(models.Manager):
     def by_user(self, user):
         qlookup = Q(first=user) | Q(second=user)
-        qlookup2 = Q(first=user) & Q(second=user)
+        qlookup2 = (Q(first=user) & Q(second=user)) | Q(chat_message__isnull=True)
         qs = self.get_queryset().filter(qlookup).exclude(qlookup2).distinct()
         return qs
 
@@ -63,6 +63,9 @@ class Thread(models.Model):
     
     objects = ThreadManager()
 
+    class Meta:
+        ordering = ['-updated']
+
     @property
     def room_name(self):
         return f'chat_{self.id}'
@@ -76,7 +79,7 @@ class Thread(models.Model):
 
 class ChatMessage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    thread = models.ForeignKey(Thread, null=True, blank=True, on_delete=models.SET_NULL)
+    thread = models.ForeignKey(Thread, null=True, blank=True, on_delete=models.SET_NULL, related_name='chat_message')
     user = models.ForeignKey(Account, verbose_name='sender', on_delete=models.CASCADE)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
