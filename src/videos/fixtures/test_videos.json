@@ -1,0 +1,43 @@
+[
+{
+  "model": "videos.videocategory",
+  "pk": 1,
+  "fields": {
+    "name": "inne"
+  }
+},
+{
+  "model": "videos.videocategory",
+  "pk": 2,
+  "fields": {
+    "name": "wideoblogi"
+  }
+},
+{
+  "model": "videos.video",
+  "pk": 1,
+  "fields": {
+    "description": "Kampania społeczna",
+    "category": 1,
+    "url": "https://www.youtube.com/watch?v=K9wbrl-0SJE"
+  }
+},
+{
+  "model": "videos.video",
+  "pk": 2,
+  "fields": {
+    "description": "Finał One Day PW 2018",
+    "category": 1,
+    "url": "https://www.youtube.com/watch?v=zXOmbS7dv34"
+  }
+},
+{
+  "model": "videos.video",
+  "pk": 3,
+  "fields": {
+    "description": "Rick Astley od innej strony",
+    "category": 1,
+    "url": "https://www.youtube.com/watch?v=yPYZpwSpKmA"
+  }
+}
+]

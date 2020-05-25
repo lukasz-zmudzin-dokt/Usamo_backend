@@ -12,12 +12,11 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.response import Response
 from account.account_type import StaffGroupType
 from account.models import StaffAccount
-from account.permissions import IsStandardUser
+from account.permissions import IsStandardUser, IsCVOwner, IsStaffResponsibleForCVs
 
 from .filters import CvOrderingFilter, CVListFilter, DjangoFilterDescriptionInspector
 from .models import *
 from .serializers import *
-from .permissions import *
 from .templates.templates import *
 from job.views import sample_message_response, ErrorResponse, MessageResponse
 import base64
@@ -161,8 +160,7 @@ class CVDataView(views.APIView):
     def put(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
-            if not IsCVOwner().has_object_permission(request, self, cv) \
-                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+            if not IsCVOwner().has_object_permission(request, self, cv):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return ErrorResponse("Nie znaleziono cv", status.HTTP_404_NOT_FOUND)
@@ -283,8 +281,7 @@ class CVPictureView(views.APIView):
     def delete(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
-            if not IsCVOwner().has_object_permission(request, self, cv) \
-                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+            if not IsCVOwner().has_object_permission(request, self, cv):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)

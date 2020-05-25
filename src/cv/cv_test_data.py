@@ -3,7 +3,7 @@ cv_test_data = {
                 "first_name": "Jan",
                 "last_name": "Kowalski",
                 "date_of_birth": "02-04-2005",
-                "phone_number": "123213789",
+                "phone_number": "+48123213789",
                 "email": "jan.kowalski@gmail.com"
             },
             "schools": [

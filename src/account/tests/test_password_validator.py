@@ -16,8 +16,8 @@ class PasswordValidatorTestCase(unittest.TestCase):
         try:
             correct_password = 'aćłąężŹŁ123!*^'
             PasswordValidator().validate(password=correct_password)
-        except ValidationError:
-            self.fail('')
+        except ValidationError as e:
+            self.fail(e)
 
     def test_password_too_short(self):
         passwords = ['aA123!*', '', 'a', 'A', '1', '!', '1!', 'aA', 'a4']

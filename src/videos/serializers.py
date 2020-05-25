@@ -2,14 +2,6 @@ from rest_framework import serializers
 from .models import *
 
 
-class VideoCategorySerializer(serializers.ModelSerializer):
-    videos = serializers.StringRelatedField(many=True, read_only=True)
-
-    class Meta:
-        model = VideoCategory
-        fields = '__all__'
-
-
 class VideoSerializer(serializers.ModelSerializer):
 
     class Meta:
@@ -23,3 +15,9 @@ class VideoSerializer(serializers.ModelSerializer):
         return super(VideoSerializer, self).to_representation(instance)
 
 
+class VideoCategorySerializer(serializers.ModelSerializer):
+    videos = VideoSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = VideoCategory
+        fields = '__all__'
