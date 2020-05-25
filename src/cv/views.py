@@ -160,8 +160,7 @@ class CVDataView(views.APIView):
     def put(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
-            if not IsCVOwner().has_object_permission(request, self, cv) \
-                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+            if not IsCVOwner().has_object_permission(request, self, cv):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return ErrorResponse("Nie znaleziono cv", status.HTTP_404_NOT_FOUND)
@@ -282,8 +281,7 @@ class CVPictureView(views.APIView):
     def delete(self, request, cv_id):
         try:
             cv = CV.objects.get(cv_id=cv_id)
-            if not IsCVOwner().has_object_permission(request, self, cv) \
-                    and not IsStaffResponsibleForCVs().has_object_permission(request, self, cv):
+            if not IsCVOwner().has_object_permission(request, self, cv):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
         except CV.DoesNotExist:
             return ErrorResponse('Nie znaleziono CV', status.HTTP_404_NOT_FOUND)
