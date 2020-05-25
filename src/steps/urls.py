@@ -10,6 +10,7 @@ urlpatterns = [
     path('substep/', CreateSubStep.as_view()),
     path('root', GetRoot.as_view()),
     path('step/<uuid:pk>', GetStep.as_view()),
+    path('', GetStepList.as_view()),
     path('step/<uuid:pk>/update/', UpdateStep.as_view()),
     path('step/<uuid:pk>/delete/', DestroyStep.as_view()),
     path('substep/<uuid:pk>/delete/', DestroySubStep.as_view()),
