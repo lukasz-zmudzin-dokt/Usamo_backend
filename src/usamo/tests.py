@@ -4,7 +4,7 @@ import tempfile
 from django.db import OperationalError, connections
 from django.test.runner import DiscoverRunner
 
-from usamo.settings import settings
+from django.conf import settings
 
 
 class TempMediaRunner(DiscoverRunner):
@@ -36,14 +36,8 @@ class TempMediaRunner(DiscoverRunner):
         super().teardown_databases(old_config, **kwargs)
 
     def teardown_test_environment(self, **kwargs):
-        super(TempMediaRunner, self).teardown_test_environment(**kwargs)
         shutil.rmtree(settings.MEDIA_ROOT)
+        super(TempMediaRunner, self).teardown_test_environment(**kwargs)
         for name, value in self.backup.items():
             setattr(settings, name, value)
         del settings.DEFAULT_FILE_STORAGE
-
-    def run_tests(self, test_labels, extra_tests=None, **kwargs):
-        try:
-            test_results = super(TempMediaRunner, self).run_tests(test_labels, extra_tests, **kwargs)
-        finally:
-            shutil.rmtree(settings.MEDIA_ROOT)
