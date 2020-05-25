@@ -5,7 +5,7 @@ from .models import *
 class SubStepSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubStep
-        fields = ['id', 'order', 'title', 'video', 'parent']
+        fields = ['id', 'order', 'title', 'description', 'video', 'parent']
         extra_kwargs = {
             'order': {
                 'read_only': True
@@ -14,6 +14,9 @@ class SubStepSerializer(serializers.ModelSerializer):
                 'read_only': True
             },
             'video': {
+                'required': False
+            },
+            'description': {
                 'required': False
             }
         }

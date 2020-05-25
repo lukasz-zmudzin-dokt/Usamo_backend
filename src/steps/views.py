@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
 from drf_yasg.openapi import Schema
 from drf_yasg.utils import swagger_auto_schema
@@ -107,7 +108,7 @@ class GetStep(generics.RetrieveAPIView):
             except UserPerspective.DoesNotExist:
                 perspective = UserPerspective(user=user, step=step, substep_order=0)
             perspective.save()
-        except DefaultAccount.DoesNotExist:
+        except (DefaultAccount.DoesNotExist, ValidationError):
             pass
         return super().get(request, *args, **kwargs)
 
