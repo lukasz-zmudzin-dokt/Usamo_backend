@@ -9,7 +9,7 @@ from account.models import DefaultAccount
 class BaseStep(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     title = models.CharField(max_length=50)
-    seen = models.BooleanField(default=False)
+    description = models.TextField(null=True)
 
     class Meta:
         abstract = True
@@ -17,13 +17,15 @@ class BaseStep(models.Model):
 
 class Step(BaseStep):
     parent = models.ForeignKey('self', related_name='children', null=True, on_delete=models.CASCADE)
-    description = models.TextField()
     video = models.URLField(null=True)
 
     def delete(self, using=None, keep_parents=True):
         for child in self.children.all():
             child.parent = self.parent
             child.save()
+        super().delete(using=using, keep_parents=keep_parents)
+
+    def hard_delete(self, using=None, keep_parents=True):
         super().delete(using=using, keep_parents=keep_parents)
 
     def reorder(self):
@@ -36,6 +38,11 @@ class Step(BaseStep):
 
 class Root(Step):
     parent = None
+
+    def delete(self, using=None, keep_parents=True):
+        for step in Step.objects.all():
+            step.hard_delete()
+        self.hard_delete()
 
 
 class SubStep(BaseStep):
