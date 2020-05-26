@@ -9,15 +9,16 @@ https://docs.djangoproject.com/en/2.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/2.2/ref/settings/
 """
-
+import logging
 import os
-import dj_database_url
+import platform
 import subprocess
 import sys
-import pdfkit
-import platform
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from datetime import timedelta
+
+import dj_database_url
+import pdfkit
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -61,7 +62,8 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_rest_passwordreset',
     'django_filters',
-    'knox'
+    'knox',
+    'nplusone.ext.django',
 ]
 
 MIDDLEWARE = [
@@ -74,8 +76,12 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'usamo.middlewares.FilesSizeValidatorMiddleware'
+    'usamo.middlewares.FilesSizeValidatorMiddleware',
+    'nplusone.ext.django.NPlusOneMiddleware',
 ]
+
+NPLUSONE_LOGGER = logging.getLogger('nplusone')
+NPLUSONE_LOG_LEVEL = logging.WARN
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
@@ -85,7 +91,7 @@ REST_FRAMEWORK = {
 }
 
 REST_KNOX = {
-  'TOKEN_TTL': timedelta(minutes=2400),
+    'TOKEN_TTL': timedelta(minutes=2400),
 }
 
 ROOT_URLCONF = 'usamo.urls'
@@ -107,7 +113,7 @@ TEMPLATES = [
     },
 ]
 
-#WSGI_APPLICATION = 'usamo.wsgi.application'
+# WSGI_APPLICATION = 'usamo.wsgi.application'
 ASGI_APPLICATION = "usamo.routing.application"
 
 # Database
@@ -122,7 +128,7 @@ DATABASES = {
         'HOST': 'localhost',
         'PORT': '5432'
     }
-} 
+}
 
 db_from_env = dj_database_url.config()
 DATABASES['default'].update(db_from_env)
@@ -138,14 +144,17 @@ CHANNEL_LAYERS = {
 
 CHANNEL_LAYERS['default']["CONFIG"]["hosts"] = [os.environ.get('REDIS_URL', 'redis://localhost:6379')]
 
+
 def _get_pdfkit_config():
     if platform.system() == 'Windows':
-        return pdfkit.configuration(wkhtmltopdf=os.environ.get('WKHTMLTOPDF_BINARY', 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'))
+        return pdfkit.configuration(
+            wkhtmltopdf=os.environ.get('WKHTMLTOPDF_BINARY', 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'))
     else:
         os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
         WKHTMLTOPDF_CMD = subprocess.Popen(['which', os.environ.get(
             'WKHTMLTOPDF_BINARY', 'wkhtmltopdf')], stdout=subprocess.PIPE).communicate()[0].strip()
         return pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_CMD)
+
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators
@@ -223,7 +232,7 @@ SWAGGER_SETTINGS = {
         'post',
     ],
 }
-DJANGO_NOTIFICATIONS_CONFIG = { 'USE_JSONFIELD': True}
+DJANGO_NOTIFICATIONS_CONFIG = {'USE_JSONFIELD': True}
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 

@@ -47,7 +47,7 @@ class VideosAllView(generics.ListAPIView):
     serializer_class = VideoSerializer
     filter_backends = (filters.DjangoFilterBackend,)
     filterset_class = VideoFilter
-    queryset = Video.objects.all()
+    queryset = Video.objects.select_related('category').all()
 
 
 class VideosNewView(generics.CreateAPIView):

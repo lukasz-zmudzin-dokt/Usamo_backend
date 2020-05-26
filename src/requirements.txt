@@ -95,3 +95,4 @@ whitenoise==5.0.1
 wkhtmltopdf-pack @ git+git://github.com/johnfraney/wkhtmltopdf-pack.git@a4996edbd9ec1c9dfe316146e7fa17cc8f86a676
 wrapt==1.11.2
 zope.interface==5.1.0
+nplusone>=1.0.0
