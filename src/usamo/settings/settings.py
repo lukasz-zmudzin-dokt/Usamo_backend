@@ -61,10 +61,12 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_rest_passwordreset',
     'django_filters',
-    'knox'
+    'knox',
+    'nplusone.ext.django'
 ]
 
 MIDDLEWARE = [
+    'nplusone.ext.django.NPlusOneMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -106,6 +108,21 @@ TEMPLATES = [
         },
     },
 ]
+
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+        },
+    },
+    'loggers': {
+        'nplusone': {
+            'handlers': ['console'],
+            'level': 'WARN',
+        },
+    },
+}
 
 #WSGI_APPLICATION = 'usamo.wsgi.application'
 ASGI_APPLICATION = "usamo.routing.application"

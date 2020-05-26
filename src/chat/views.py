@@ -32,8 +32,6 @@ class InboxView(ListAPIView):
     serializer_class = ThreadSerializer
     pagination_class = ChatPagination
     permission_classes = (IsStaffWithChatAccess | IsEmployer | IsStandardUser, )
-    filter_backends = (OrderingFilter,)
-    ordering = ['-updated']
 
     def get_queryset(self):
         user = self.request.user
@@ -76,18 +74,15 @@ class ContactListView(ListAPIView):
         return StaffAccountSerializer  
 
 
-class ThreadView(ListAPIView):
+class ThreadView(RetrieveAPIView):
     permission_classes = (IsStaffWithChatAccess | IsEmployer | IsStandardUser, )
-    serializer_class = ChatMessageSerializer
-    filter_backends = (OrderingFilter,)
-    ordering = ['timestamp']
-
-
-    def get_queryset(self):
+    serializer_class = ThreadMessageListSerializer
+    
+    def get_object(self):
         user = self.request.user
         other_username = self.kwargs['username']
         qlookup1 = Q(first__username=user.username) & Q(second__username=other_username)
         qlookup2 = Q(first__username=other_username) & Q(second__username=user.username)
 
         thread = Thread.objects.filter(qlookup1 | qlookup2).first()
-        return ChatMessage.objects.filter(thread=thread.id)
+        return thread

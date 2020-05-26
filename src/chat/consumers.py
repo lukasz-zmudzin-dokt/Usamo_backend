@@ -78,8 +78,8 @@ class InboxConsumer(AsyncJsonWebsocketConsumer):
             await self.accept(self.scope['subprotocols'][0])
                   
     async def receive_json(self, content):
-        
-        if content == 'get_threads':
+        msg = content.get("message", None)
+        if msg == 'threads':
             threads = await self.get_threads()
             serializer = ThreadSerializer(threads, many=True)
 

@@ -9,11 +9,13 @@ class ChatUserSerializer(serializers.ModelSerializer):
         model = Account
         fields = ['username', 'first_name', 'last_name', 'picture_url', 'type']
 
+
 class MessageAuthorSerializer(serializers.ModelSerializer):
-    
+
     class Meta:
         model = Account
-        fields = ['username', 'first_name', 'last_name']
+        fields = ['username', 'first_name', 'last_name']        
+
 
 class ThreadSerializer(serializers.ModelSerializer):
     first = ChatUserSerializer()
@@ -31,3 +33,12 @@ class ChatMessageSerializer(serializers.ModelSerializer):
         model = ChatMessage
         fields = ['user', 'message', 'timestamp']
 
+
+class ThreadMessageListSerializer(serializers.ModelSerializer):
+    messages = ChatMessageSerializer(many=True)
+    first = ChatUserSerializer()
+    second = ChatUserSerializer()
+
+    class Meta:
+        model = Thread
+        fields = ['id', 'first', 'second', 'messages', 'updated']
