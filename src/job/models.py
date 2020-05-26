@@ -78,6 +78,10 @@ class JobOfferApplication(models.Model):
     was_read = models.BooleanField(default=False)
     document = models.FileField(upload_to='application_docs/', null=True)
 
+    @property
+    def cv_url(self):
+        return self.document.url if self.document.name else None
+    
     def duplicate_docs(self):
         document_copy = ContentFile(self.cv.document.read())
         name = self.cv.document.name
