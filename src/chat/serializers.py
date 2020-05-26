@@ -27,11 +27,11 @@ class ThreadSerializer(serializers.ModelSerializer):
 
 
 class ChatMessageSerializer(serializers.ModelSerializer):
-    user = MessageAuthorSerializer()
+    sender = MessageAuthorSerializer()
 
     class Meta:
         model = ChatMessage
-        fields = ['user', 'message', 'timestamp']
+        fields = ['sender', 'message', 'timestamp']
 
 
 class ThreadMessageListSerializer(serializers.ModelSerializer):

@@ -29,23 +29,27 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     async def receive_json(self, content):
         msg = content.get("message", None)
-        this_user = self.scope['user']
-        instance = await self.create_chat_message(msg)
-        response = {
-            "message": msg,
-            "username": this_user.username,
-            "first_name": this_user.first_name,
-            "last_name": this_user.last_name,
-            "timestamp": instance.timestamp.__str__()
-        }
-        
-        await self.channel_layer.group_send(
-            self.chat_room, 
-            {
-                "type": "chat.message",
-                "text": json.dumps(response)
+        recipient_username = content.get("recipient", None)
+        try:
+            this_user = self.scope['user']
+            instance = await self.create_chat_message(msg, recipient_username)
+            response = {
+                "message": msg,
+                "username": this_user.username,
+                "first_name": this_user.first_name,
+                "last_name": this_user.last_name,
+                "timestamp": instance.timestamp.__str__()
             }
-        )
+            
+            await self.channel_layer.group_send(
+                self.chat_room, 
+                {
+                    "type": "chat.message",
+                    "text": json.dumps(response)
+                }
+            )
+        except Exception:
+            self.close()
 
     async def disconnect(self, close_code):
         try:
@@ -62,10 +66,14 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         return Thread.objects.get_or_new(this_user, other_user)[0]
 
     @database_sync_to_async
-    def create_chat_message(self, msg):
+    def create_chat_message(self, msg, username):
+        try:
+            recipient = Account.objects.get(username=username)
+        except Account.DoesNotExist as e:
+            raise e
         self.thread_obj.updated = timezone.now()
         self.thread_obj.save()
-        return ChatMessage.objects.create(thread=self.thread_obj, user=self.scope['user'], message=msg)
+        return ChatMessage.objects.create(thread=self.thread_obj, sender=self.scope['user'], recipient=recipient, message=msg)
 
 
 class InboxConsumer(AsyncJsonWebsocketConsumer):
