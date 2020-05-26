@@ -547,6 +547,7 @@ class EmployerJobOffersView(generics.ListAPIView):
         except ObjectDoesNotExist:
             return ErrorResponse("Brak użytkownika lub użytkownik nie jest pracodawcą", status.HTTP_403_FORBIDDEN)
 
+
 @method_decorator(name='get', decorator=swagger_auto_schema(
     filter_inspectors=[DjangoFilterDescriptionInspector],
     query_serializer=JobOfferFiltersSerializer,

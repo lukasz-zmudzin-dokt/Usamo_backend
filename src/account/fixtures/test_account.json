@@ -208,6 +208,14 @@
   }
 },
 {
+  "model": "auth.group",
+  "pk": 7,
+  "fields": {
+    "name": "staff_guest",
+    "permissions": []
+  }
+},
+{
   "model": "account.account",
   "pk": "02cf43c6-7e60-4c55-b41e-303adf193980",
   "fields": {
@@ -648,6 +656,30 @@
 },
 {
   "model": "account.account",
+  "pk": "6c8a3be6-3f4b-4390-949a-2e7b68efe85c",
+  "fields": {
+    "password": "pbkdf2_sha256$150000$YBVxbgVXckBE$GUBAgjdyk9kii+lCZQ8kZp5fOIX3/heiYglTpKh1SZY=",
+    "email": "staff8@staff8.com",
+    "username": "staff8",
+    "first_name": "staff8",
+    "last_name": "staff8",
+    "date_joined": "2020-05-25T19:47:00.081Z",
+    "last_login": "2020-05-25T19:47:00.407Z",
+    "profile_picture": "",
+    "is_active": true,
+    "is_admin": false,
+    "is_staff": false,
+    "is_superuser": false,
+    "status": 1,
+    "type": 2,
+    "groups": [
+      7
+    ],
+    "user_permissions": []
+  }
+},
+{
+  "model": "account.account",
   "pk": "f3939bf9-dfd8-4cd5-8d38-bd848119dd1f",
   "fields": {
     "password": "pbkdf2_sha256$150000$oi2ixWhPMgcH$jSykf7I6owoLbGJfAgojWhlYFl0gpAcIxRHquwZ6apY=",
@@ -887,6 +919,14 @@
   "fields": {
     "user": "21c76b96-9ca3-46c1-b373-139e3b9d9632",
     "role": "Psycholog"
+  }
+},
+{
+  "model": "account.staffaccount",
+  "pk": 9,
+  "fields": {
+    "user": "6c8a3be6-3f4b-4390-949a-2e7b68efe85c",
+    "role": "Go\u015b\u0107"
   }
 }
 ]

@@ -5,6 +5,8 @@ from .models import Thread, ChatMessage
 from django.contrib.auth.models import AnonymousUser
 from account.models import Account
 import json
+from django.utils import timezone
+from .serializers import ThreadSerializer
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     
@@ -21,9 +23,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 await self.channel_layer.group_add(self.chat_room, self.channel_name)
                 await self.accept(self.scope['subprotocols'][0])
             else: 
-                self.close()
+                await self.close()
         except Account.DoesNotExist:
-            self.close()
+            await self.close()
 
     async def receive_json(self, content):
         msg = content.get("message", None)
@@ -61,4 +63,34 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def create_chat_message(self, msg):
+        self.thread_obj.updated = timezone.now()
+        self.thread_obj.save()
         return ChatMessage.objects.create(thread=self.thread_obj, user=self.scope['user'], message=msg)
+
+
+class InboxConsumer(AsyncJsonWebsocketConsumer):
+    
+    async def connect(self):   
+        if self.scope['user'].is_anonymous:
+            await self.close()
+        else: 
+            self.user = self.scope['user']
+            await self.accept(self.scope['subprotocols'][0])
+                  
+    async def receive_json(self, content):
+        msg = content.get("message", None)
+        if msg == 'threads':
+            threads = await self.get_threads()
+            serializer = ThreadSerializer(threads, many=True)
+
+            await self.send_json(serializer.data)
+        
+        else:
+            await self.close()
+
+    async def disconnect(self, close_code):
+        pass 
+
+    @database_sync_to_async
+    def get_threads(self):
+        return Thread.objects.by_user(self.user)

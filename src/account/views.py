@@ -242,6 +242,7 @@ class PasswordChangeView(views.APIView):
         if check_password(old_pass, account.password):
             account.set_password(new_pass)
             account.save()
+            account.auth_token_set.all().delete()
             return MessageResponse("Hasło zostało zmienione")
         return ErrorResponse("Stare hasło jest niepoprawne", status.HTTP_403_FORBIDDEN)
 
@@ -507,6 +508,7 @@ class AdminUserDataEditView(views.APIView):
             return MessageResponse("Konto zostało usunięte")
         except Account.DoesNotExist:
             return ErrorResponse("Użytkownik o podanym id nie został znaleziony", status.HTTP_404_NOT_FOUND)
+
 
 class ProfilePictureView(views.APIView):
 

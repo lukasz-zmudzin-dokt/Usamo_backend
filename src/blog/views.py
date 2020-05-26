@@ -2,7 +2,7 @@ import os
 from functools import wraps
 from django.utils.datastructures import MultiValueDictKeyError
 from notifications.signals import notify
-
+from account.permissions import IsNotAGuest
 from account.models import StaffAccount, DefaultAccount, Account
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
@@ -421,7 +421,7 @@ class BlogPostListView(generics.ListAPIView):
 
 
 class BlogPostCommentCreateView(views.APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsNotAGuest]
 
     @swagger_auto_schema(
         request_body=sample_comment_request(),
