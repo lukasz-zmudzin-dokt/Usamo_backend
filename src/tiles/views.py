@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.utils.datastructures import MultiValueDictKeyError
 from drf_yasg.openapi import Parameter, IN_PATH
 from rest_framework import generics
 from .serializers import *
@@ -11,6 +12,7 @@ from drf_yasg.utils import swagger_auto_schema
 from job.views import ErrorResponse, MessageResponse, sample_message_response, sample_error_response
 from rest_framework.filters import OrderingFilter
 from django.utils.decorators import method_decorator
+from drf_yasg import openapi
 
 # Create your views here.
 
@@ -90,3 +92,49 @@ class TileListView(generics.ListAPIView):
     def get_queryset(self):
         queryset = Tile.objects.all()
         return queryset
+
+
+class TilePhotoView(views.APIView):
+    permissions_classes = [IsStaffMember]
+
+    @swagger_auto_schema(
+        operation_description="Posts photo to be used in Tile.",
+
+        manual_parameters=[
+            openapi.Parameter(
+                in_='header',
+                name='Content-Type',
+                type=openapi.TYPE_STRING,
+                default='application/x-www-form-urlencoded'
+            ),
+            openapi.Parameter(
+                name='photo',
+                in_='form-data',
+                type=openapi.TYPE_FILE
+            ),
+            openapi.Parameter('tile_id', openapi.IN_PATH, type='integer',
+                              description='Integer będący id danego kafelka')
+        ],
+        responses={
+            '200': 'Zdjęcie dodano pomyślnie',
+            '400': 'Upewnij się, że form key to "photo" / Błędy walidacji',
+            '403': "Nie masz uprawnień do wykonania tej czynności",
+            '404': 'Nie znaleziono Kafelka. Upewnij się, że uwzględniono tile_id w url-u'
+        }
+    )
+    def post(self, request, tile_id):
+        try:
+            tile = Tile.objects.get(pk=tile_id)
+        except Tile.DoesNotExist:
+            return ErrorResponse("Nie znaleziono kafelka o podanym id", status.HTTP_404_NOT_FOUND)
+
+        try:
+            tile.photo = request.FILES['photo']
+        except MultiValueDictKeyError:
+            return ErrorResponse('Nie znaleziono pliku. Upewnij się, że został on załączony pod kluczem photo'
+                                 , status.HTTP_400_BAD_REQUEST)
+
+        tile.save()
+        response_data = {"id": tile.id, "attachment_url": tile.photo.url}
+        return Response(response_data, status.HTTP_200_OK)
+

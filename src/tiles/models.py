@@ -4,9 +4,9 @@ from django.db import models
 
 
 class PhotoLayer(models.Model):
-    photo_layer_left = models.BooleanField(default=False)
-    photo_layer_top = models.BooleanField(default=False)
-    photo_layer_right = models.BooleanField(default=False)
+    left = models.BooleanField(default=False)
+    top = models.BooleanField(default=False)
+    right = models.BooleanField(default=False)
 
 
 class Tile(models.Model):
