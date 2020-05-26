@@ -304,7 +304,11 @@ class JobOfferListView(generics.ListAPIView):
     def get_queryset(self):
         job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
         valid_filters = job_offer_filters.get_filters()
-        return JobOffer.objects.filter(removed=False, confirmed=True, **valid_filters)
+        return JobOffer.objects.select_related('employer')\
+            .select_related('category')\
+            .select_related('offer_type')\
+            .select_related('company_address')\
+            .filter(removed=False, confirmed=True, **valid_filters)
 
     def get(self, request):
         self.filter_serializer = JobOfferFiltersSerializer(data=self.request.query_params)
