@@ -7,6 +7,7 @@ from account.models import Account
 import json
 from django.utils import timezone
 from .serializers import ThreadSerializer
+from notifications.signals import notify
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     
@@ -67,10 +68,14 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
     @database_sync_to_async
     def create_chat_message(self, msg, username):
+        sender = self.scope['user']
         try:
             recipient = Account.objects.get(username=username)
         except Account.DoesNotExist as e:
             raise e
+        notify.send(sender, recipient=recipient, verb=f'Nowa wiadomość od: {sender.first_name} {sender.last_name}',
+            app='chat', object_id=self.thread_obj.id)
+
         self.thread_obj.updated = timezone.now()
         self.thread_obj.save()
         return ChatMessage.objects.create(thread=self.thread_obj, sender=self.scope['user'], recipient=recipient, message=msg)
