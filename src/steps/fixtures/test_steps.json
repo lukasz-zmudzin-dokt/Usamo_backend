@@ -1,6 +1,21 @@
 [
 {
   "model": "steps.step",
+  "pk": "ef8e2944-54fb-434f-92ac-2e1f355e14c8",
+  "fields": {
+    "title": "Witaj!",
+    "description": "Oto pocz\u0105tek twojej przygody z krokami usamodzielnienia. Wybierz, w kt\u00f3r\u0105 stron\u0119 chcesz i\u015b\u0107 dalej",
+    "parent": null,
+    "video": null
+  }
+},
+{
+  "model": "steps.root",
+  "pk": "ef8e2944-54fb-434f-92ac-2e1f355e14c8",
+  "fields": {}
+},
+{
+  "model": "steps.step",
   "pk": "0f368577-44be-42f8-a35b-568d9c6c64c5",
   "fields": {
     "title": "Krok drugi A",
@@ -28,21 +43,6 @@
     "parent": "ef8e2944-54fb-434f-92ac-2e1f355e14c8",
     "video": "https://www.youtube.com/watch?v=urOORtbw61Q"
   }
-},
-{
-  "model": "steps.step",
-  "pk": "ef8e2944-54fb-434f-92ac-2e1f355e14c8",
-  "fields": {
-    "title": "Witaj!",
-    "description": "Oto pocz\u0105tek twojej przygody z krokami usamodzielnienia. Wybierz, w kt\u00f3r\u0105 stron\u0119 chcesz i\u015b\u0107 dalej",
-    "parent": null,
-    "video": null
-  }
-},
-{
-  "model": "steps.root",
-  "pk": "ef8e2944-54fb-434f-92ac-2e1f355e14c8",
-  "fields": {}
 },
 {
   "model": "steps.substep",
