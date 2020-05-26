@@ -32,7 +32,7 @@ class Step(BaseStep):
         previous = -1
         for substep in self.substeps.all():
             substep.order = previous + 1
-            substep.save(new=False)
+            substep.save()
             previous += 1
 
 
@@ -54,24 +54,24 @@ class SubStep(BaseStep):
         ordering = ['order']
 
     def save(self, force_insert=False, force_update=False, using=None,
-             update_fields=None, new=True):
-        if new and self.parent.substeps.count() > 0:
+             update_fields=None):
+        if not self.parent.substeps.filter(id=self.id).exists() and self.parent.substeps.count() > 0:
             self.order = self.parent.substeps.aggregate(Max('order'))['order__max'] + 1
         super().save(force_insert=force_insert, force_update=force_update, using=using,
                      update_fields=update_fields)
 
     def switch_places(self, other):
         self.order, other.order = other.order, self.order
-        self.save(new=False)
-        other.save(new=False)
+        self.save()
+        other.save()
         self.parent.reorder()
 
     def move_to_spot(self, new_order):
         for substep in self.parent.substeps.filter(order__gte=new_order):
             substep.order += 1
-            substep.save(new=False)
+            substep.save()
         self.order = new_order
-        self.save(new=False)
+        self.save()
         self.parent.reorder()
 
     def delete(self, using=None, keep_parents=True):
