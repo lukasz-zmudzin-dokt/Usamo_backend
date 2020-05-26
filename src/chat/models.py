@@ -80,8 +80,8 @@ class Thread(models.Model):
 class ChatMessage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     thread = models.ForeignKey(Thread, null=True, blank=True, on_delete=models.SET_NULL, related_name='messages')
-    sender = models.ForeignKey(Account, on_delete=models.CASCADE)
-    recipient = models.ForeignKey(Account, on_delete=models.CASCADE)
+    sender = models.ForeignKey(Account, related_name='messages_sent', on_delete=models.CASCADE)
+    recipient = models.ForeignKey(Account, related_name='messages_received', on_delete=models.CASCADE)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
