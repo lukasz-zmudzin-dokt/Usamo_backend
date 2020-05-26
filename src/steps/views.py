@@ -125,13 +125,19 @@ class UpdateStep(generics.UpdateAPIView):
     queryset = Step.objects.all()
 
     def put(self, request, *args, **kwargs):
-        if str(request.data['parent']) == str(kwargs['pk']):
-            return ErrorResponse('Krok nie może następować po sobie', status.HTTP_400_BAD_REQUEST)
+        try:
+            if str(request.data['parent']) == str(kwargs['pk']):
+                return ErrorResponse('Krok nie może następować po sobie', status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            pass
         return super().put(request, *args, **kwargs)
 
     def patch(self, request, *args, **kwargs):
-        if str(request.data['parent']) == str(kwargs['pk']):
-            return ErrorResponse('Krok nie może następować po sobie', status.HTTP_400_BAD_REQUEST)
+        try:
+            if str(request.data['parent']) == str(kwargs['pk']):
+                return ErrorResponse('Krok nie może następować po sobie', status.HTTP_400_BAD_REQUEST)
+        except KeyError:
+            pass
         return super().patch(request, *args, **kwargs)
 
 
