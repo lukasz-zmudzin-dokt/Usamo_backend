@@ -57,6 +57,7 @@ INSTALLED_APPS = [
     'helpline.apps.HelplineConfig',
     'notification.apps.NotificationConfig',
     'steps.apps.StepsConfig',
+    'tiles.apps.TilesConfig',
     'notifications',
     'drf_yasg',
     'django_rest_passwordreset',
