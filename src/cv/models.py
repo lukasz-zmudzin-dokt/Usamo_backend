@@ -68,15 +68,8 @@ class BasicInfo(models.Model):
 class School(models.Model):
     cv = models.ForeignKey(CV, related_name='schools', on_delete=models.CASCADE, null=True)
     name = models.CharField(max_length=200)
-    year_start = models.PositiveIntegerField(
-        validators=[
-            MinValueValidator(1990),
-            max_value_current_year])
-    year_end = models.PositiveIntegerField(
-        null=True,
-        validators=[
-            MinValueValidator(1990),
-            max_value_current_year])
+    date_start = models.CharField(max_length=7)
+    date_end = models.CharField(null=True, max_length=7)
     additional_info = models.CharField(max_length=150, null=True)
 
 
@@ -84,15 +77,8 @@ class Experience(models.Model):
     cv = models.ForeignKey(CV, related_name='experiences', on_delete=models.CASCADE, null=True)
     title = models.CharField(max_length=50)
     description = models.CharField(max_length=400)
-    year_start = models.PositiveIntegerField(
-        validators=[
-            MinValueValidator(1990),
-            max_value_current_year])
-    year_end = models.PositiveIntegerField(
-        null=True,
-        validators=[
-            MinValueValidator(1990),
-            max_value_current_year])
+    date_start = models.CharField(max_length=7)
+    date_end = models.CharField(null=True, max_length=7)
 
 
 class Skill(models.Model):

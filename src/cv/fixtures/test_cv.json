@@ -83,8 +83,8 @@
    "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "name": "CCCIII LO w Wadowicach",
-      "year_start": 2015,
-      "year_end": 2018,
+      "date_start": "01-2015",
+      "date_end": "01-2018",
       "additional_info": "profil mat-fiz"
    }
 },
@@ -94,8 +94,8 @@
    "fields": {
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "name": "Politechnika Warszawska",
-      "year_start": 2019,
-      "year_end": null,
+      "date_start": "01-2019",
+      "date_end": null,
       "additional_info": "Informatyka Niestosowna"
    }
 },
@@ -105,8 +105,8 @@
    "fields": {
       "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
       "name": "XIX LO w Warszawie",
-      "year_start": 2017,
-      "year_end": 2020,
+      "date_start": "01-2017",
+      "date_end": "01-2020",
       "additional_info": "profil mat-geo"
    }
 },
@@ -116,8 +116,8 @@
    "fields": {
       "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
       "name": "Uniwersytet Warszawski",
-      "year_start": 2020,
-      "year_end": null,
+      "date_start": "01-2020",
+      "date_end": null,
       "additional_info": "Finanse i rachunkowo\u015b\u0107"
    }
 },
@@ -127,8 +127,8 @@
    "fields": {
       "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
       "name": "XIX LO w Warszawie",
-      "year_start": 2017,
-      "year_end": 2020,
+      "date_start": "01-2017",
+      "date_end": "01-2020",
       "additional_info": "profil mat-geo"
    }
 },
@@ -138,8 +138,8 @@
    "fields": {
       "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
       "name": "Uniwersytet Warszawski",
-      "year_start": 2020,
-      "year_end": null,
+      "date_start": "01-2020",
+      "date_end": null,
       "additional_info": "Finanse i rachunkowo\u015b\u0107"
    }
 },
@@ -150,8 +150,8 @@
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "title": "Tygodnik NIE",
       "description": "Admin fanpeja na fb",
-      "year_start": 2019,
-      "year_end": null
+      "date_start": "01-2019",
+      "date_end": null
    }
 },
 {
@@ -161,8 +161,8 @@
       "cv": "3e9a657b-7b05-46b5-9a1c-9dda7ce03467",
       "title": "MON",
       "description": "Awesome Summer Internship of Fun",
-      "year_start": 2018,
-      "year_end": null
+      "date_start": "01-2018",
+      "date_end": null
    }
 },
 {
@@ -172,8 +172,8 @@
       "cv": "27a14082-e124-420b-a4cc-fe44ea2e68f3",
       "title": "H&M",
       "description": "Sprzedawca",
-      "year_start": 2019,
-      "year_end": null
+      "date_start": "01-2019",
+      "date_end": null
    }
 },
 {
@@ -183,8 +183,8 @@
       "cv": "f995c24d-5822-4c53-8ba5-96b4542c5254",
       "title": "H&M",
       "description": "Sprzedawca",
-      "year_start": 2019,
-      "year_end": null
+      "date_start": "01-2019",
+      "date_end": null
    }
 },
 {
