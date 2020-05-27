@@ -55,7 +55,7 @@ class UpdateRoot(generics.UpdateAPIView):
 class CreateStep(generics.CreateAPIView):
     permission_classes = (IsStaffStepsModerator,)
     serializer_class = StepSerializer
-    queryset = Step.objects.all()
+    queryset = Step.objects.select_related('children').prefetch_related('substeps').all()
 
 
 class CreateSubStep(generics.CreateAPIView):
@@ -116,7 +116,7 @@ class GetStep(generics.RetrieveAPIView):
 class GetStepList(generics.ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = StepSerializer
-    queryset = Step.objects.all()
+    queryset = Step.objects.prefetch_related('children').prefetch_related('substeps').all()
 
 
 class UpdateStep(generics.UpdateAPIView):
