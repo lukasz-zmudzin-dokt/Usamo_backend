@@ -23,7 +23,7 @@ class EnhancedDatesSerializer(serializers.ModelSerializer):
             if year > current_year():
                 raise ValidationError("Data startu nie może być większa niż aktualny rok")
         else:
-            raise ValidationError("Niewłaściwy format daty startu, powinien być: MM-YYYY")
+            raise ValidationError("Niewłaściwy format daty startu, powinien być: MM.YYYY")
         return value
 
     def validate_date_end(self, value):
@@ -38,7 +38,7 @@ class EnhancedDatesSerializer(serializers.ModelSerializer):
             if year > current_year():
                 raise ValidationError("Data końca nie może być większa niż aktualny rok")
         else:
-            raise ValidationError("Niewłaściwy format daty końca, powinien być: MM-YYYY")
+            raise ValidationError("Niewłaściwy format daty końca, powinien być: MM.YYYY")
         return value
 
 
