@@ -14,7 +14,7 @@ class EnhancedDatesSerializer(serializers.ModelSerializer):
     date_end = serializers.CharField(required=False)
 
     def validate_date_start(self, value):
-        short_date_format = re.compile("([0-9]{2})-([0-9]{4})")
+        short_date_format = re.compile("([0-9]{2})\.([0-9]{4})")
         short_date_match = re.match(short_date_format, value)
         if short_date_match:
             year = int(short_date_match.group(2))
@@ -29,7 +29,7 @@ class EnhancedDatesSerializer(serializers.ModelSerializer):
     def validate_date_end(self, value):
         if not value:
             return value
-        short_date_format = re.compile("([0-9]{2})-([0-9]{4})")
+        short_date_format = re.compile("([0-9]{2})\.([0-9]{4})")
         short_date_match = re.match(short_date_format, value)
         if short_date_match:
             year = int(short_date_match.group(2))
