@@ -27,6 +27,8 @@ class EnhancedDatesSerializer(serializers.ModelSerializer):
         return value
 
     def validate_date_end(self, value):
+        if not value:
+            return value
         short_date_format = re.compile("([0-9]{2})-([0-9]{4})")
         short_date_match = re.match(short_date_format, value)
         if short_date_match:
@@ -41,6 +43,7 @@ class EnhancedDatesSerializer(serializers.ModelSerializer):
 
 
 class SchoolSerializer(EnhancedDatesSerializer):
+    date_end = serializers.CharField(required=False, allow_null=True)
 
     class Meta:
         model = School
@@ -48,6 +51,8 @@ class SchoolSerializer(EnhancedDatesSerializer):
 
 
 class ExperienceSerializer(EnhancedDatesSerializer):
+    date_end = serializers.CharField(required=False, allow_null=True)
+
     class Meta:
         model = Experience
         fields = ['title', 'description', 'date_start', 'date_end']
