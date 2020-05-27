@@ -106,7 +106,7 @@ ASGI_APPLICATION = "usamo.routing.application"
 DATABASES = {
     'default': {}
 }
-db_from_env = dj_database_url.config(default = 'postgresql://postgres:postgres@localhost:5432/usamo_test')
+db_from_env = dj_database_url.config()
 DATABASES['default'].update(db_from_env)
 
 CHANNEL_LAYERS = {
