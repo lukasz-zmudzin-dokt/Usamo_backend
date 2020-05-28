@@ -62,8 +62,7 @@ INSTALLED_APPS = [
     'drf_yasg',
     'django_rest_passwordreset',
     'django_filters',
-    'knox',
-    'nplusone.ext.django',
+    'knox'
 ]
 
 MIDDLEWARE = [
@@ -76,12 +75,8 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
-    'usamo.middlewares.FilesSizeValidatorMiddleware',
-    'nplusone.ext.django.NPlusOneMiddleware',
+    'usamo.middlewares.FilesSizeValidatorMiddleware'
 ]
-
-NPLUSONE_LOGGER = logging.getLogger('nplusone')
-NPLUSONE_LOG_LEVEL = logging.WARN
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': ('knox.auth.TokenAuthentication',),
