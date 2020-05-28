@@ -1,6 +1,6 @@
 from django.utils.crypto import get_random_string
 from rest_framework import serializers
-from usamo.settings import settings
+from django.conf import settings
 import os
 import random
 import datetime

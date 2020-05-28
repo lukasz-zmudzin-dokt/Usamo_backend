@@ -4,8 +4,7 @@ from drf_yasg import openapi
 from django.utils.datastructures import MultiValueDictKeyError
 from django.utils.decorators import method_decorator
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import status, generics
-from rest_framework import views
+from rest_framework import status, generics, views
 from rest_framework.generics import get_object_or_404
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
@@ -13,7 +12,6 @@ from rest_framework.response import Response
 from account.account_type import StaffGroupType
 from account.models import StaffAccount
 from account.permissions import IsStandardUser, IsCVOwner, IsStaffResponsibleForCVs, IsAGuest
-
 from .filters import CvOrderingFilter, CVListFilter, DjangoFilterDescriptionInspector
 from .models import *
 from .serializers import *

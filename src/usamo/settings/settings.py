@@ -26,7 +26,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
-PASS_RESET_URL = os.getenv('PASS_RESET_URL')
+FRONT_URL = os.getenv('FRONT_URL')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True

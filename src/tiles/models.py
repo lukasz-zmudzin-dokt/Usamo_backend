@@ -1,8 +1,5 @@
 import os
-
 from django.db import models
-
-# Create your models here.
 from django.db.models.signals import post_delete
 from django.dispatch import receiver
 

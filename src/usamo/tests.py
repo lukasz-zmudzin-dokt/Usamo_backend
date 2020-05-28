@@ -1,9 +1,7 @@
 import shutil
 import tempfile
-
 from django.db import OperationalError, connections
 from django.test.runner import DiscoverRunner
-
 from django.conf import settings
 
 

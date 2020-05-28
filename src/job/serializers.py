@@ -1,7 +1,6 @@
 from datetime import date
 from account.serializers import AddressSerializer
 from rest_framework import serializers
-
 from .models import *
 
 

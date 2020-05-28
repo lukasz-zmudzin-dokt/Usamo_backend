@@ -3,6 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from . import views
 
+
 urlpatterns = [
     path('list/all', views.AllNotifications.as_view()),
     path('list/all/mark-as-read/', views.MarkAllAsRead.as_view()),

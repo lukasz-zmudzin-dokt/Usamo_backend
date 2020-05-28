@@ -12,8 +12,6 @@ from job.views import ErrorResponse, MessageResponse, sample_message_response, s
 from rest_framework.filters import OrderingFilter
 from blog.permissions import IsStaffBlogModerator
 
-# Create your views here.
-
 
 class PhoneContactCreateView(views.APIView):
     permission_classes = [IsStaffBlogModerator]

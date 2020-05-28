@@ -4,7 +4,6 @@ from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled
 from rest_framework.filters import OrderingFilter
 from collections import namedtuple
 from .models import JobOfferApplication
-
 import re
 
 CustomOrderingParams = namedtuple('CustomOrderingParams', ['related', 'annotate'])
