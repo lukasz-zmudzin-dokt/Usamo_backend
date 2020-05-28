@@ -9,6 +9,7 @@ import pdfkit
 import platform
 import io
 import sys
+import subprocess
 from .templates.templates import TEMPLATES_CHOICES
 
 
