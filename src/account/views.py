@@ -15,7 +15,7 @@ from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
-from notification.jobs import send_verification_email
+from notification.jobs import send_verification_email, send_account_data_change_email, send_rejection_email
 from .permissions import *
 from blog.permissions import IsStaffBlogModerator
 from .serializers import *
@@ -325,6 +325,7 @@ class AdminUserRejectionView(views.APIView):
 
             user.status = AccountStatus.REJECTED.value
             user.save()
+            send_rejection_email(user_id)
             return MessageResponse('Użytkownik został pomyślnie odrzucony')
 
         return ErrorResponse('ID użytkownika nie zostało podane', status.HTTP_400_BAD_REQUEST)
@@ -473,7 +474,6 @@ class AdminUserDataEditView(views.APIView):
             account = Account.objects.get(pk=pk)
         except Account.DoesNotExist:
             return ErrorResponse('Użytkownik o podanym id nie został znaleziony', status.HTTP_404_NOT_FOUND)
-
         if account.type == AccountType.STANDARD.value:
             serializer = DefaultAccountSerializer(account, data=request.data, partial=True)
         elif account.type == AccountType.EMPLOYER.value:
@@ -483,6 +483,7 @@ class AdminUserDataEditView(views.APIView):
 
         if serializer.is_valid():
             serializer.update(account, serializer.validated_data)
+            send_account_data_change_email(pk, request.data)
             return MessageResponse("Dane konta zostały zaktualizowane")
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
