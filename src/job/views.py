@@ -102,8 +102,8 @@ class JobOfferCreateView(views.APIView):
                 instance.save()
                 notify.send(employer.user, recipient=Account.objects.filter(groups__name__contains='staff_jobs'),
                             verb=f'Użytkownik {employer.user.username} utworzył_a nową ofertę pracy',
-                            app='cv/generator/',
-                            object_id=instance.id
+                            app='offerApproval',
+                            object_id=None
                             )
                 return OfferIdResponse(instance.id)
             else:
@@ -204,8 +204,8 @@ class JobOfferView(views.APIView):
             if IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
                 notify.send(request.user, recipient=instance.employer.user,
                             verb=f'Twoja oferta pracy została usunięta',
-                            app='job/job-offer/',
-                            object_id=offer_id
+                            app='myOffers',
+                            object_id=None
                             )
             return MessageResponse("Oferta została pomyślnie usunięta.")
         except ObjectDoesNotExist:
@@ -354,8 +354,8 @@ class CreateJobOfferApplicationView(views.APIView):
             notify.send(user.user, recipient=job_offer.employer.user,
 
                         verb=f'Użytkownik {user.user.username} aplikował_a na Twoją ofertę pracy!',
-                        app='job/employer/application_list/',
-                        object_id=request.data['job_offer']
+                        app='myOffers',
+                        object_id=None
                         )
             return Response(response, status.HTTP_201_CREATED)
         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
@@ -611,8 +611,8 @@ class AdminConfirmJobOfferView(views.APIView):
             instance.save()
             notify.send(request.user, recipient=instance.employer.user,
                         verb=f'Twoja oferta pracy została zatwierdzona',
-                        app='job/job-offer/',
-                        object_id=instance.id
+                        app='myOffers',
+                        object_id=None
                         )
             return MessageResponse("Ustawiono potwierdzenie oferty pracy")
         return ErrorResponse("Błędy walidacji (np. brakujące pole)", status.HTTP_400_BAD_REQUEST)

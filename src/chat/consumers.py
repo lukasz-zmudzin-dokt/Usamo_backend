@@ -75,7 +75,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         except Account.DoesNotExist as e:
             raise e
         notify.send(sender, recipient=recipient, verb=f'Nowa wiadomość od: {sender.first_name} {sender.last_name}',
-            app='chat', object_id=self.thread_obj.id)
+            app='chats', object_id=sender.username)
 
         self.thread_obj.updated = timezone.now()
         self.thread_obj.save()
