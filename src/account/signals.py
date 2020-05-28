@@ -14,7 +14,7 @@ def password_reset_token_created(sender, instance, reset_password_token, *args, 
 
     reset_url = settings.FRONT_URL + 'newPassword/' + reset_password_token.key
     reset_token_message = f'Aby zresetować hasło, kliknij w poniższy link i postępuj zgodnie ze wskazówkami:\n{reset_url}\n\n' + \
-    'Jeśli nie prosiłeś o zmianę hasła, zignoruj ten link i skontaktuj się z pomocą techniczną.\n\n Pozdrawiamyn\n Zespół usamodzielnieni.pl'
+    'Jeśli nie prosiłeś o zmianę hasła, zignoruj ten link i skontaktuj się z pomocą techniczną.\n\n Pozdrawiamy\n Zespół usamodzielnieni.pl'
     message = Mail(
         from_email='no-reply@usamodzielnieni.pl',
         to_emails=reset_password_token.user.email,

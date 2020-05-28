@@ -21,6 +21,7 @@ class CanVerifyCVPermissionTest(unittest.TestCase):
     def test_user_is_staff_and_can_verify_cv(self):
         groups = Mock()
         groups.filter(name=StaffGroupType.STAFF_CV.value).exists.return_value = True
+        groups.filter(name=StaffGroupType.STAFF_GUEST.value).exists.return_value = False
         self.request.user.configure_mock(type=AccountType.STAFF.value, status=AccountStatus.VERIFIED.value,
                                          groups=groups, is_anonymous=False)
         self.assertTrue(self.permission.has_permission(self.request, self.view))
