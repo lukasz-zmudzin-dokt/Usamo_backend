@@ -1,5 +1,6 @@
 from rest_framework import generics
 from rest_framework.permissions import AllowAny, IsAuthenticated
+from rest_framework.filters import OrderingFilter
 from blog.permissions import IsStaffBlogModerator
 from .serializers import *
 from .models import *
@@ -22,7 +23,9 @@ class BaseRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
 class CategoriesAllView(generics.ListAPIView):
     permission_classes = (AllowAny, )
     serializer_class = VideoCategorySerializer
-    queryset = VideoCategory.objects.all()
+    filter_backends = (OrderingFilter,)
+    ordering = ['pk']
+    queryset = VideoCategory.objects.prefetch_related('videos').all()
 
 
 class CategoriesNewView(generics.CreateAPIView):
@@ -44,9 +47,10 @@ class CategoryRetrieveUpdateDestroyView(BaseRetrieveUpdateDestroyView):
 class VideosAllView(generics.ListAPIView):
     permission_classes = (AllowAny,)
     serializer_class = VideoSerializer
-    filter_backends = (filters.DjangoFilterBackend,)
+    filter_backends = (filters.DjangoFilterBackend, OrderingFilter,)
     filterset_class = VideoFilter
-    queryset = Video.objects.all()
+    ordering = ['pk']
+    queryset = Video.objects.select_related('category').all()
 
 
 class VideosNewView(generics.CreateAPIView):

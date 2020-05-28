@@ -330,7 +330,7 @@ class BlogPostView(views.APIView):
     )
     def get(self, request, post_id):
         try:
-            blog_post = BlogPost.objects.get(id=post_id)
+            blog_post = BlogPost.objects.prefetch_related('comments__author').get(id=post_id)
             serializer = BlogPostSerializer(blog_post)
             return Response(serializer.data, status.HTTP_200_OK)
         except ObjectDoesNotExist:
@@ -417,7 +417,12 @@ class BlogPostListView(generics.ListAPIView):
     ordering_fields = ['date_created']
     ordering = ['-date_created']
     pagination_class = BlogPostListPagination
-    queryset = BlogPost.objects.all()
+
+    def get_queryset(self):
+        return BlogPost.objects\
+            .select_related('author') \
+            .prefetch_related('tags') \
+            .select_related('category').all()
 
 
 class BlogPostCommentCreateView(views.APIView):
