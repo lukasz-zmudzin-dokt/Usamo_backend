@@ -1,22 +1,16 @@
-# Create your tests here.
 from unittest.mock import MagicMock
-
 from account.account_status import AccountStatus
 from account.models import Account, DefaultAccount, Address
 from django.contrib.auth.models import User
 from rest_framework import status
 from rest_framework.authtoken.models import Token
-from rest_framework.test import APITestCase
-from rest_framework.test import APIClient
+from rest_framework.test import APITestCase, APIClient
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.core.files import File
-from cv import models
+from cv.models import *
 from cv.cv_test_data import cv_test_data, user_data
-from cv.models import CV
-from cv.models import BasicInfo
 from cv.serializers import CVSerializer
-from rest_framework.test import APIRequestFactory
-from rest_framework.test import force_authenticate
+from rest_framework.test import APIRequestFactory, force_authenticate
 from django.db import models
 import os
 

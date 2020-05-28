@@ -1,6 +1,5 @@
 import os
 import uuid
-
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
@@ -13,9 +12,6 @@ def send_mail_via_sendgrid(message: Mail):
 
         sg = SendGridAPIClient(api_key)
         response = sg.send(message)
-        print(response.status_code)
-        print(response.body)
-        print(response.headers)
     except Exception as e:
         raise e
 

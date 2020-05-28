@@ -1,5 +1,4 @@
 import os
-
 from notifications.signals import notify
 from rest_framework.parsers import MultiPartParser
 from account.models import EmployerAccount, DefaultAccount, Account
@@ -11,9 +10,7 @@ from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.inspectors import DjangoRestResponsePagination
 from drf_yasg.openapi import Parameter, IN_PATH, IN_QUERY, Schema, IN_BODY, IN_FORM
 from drf_yasg.utils import swagger_auto_schema
-from rest_framework import generics, serializers, filters
-from rest_framework import status
-from rest_framework import views
+from rest_framework import generics, serializers, filters, status, views
 from rest_framework.decorators import permission_classes
 from rest_framework.filters import OrderingFilter
 from rest_framework.pagination import PageNumberPagination

@@ -5,10 +5,32 @@ from django_apscheduler.jobstores import DjangoJobStore, register_events, regist
 from datetime import datetime, timedelta, timezone
 from account.models import Account
 from account.utils import send_mail_via_sendgrid
+from django.conf import settings
 
 scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), "default")
 scheduler.start()
+
+
+def start_scheduler(pk):
+    scheduler.add_job(send_notification_email, 'cron', [pk], hour='6', replace_existing=True, id=str(pk))
+    register_events(scheduler)
+
+
+def stop_scheduler(pk):
+    scheduler.remove_job(str(pk))
+
+
+def send_email(email, subject, content):
+    message = Mail(
+        from_email='no-reply@usamodzielnieni.pl',
+        to_emails=email,
+        subject=subject,
+        plain_text_content=PlainTextContent(content))
+    try:
+        send_mail_via_sendgrid(message)
+    except ForbiddenError:
+        pass
 
 
 def send_notification_email(pk):
@@ -22,41 +44,43 @@ def send_notification_email(pk):
         content = 'Oto powiadomienia z serwisu Usamodzielnieni z ostatnich 24 godzin:\n'
         for verb, time in zip(verbs, times):
             content += str(verb) + ' | ' + str(time) + '\n'
-
-        message = Mail(
-            from_email='noreply@usamodzielnieni.pl',
-            to_emails=email,
-            subject=subject,
-            plain_text_content=PlainTextContent(content))
-        try:
-            send_mail_via_sendgrid(message)
-        except ForbiddenError:
-            pass
-
-
-def start_scheduler(pk):
-    scheduler.add_job(send_notification_email, 'cron', [pk], hour='6', replace_existing=True, id=str(pk))
-    register_events(scheduler)
-
-
-def stop_scheduler(pk):
-    scheduler.remove_job(str(pk))
+        send_email(email, subject, content)
 
 
 def send_verification_email(pk):
     user = Account.objects.get(id=pk)
     email = user.email
-    login_url = 'http://usamodzielnieni-frontend.herokuapp.com/login'
+    login_url = settings.FRONT_URL + 'login'
     subject = f'Twoje konto w serwisie Usamodzielnieni zostało zweryfikowane!'
     content = f'Dzień dobry, {user.first_name}!\nZ przyjemnością informujemy, że Twoje konto {user.username} w ' \
               f'serwisie Usamodzielnieni zostało pomyślnie zweryfikowane. Możesz teraz zalogować się i korzystać ' \
               f'ze wszystkich dostępnych funkcji:\n{login_url}\nŻyczymy miłego dnia,\nZespół Usamodzielnionych'
-    message = Mail(
-        from_email='noreply@usamodzielnieni.pl',
-        to_emails=email,
-        subject=subject,
-        plain_text_content=PlainTextContent(content))
-    try:
-        send_mail_via_sendgrid(message)
-    except ForbiddenError:
-        pass
+    send_email(email, subject, content)
+
+
+def send_rejection_email(pk):
+    user = Account.objects.get(id=pk)
+    email = user.email
+    contact_email = settings.CONTACT_EMAIL
+    subject = f'Twoje konto w serwisie Usamodzielnieni zostało zdezaktywowane'
+    content = f'Dzień dobry, {user.first_name}!\nZ przykrością informujemy, że Twoje konto {user.username} w ' \
+              f'serwisie Usamodzielnieni nie spełnia wymogów naszego regulaminu. Jeżeli uważasz, że zaszła pomyłka, ' \
+              f'prosimy o kontakt na adres {contact_email}\n' \
+              f'Życzymy miłego dnia,\nZespół Usamodzielnionych'
+    send_email(email, subject, content)
+
+
+def send_account_data_change_email(pk, data):
+    user = Account.objects.get(id=pk)
+    email = user.email
+    contact_email = settings.CONTACT_EMAIL
+    subject = f'Dane Twojego konta w serwisie Usamodzielnieni zostały zmienione'
+    content_data = ''
+    for key in data:
+        key_name = type(user)._meta.get_field(key).verbose_name
+        key_value = data[key]
+        content_data += f'{key_name}: {key_value}\n'
+    content = f'Dzień dobry, {user.first_name}!\nInformujemy, że dane Twojego konta w serwisie Usamodzielnieni ' \
+              f'zostały zmienione. Nowe dane:\n{content_data}Jeżeli uważasz, że zaszła pomyłka, prosimy o kontakt ' \
+              f'na adres {contact_email}\nŻyczymy miłego dnia,\nZespół Usamodzielnionych'
+    send_email(email, subject, content)
