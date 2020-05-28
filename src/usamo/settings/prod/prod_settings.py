@@ -1,6 +1,8 @@
 import os
 import dj_database_url
 from datetime import timedelta
+from usamo.settings.settings import INSTALLED_APPS
+
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -29,35 +31,7 @@ X_FRAME_OPTIONS = 'DENY'
 
 ALLOWED_HOSTS = ['usamodzielnieni-frontend.herokuapp.com']
 
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'channels',
-    'django_apscheduler',
-    'phonenumber_field',
-    'rest_framework',
-    'rest_framework.authtoken',
-    'whitenoise.runserver_nostatic',
-    'corsheaders',
-    'job.apps.JobConfig',
-    'chat.apps.ChatConfig',
-    'cv.apps.CvConfig',
-    'videos.apps.VideosConfig',
-    'account.apps.AccountConfig',
-    'blog.apps.BlogConfig',
-    'helpline.apps.HelplineConfig',
-    'notification.apps.NotificationConfig',
-    'steps.apps.StepsConfig',
-    'notifications',
-    'drf_yasg',
-    'django_rest_passwordreset',
-    'django_filters',
-    'knox'
-]
+INSTALLED_APPS = INSTALLED_APPS
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
