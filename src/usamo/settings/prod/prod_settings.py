@@ -6,7 +6,8 @@ from datetime import timedelta
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
-PASS_RESET_URL = os.getenv('PASS_RESET_URL')
+FRONT_URL = os.getenv('FRONT_URL')
+CONTACT_MAIL = os.getenv('CONTACT_MAIL')
 
 DEBUG = False
 
@@ -202,8 +203,3 @@ SCHEDULER_CONFIG = {
 SCHEDULER_AUTOSTART = True
 
 TEST_RUNNER = 'usamo.tests.TempMediaRunner'
-
-def _get_pdfkit_config():
-    wkhtmltopdf_bin = os.environ.get('WKHTMLTOPDF_BINARY')
-    if wkhtmltopdf_bin:
-        return pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_bin)
