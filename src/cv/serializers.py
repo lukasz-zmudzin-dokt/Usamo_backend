@@ -69,7 +69,7 @@ class LanguageSerializer(serializers.ModelSerializer):
 
 
 class BasicInfoSerializer(serializers.ModelSerializer):
-    picture = serializers.ImageField(required=False)
+    picture = serializers.ImageField(required=False, write_only=True)
 
     def validate_phone_number(self, value):
         try:
@@ -83,7 +83,7 @@ class BasicInfoSerializer(serializers.ModelSerializer):
         fields = ['first_name', 'last_name', 'email',
                   'date_of_birth', 'phone_number', 'picture']
 
-
+        
 class FeedbackSerializer(serializers.ModelSerializer):
     cv_id = serializers.UUIDField()
 

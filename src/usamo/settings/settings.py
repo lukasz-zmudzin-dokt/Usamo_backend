@@ -12,11 +12,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 import dj_database_url
-import subprocess
-import sys
-import pdfkit
-import platform
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 from datetime import timedelta
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
