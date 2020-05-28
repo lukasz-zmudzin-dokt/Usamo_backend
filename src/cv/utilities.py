@@ -8,6 +8,7 @@ import jinja2
 import pdfkit
 import platform
 import io
+import sys
 from .templates.templates import TEMPLATES_CHOICES
 
 
