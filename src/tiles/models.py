@@ -17,10 +17,19 @@ class Tile(models.Model):
     color = models.CharField(max_length=30)
     photo_layer = models.OneToOneField(PhotoLayer, on_delete=models.CASCADE)
 
+    @property
+    def photo_url(self):
+        return self.photo.url if self.photo else None 
+
 
 @receiver(post_delete, sender=Tile)
-def delete_document(sender, instance, **kwargs):
+def delete_photo(sender, instance, **kwargs):
     if instance.photo:
         if os.path.isfile(instance.photo.path):
             os.remove(instance.photo.path)
 
+
+def delete_previous_photo(instance):
+    if instance.photo:
+        if os.path.isfile(instance.photo.path):
+            os.remove(instance.photo.path)

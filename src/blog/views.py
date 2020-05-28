@@ -420,7 +420,6 @@ class BlogPostListView(generics.ListAPIView):
 
     def get_queryset(self):
         return BlogPost.objects\
-            .select_related('id')\
             .select_related('author') \
             .prefetch_related('tags') \
             .select_related('category').all()

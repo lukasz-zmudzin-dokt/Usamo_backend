@@ -3,6 +3,7 @@ from django.utils.datastructures import MultiValueDictKeyError
 from drf_yasg.openapi import Parameter, IN_PATH
 from rest_framework import generics
 from .serializers import *
+from .models import *
 from account.permissions import IsStaffMember
 from rest_framework import views
 from rest_framework.permissions import AllowAny
@@ -88,7 +89,7 @@ class TileListView(generics.ListAPIView):
     ordering = ['pk']
 
     def get_queryset(self):
-        queryset = Tile.objects.all()
+        queryset = Tile.objects.prefetch_related('photo_layer').all()
         return queryset
 
 
@@ -127,6 +128,7 @@ class TilePhotoView(views.APIView):
             return ErrorResponse("Nie znaleziono kafelka o podanym id", status.HTTP_404_NOT_FOUND)
 
         try:
+            delete_previous_photo(tile)
             tile.photo = request.FILES['photo']
         except MultiValueDictKeyError:
             return ErrorResponse('Nie znaleziono pliku. Upewnij się, że został on załączony pod kluczem photo'

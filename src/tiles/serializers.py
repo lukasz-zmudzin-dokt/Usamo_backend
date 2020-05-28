@@ -9,7 +9,7 @@ class PhotoLayerSerializer(serializers.ModelSerializer):
 
 
 class TileSerializer(serializers.ModelSerializer):
-    photo = serializers.CharField(source='photo.url', read_only=True)
+    photo = serializers.CharField(source='photo_url', read_only=True)
     photo_layer = PhotoLayerSerializer(required=False)
 
     class Meta:
