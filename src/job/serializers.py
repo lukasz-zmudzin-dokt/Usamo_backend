@@ -1,7 +1,6 @@
 from datetime import date
 from account.serializers import AddressSerializer
 from rest_framework import serializers
-
 from .models import *
 
 
@@ -103,8 +102,7 @@ class JobOfferApplicationSerializer(serializers.ModelSerializer):
     phone_number = serializers.CharField(source='cv.basic_info.phone_number', read_only=True)
     date_posted = serializers.DateTimeField(read_only=True)
     was_read = serializers.BooleanField(read_only=True)
-    cv_url = serializers.URLField(source='document.url', read_only=True)
-    
+
     class Meta:
         model = JobOfferApplication
         fields = ['id', 'cv', 'job_offer', 'cv_url', 'user_id', 'first_name', 'last_name', 'email','phone_number',

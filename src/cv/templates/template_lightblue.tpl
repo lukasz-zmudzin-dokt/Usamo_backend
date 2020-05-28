@@ -35,15 +35,12 @@
             * {
               margin: 0;
             }
- 
             body {
               font-family: 'Montserrat', sans-serif;
             }
- 
             .container {
               margin: 0 10%;
             }
- 
             header {
               background-color: lightblue;
               color: black;
@@ -53,7 +50,6 @@
               padding-left: 10%;
               padding-top: 5%;
             }
- 
             h2 {
               text-align: left;
               font-weight: 600;
@@ -61,11 +57,9 @@
               margin-top: 2rem;
               margin-bottom: 0.5rem;
             }
- 
             #info {
                 display: flow-root;
             }
- 
             #name {
               font-size: 4.25rem;
               text-align: left;
@@ -73,34 +67,29 @@
               width: 600px;
               display: inline-block;
             }
- 
-            h3 {
+            .item-name {
               font-weight: 600;
-              margin-bottom: 0.5rem;
             }
- 
-            h4 {
+            .item-date {
               font-weight: 200;
               margin-bottom: 0.5rem;
               text-align: right;
+              float: right;
             }
- 
             p {
               margin: 0;
               margin-top: 0.5rem;
             }
- 
             .picture {
-                width: 196px;
-                height: 250px;
-                display: inline-block;
-                float: right;
+              width: 196px;
+              height: 250px;
+              display: inline-block;
+              float: right;
             }
- 
             .item {
-              padding-bottom: 10px;
+              margin-top: 0.5rem;
+              margin-bottom: 1rem;
             }
- 
             #klauzula {
               margin-top: 30px;
               margin-bottom: 30px;
@@ -108,7 +97,7 @@
             }
         </style>
     </head>
-    <body onload="autoSizeText()"">
+    <body onload="autoSizeText()">
         <header>
             <div>
                 {% if basic_info.picture %}<img class="picture" src="{{"../../usamo" + basic_info.picture.url}}"/>{% endif %}
@@ -127,8 +116,8 @@
             <h2>Wykształcenie</h2>
             {% for item in schools %}
             <div class="item">
-                <h4>{{item.year_start | escape}} - {% if item.year_end %}{{item.year_end | escape}}{% else %}...{% endif %}</h4>
-                <h3>{{item.name | escape}}</h3>
+                <span class="item-name">{{item.name | escape}}</span>
+                <span class="item-date">{{item.date_start | escape}} - {% if item.date_end %}{{item.date_end | escape}}{% else %}...{% endif %}</span>
                 <p>{{item.additional_info | escape}}</p>
             </div>
             {% endfor %}
@@ -138,8 +127,8 @@
             <h2>Doświadczenie</h2>
             {% for item in experiences %}
             <div class="item">
-                <h4>{{item.year_start | escape}} - {% if item.year_end %}{{item.year_end | escape}}{% else %}...{% endif %}</h4>
-                <h3>{{item.title | escape}}</h3>
+                <span class="item-name">{{item.title | escape}}</span>
+                <span class="item-date">{{item.date_start | escape}} - {% if item.date_end %}{{item.date_end | escape}}{% else %}...{% endif %}</span>
                 <p>{{item.description | escape}}</p>
             </div>
             {% endfor %}
@@ -165,11 +154,7 @@
 
         <div class="container" id="klauzula">
             <p>
-            Wyrażam zgodę na przetwarzanie moich danych osobowych dla potrzeb niezbędnych do realizacji
-            procesu rekrutacji (zgodnie z ustawą z dnia 10 maja 2018 roku o ochronie danych osobowych 
-            (Dz. Ustaw z 2018, poz. 1000) oraz zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 
-            2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem 
-            danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (RODO)).
+            Wyrażam zgodę na przetwarzanie moich danych osobowych dla potrzeb niezbędnych do realizacji procesu rekrutacji (zgodnie z ustawą z dnia 10 maja 2018 roku o ochronie danych osobowych (Dz. Ustaw z 2018, poz. 1000) oraz zgodnie z Rozporządzeniem Parlamentu Europejskiego i Rady (UE) 2016/679 z dnia 27 kwietnia 2016 r. w sprawie ochrony osób fizycznych w związku z przetwarzaniem danych osobowych i w sprawie swobodnego przepływu takich danych oraz uchylenia dyrektywy 95/46/WE (RODO)).
             </p>
         </div>
     </body>

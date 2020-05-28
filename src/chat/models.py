@@ -1,12 +1,11 @@
 from django.db import models
-from django.conf import settings
-from django.db import models
 from django.db.models import Q
 from account.models import Account
 from account.permissions import IsStaffWithChatAccess
 from account.account_type import AccountType
 from account.account_status import AccountStatus
 import uuid
+
 
 class ThreadManager(models.Manager):
     def by_user(self, user):

@@ -9,8 +9,7 @@ from django.db import models
 from django.db.models import SET_NULL
 from django.db.models.signals import post_delete, post_save
 from django.dispatch import receiver
-
-from usamo.settings import settings
+from django.conf import settings
 from .enums import Voivodeships
 from .utils import create_job_offer_image_path
 from account.models import DefaultAccount, EmployerAccount, Address
@@ -78,6 +77,10 @@ class JobOfferApplication(models.Model):
     was_read = models.BooleanField(default=False)
     document = models.FileField(upload_to='application_docs/', null=True)
 
+    @property
+    def cv_url(self):
+        return self.document.url if self.document.name else None
+    
     def duplicate_docs(self):
         document_copy = ContentFile(self.cv.document.read())
         name = self.cv.document.name

@@ -26,7 +26,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
-PASS_RESET_URL = os.getenv('PASS_RESET_URL')
+FRONT_URL = os.getenv('FRONT_URL')
+CONTACT_EMAIL = os.getenv('CONTACT_EMAIL')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -57,6 +58,7 @@ INSTALLED_APPS = [
     'helpline.apps.HelplineConfig',
     'notification.apps.NotificationConfig',
     'steps.apps.StepsConfig',
+    'tiles.apps.TilesConfig',
     'notifications',
     'drf_yasg',
     'django_rest_passwordreset',
@@ -137,15 +139,6 @@ CHANNEL_LAYERS = {
 }
 
 CHANNEL_LAYERS['default']["CONFIG"]["hosts"] = [os.environ.get('REDIS_URL', 'redis://localhost:6379')]
-
-def _get_pdfkit_config():
-    if platform.system() == 'Windows':
-        return pdfkit.configuration(wkhtmltopdf=os.environ.get('WKHTMLTOPDF_BINARY', 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'))
-    else:
-        os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
-        WKHTMLTOPDF_CMD = subprocess.Popen(['which', os.environ.get(
-            'WKHTMLTOPDF_BINARY', 'wkhtmltopdf')], stdout=subprocess.PIPE).communicate()[0].strip()
-        return pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_CMD)
 
 # Password validation
 # https://docs.djangoproject.com/en/2.2/ref/settings/#auth-password-validators

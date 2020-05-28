@@ -19,15 +19,3 @@ def announce_new_notification(sender, instance, created, **kwargs):
                 "data": NotificationSerializer(instance=instance).data
             }
         )
-
-@receiver(post_save, sender=ChatMessage)
-def announce_new_message(sender, instance, created, **kwargs):
-    if created:
-        channel_layer = get_channel_layer()
-        async_to_sync(channel_layer.group_send)(
-            instance.recipient.username, {
-                "event": "Nowe wiadomość",
-                "type": "new_notification",
-                "data": ChatMessageSerializer(instance=instance).data
-            }
-        )

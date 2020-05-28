@@ -1,6 +1,5 @@
 from drf_yasg.openapi import Schema
 from drf_yasg.utils import swagger_auto_schema
-
 from .serializers import ProfilePictureSerializer
 
 

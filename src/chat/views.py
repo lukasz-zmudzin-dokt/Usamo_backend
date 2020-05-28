@@ -1,5 +1,4 @@
-from rest_framework import status
-from rest_framework import views
+from rest_framework import status, views
 from rest_framework.generics import ListAPIView, RetrieveAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
