@@ -5,6 +5,8 @@ from channels.security.websocket import AllowedHostsOriginValidator, OriginValid
 from chat.consumers import ChatConsumer, InboxConsumer
 from notification.consumers import NotificationConsumer
 from notification.token_auth import TokenAuthMiddlewareStack
+
+
 application = ProtocolTypeRouter({
     # Empty for now (http->django views is added by default)
     'websocket': AllowedHostsOriginValidator(

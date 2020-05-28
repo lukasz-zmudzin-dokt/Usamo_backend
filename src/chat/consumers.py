@@ -9,6 +9,7 @@ from django.utils import timezone
 from .serializers import ThreadSerializer
 from notifications.signals import notify
 
+
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     
     async def connect(self):

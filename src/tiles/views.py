@@ -14,8 +14,6 @@ from rest_framework.filters import OrderingFilter
 from django.utils.decorators import method_decorator
 from drf_yasg import openapi
 
-# Create your views here.
-
 
 class TileCreateView(views.APIView):
     permission_classes = [IsStaffMember]

@@ -1,11 +1,9 @@
 from phonenumber_field.validators import validate_international_phonenumber
 from rest_framework import serializers
 from django.core.files.base import ContentFile
-
 from .templates.templates import TEMPLATES_CHOICES
 from .utilities import *
 from .models import *
-
 import datetime
 
 

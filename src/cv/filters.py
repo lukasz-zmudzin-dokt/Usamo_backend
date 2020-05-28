@@ -1,5 +1,4 @@
 from collections import namedtuple
-
 from django_filters import rest_framework as filters
 from drf_yasg.inspectors import CoreAPICompatInspector, NotHandled
 from rest_framework.filters import OrderingFilter
