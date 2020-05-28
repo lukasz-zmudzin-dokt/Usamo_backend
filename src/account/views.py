@@ -50,8 +50,8 @@ class AbstractRegistrationView(KnoxLoginView):
         if isinstance(serializer, (DefaultAccountSerializer, EmployerAccountSerializer)):
             notify.send(user, recipient=Account.objects.filter(groups__name__contains='staff_verification'),
                         verb=f'Założono nowe konto do weryfikacji: {user.username}',
-                        app='account/admin/user-details/',
-                        object_id=user.id
+                        app='userApproval',
+                        object_id=None
                         )
         return Response(response_data, status.HTTP_201_CREATED)
 

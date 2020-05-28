@@ -57,8 +57,8 @@ class CreateCVView(views.APIView):
             response = {"cv_id": cv.pk}
             notify.send(request.user, recipient=Account.objects.filter(groups__name__contains='staff_cv'),
                         verb=f'Użytkownik {def_account.user.username} utworzył_a nowe CV',
-                        app='cv/generator/',
-                        object_id=cv.cv_id
+                        app='cvApproval',
+                        object_id=None
                         )
             return Response(response, status.HTTP_201_CREATED)
         else:
@@ -346,8 +346,8 @@ class AdminFeedback(views.APIView):
             feedback = serializer.create(serializer.validated_data)
             notify.send(request.user, recipient=cv.cv_user.user,
                         verb=f'Osoba z fundacji skomentowała twoje CV: {cv.name}',
-                        app='cv/feedback/',
-                        object_id=cv.cv_id
+                        app='myCVs',
+                        object_id=None
                         )
             return MessageResponse('Feedback stworzono pomyślnie')
         else:
@@ -413,8 +413,8 @@ class AdminCVVerificationView(views.APIView):
             cv.save()
             notify.send(request.user, recipient=cv.cv_user.user,
                         verb=f'Osoba z fundacji zatwierdziła twoje CV: {cv.name}',
-                        app='cv/generator/',
-                        object_id=cv.cv_id
+                        app='myCVs',
+                        object_id=None
                         )
             return MessageResponse('CV zweryfikowano pomyślnie')
         return ErrorResponse('Nie podano cv_id', status.HTTP_400_BAD_REQUEST)
