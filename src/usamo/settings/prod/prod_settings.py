@@ -28,7 +28,7 @@ SECURE_HSTS_PRELOAD = True
 
 X_FRAME_OPTIONS = 'DENY'
 
-ALLOWED_HOSTS = ['usamodzielnieni-frontend.herokuapp.com']
+ALLOWED_HOSTS = ['usamodzielnieni.herokuapp.com', 'usamodzielnieni.pl', 'localhost:5000']
 
 INSTALLED_APPS = INSTALLED_APPS
 
