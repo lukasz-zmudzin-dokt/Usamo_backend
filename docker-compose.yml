@@ -11,7 +11,7 @@ services:
     env_file:
       - ./src/usamo/settings/test/test.env
     environment:
-      - DJANGO_SETTINGS_MODULE=usamo.settings.test.test_settings
+      - DJANGO_SETTINGS_MODULE=usamo.settings.settings
     build: ./src
     command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
     volumes:
