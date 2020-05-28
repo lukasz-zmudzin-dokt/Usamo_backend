@@ -8,8 +8,17 @@ import jinja2
 import pdfkit
 import platform
 import io
-
 from .templates.templates import TEMPLATES_CHOICES
+
+
+def _get_pdfkit_config():
+    if platform.system() == 'Windows':
+        return pdfkit.configuration(wkhtmltopdf=os.environ.get('WKHTMLTOPDF_BINARY', 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'))
+    else:
+        os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
+        WKHTMLTOPDF_CMD = subprocess.Popen(['which', os.environ.get(
+            'WKHTMLTOPDF_BINARY', 'wkhtmltopdf')], stdout=subprocess.PIPE).communicate()[0].strip()
+        return pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_CMD)
 
 
 def create_unique_filename(prefix, ext):
@@ -63,6 +72,6 @@ def generate(data, template):
     if platform.system() != 'Windows':
         options['zoom'] = '0.78125'
     pdf = pdfkit.from_file(
-        html_path, False, configuration=settings._get_pdfkit_config(), options=options)
+        html_path, False, configuration=_get_pdfkit_config(), options=options)
     # right now it returns the pdf
     return pdf
