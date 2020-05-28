@@ -4,12 +4,11 @@ from datetime import timedelta
 from usamo.settings.settings import INSTALLED_APPS
 
 
-
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 SECRET_KEY = os.getenv('SECRET_KEY')
 FRONT_URL = os.getenv('FRONT_URL')
-CONTACT_MAIL = os.getenv('CONTACT_MAIL')
+CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', 'kontakt@usamodzielnieni.pl')
 
 DEBUG = False
 
