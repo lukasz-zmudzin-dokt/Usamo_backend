@@ -317,7 +317,14 @@ class AdminUnverifiedCVList(generics.ListAPIView):
     ordering = ['-date_created']
 
     def get_queryset(self):
-        return CV.objects.filter(is_verified=False)
+        return CV.objects\
+            .select_related('cv_user') \
+            .select_related('basic_info') \
+            .prefetch_related('schools') \
+            .prefetch_related('experiences') \
+            .prefetch_related('skills') \
+            .prefetch_related('languages') \
+            .filter(is_verified=False)
 
 
 class AdminFeedback(views.APIView):
@@ -456,7 +463,6 @@ class CVStatus(views.APIView):
     operation_description="Zwraca listę wszystkich CV dla admina"
 ))
 class AdminCVListView(generics.ListAPIView):
-    queryset = CV.objects.all()
     serializer_class = CVSerializer
     permission_classes = [IsStaffResponsibleForCVs]
     pagination_class = CVPagination
@@ -466,6 +472,15 @@ class AdminCVListView(generics.ListAPIView):
                        'was_reviewed', 'is_verified']
     ordering = ['-date_created']
 
+    def get_queryset(self):
+        return CV.objects\
+            .select_related('cv_user') \
+            .select_related('basic_info') \
+            .prefetch_related('schools') \
+            .prefetch_related('experiences') \
+            .prefetch_related('skills') \
+            .prefetch_related('languages') \
+            .all()
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     filter_inspectors=[DjangoFilterDescriptionInspector],
