@@ -5,6 +5,7 @@ from django_apscheduler.jobstores import DjangoJobStore, register_events, regist
 from datetime import datetime, timedelta, timezone
 from account.models import Account
 from account.utils import send_mail_via_sendgrid
+from django.conf import settings
 
 scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), "default")
@@ -24,7 +25,7 @@ def send_notification_email(pk):
             content += str(verb) + ' | ' + str(time) + '\n'
 
         message = Mail(
-            from_email='noreply@usamodzielnieni.pl',
+            from_email='no-reply@usamodzielnieni.pl',
             to_emails=email,
             subject=subject,
             plain_text_content=PlainTextContent(content))
@@ -46,13 +47,13 @@ def stop_scheduler(pk):
 def send_verification_email(pk):
     user = Account.objects.get(id=pk)
     email = user.email
-    login_url = 'http://usamodzielnieni-frontend.herokuapp.com/login'
+    login_url = settings.FRONT_URL + 'login'
     subject = f'Twoje konto w serwisie Usamodzielnieni zostało zweryfikowane!'
     content = f'Dzień dobry, {user.first_name}!\nZ przyjemnością informujemy, że Twoje konto {user.username} w ' \
               f'serwisie Usamodzielnieni zostało pomyślnie zweryfikowane. Możesz teraz zalogować się i korzystać ' \
               f'ze wszystkich dostępnych funkcji:\n{login_url}\nŻyczymy miłego dnia,\nZespół Usamodzielnionych'
     message = Mail(
-        from_email='noreply@usamodzielnieni.pl',
+        from_email='no-reply@usamodzielnieni.pl',
         to_emails=email,
         subject=subject,
         plain_text_content=PlainTextContent(content))
