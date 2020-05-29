@@ -9,6 +9,8 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SECRET_KEY = os.getenv('SECRET_KEY')
 FRONT_URL = os.getenv('FRONT_URL')
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', 'kontakt@usamodzielnieni.pl')
+SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
+SENDGRID_TEMPLATE_ID = os.getenv('SENDGRID_TEMPLATE_ID')
 
 DEBUG = False
 
