@@ -14,7 +14,8 @@ class SubStepSerializer(serializers.ModelSerializer):
                 'read_only': True
             },
             'video': {
-                'required': False
+                'required': False,
+                'allow_null': True
             },
             'description': {
                 'required': False
@@ -30,7 +31,7 @@ class ChildStepSerializer(serializers.ModelSerializer):
 
 
 class StepSerializer(serializers.ModelSerializer):
-    video = serializers.URLField(required=False)
+    video = serializers.URLField(required=False, allow_null=True)
     substeps = SubStepSerializer(required=False, many=True)
     children = ChildStepSerializer(many=True, read_only=True)
 

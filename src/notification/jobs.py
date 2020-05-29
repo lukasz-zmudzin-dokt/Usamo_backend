@@ -1,13 +1,14 @@
 from apscheduler.schedulers.background import BackgroundScheduler
+from notifications.signals import notify
 from python_http_client import ForbiddenError
 from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 from django.utils import timezone
-from account.models import *
+from account.models import Account
 from django.conf import settings
 from sendgrid.helpers.mail import Mail
 from account.utils import send_mail_via_sendgrid
 from account.account_type import AccountType
-from django.core.exceptions import FieldDoesNotExist
+from job.models import JobOffer
 
 
 scheduler = BackgroundScheduler()
@@ -17,11 +18,26 @@ scheduler.start()
 
 def start_scheduler(pk):
     scheduler.add_job(send_notification_email, 'cron', [pk], hour='6', replace_existing=True, id=str(pk))
-    register_events(scheduler)
 
 
 def stop_scheduler(pk):
     scheduler.remove_job(str(pk))
+
+
+def archive_old_job_offers():
+    old_job_offers = JobOffer.objects.filter(expiration_date__lt=timezone.now())\
+        .select_related('employer__user')
+    for offer in old_job_offers:
+        offer.removed = True
+        offer.save()
+        notify.send(offer.employer.user, recipient=offer.employer.user,
+                    verb=f'Twoja oferta pracy {offer.offer_name} została zarchiwizowana',
+                    app='myOffers',
+                    object_id=None
+                    )
+
+
+scheduler.add_job(archive_old_job_offers, 'cron', hour='0', replace_existing=True, id='archive_old_job_offers_task')
 
 
 def send_email(email, subject, name, part1=None, part2=None, part3=None):
@@ -45,6 +61,7 @@ def send_notification_email(pk):
     email = user.email
     login_url = settings.FRONT_URL + 'login'
     notifications = user.notifications.filter(unread=True)
+
     if notifications.count() > 0:
         subject = 'Usamodzielnieni: nowe powiadomienia'
         part1 = f'Masz {notifications.count()} nieodczytane powiadomienia.'
