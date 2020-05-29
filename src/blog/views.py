@@ -452,7 +452,7 @@ class BlogPostCommentCreateView(views.APIView):
                 instance.save()
                 notify.send(request.user, recipient=Account.objects.filter(groups__name__contains='staff_blog_moderator'),
                             verb=f'Użytkownik {author.username} skomentował_a post {blog_post.title}',
-                            app='blog/blogpost/',
+                            app='blog/blogpost',
                             object_id=post_id
                             )
                 return BlogPostCommentIdResponse(instance.id)
