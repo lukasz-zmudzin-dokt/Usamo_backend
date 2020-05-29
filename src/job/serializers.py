@@ -26,14 +26,14 @@ class JobOfferSerializer(serializers.ModelSerializer):
     def validate_expiration_date(self, value):
         today = date.today()
         if value < today:
-            raise serializers.ValidationError("Date is in past")
+            raise serializers.ValidationError("Data ważności jest w przeszłości")
         return value
 
     def validate(self, data):
         salary_min = data.get('salary_min')
         salary_max = data.get('salary_max')
         if salary_min and salary_max and salary_min > salary_max:
-            raise serializers.ValidationError("salary_min is greater than salary_max")
+            raise serializers.ValidationError("Dolna granica wynagrodzenia jest większa niż górna")
         return data
 
     def create(self, validated_data):
