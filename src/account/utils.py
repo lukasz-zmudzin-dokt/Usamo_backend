@@ -1,19 +1,17 @@
-import os
 import uuid
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
+from django.conf import settings
 
 
 def send_mail_via_sendgrid(message: Mail):
     try:
-        api_key = os.environ.get('SENDGRID_API_KEY')
-        if api_key is None or not api_key:
-            raise EnvironmentError('The api key has not been provided')
-
+        api_key = settings.SENDGRID_API_KEY
         sg = SendGridAPIClient(api_key)
-        response = sg.send(message)
+        message.template_id = settings.SENDGRID_TEMPLATE_ID
+        sg.send(message)
     except Exception as e:
-        raise e
+        print(e)
 
 
 def __create_file_path(folder, filename):
