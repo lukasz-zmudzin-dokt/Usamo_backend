@@ -132,7 +132,7 @@ class JobOfferView(views.APIView):
         operation_description="Edytuje ofertę pracy",
     )
     def put(self, request, offer_id):
-        def validate_update(inst, valid_serializer):
+        def validate_update(inst, valid_serializer, user):
             data = valid_serializer.validated_data
             salary_min = data.get('salary_min')
             salary_max = data.get('salary_max')
@@ -143,6 +143,14 @@ class JobOfferView(views.APIView):
             elif not salary_min and salary_max and salary_max < inst.salary_min:
                 return ErrorResponse("Podane maskymalne wynagrodzenie jest mniejsze niż aktualne minimalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
             valid_serializer.update(inst, data)
+            if user.type == 3:
+                instance.confirmed = False
+                instance.save()
+                notify.send(user, recipient=Account.objects.filter(groups__name__contains='staff_jobs'),
+                            verb=f'Użytkownik {user.username} zmienił_a swoją ofertę pracy',
+                            app='offerApproval',
+                            object_id=None
+                            )
             return MessageResponse("Pomyślnie edytowano ofertę")
 
         try:
@@ -154,7 +162,7 @@ class JobOfferView(views.APIView):
             if not IsEmployer().has_object_permission(request, self, instance) \
                     and not IsStaffResponsibleForJobs().has_object_permission(request, self, instance):
                 return ErrorResponse("Nie masz uprawnień do wykonania tej czynności", status.HTTP_403_FORBIDDEN)
-            return validate_update(instance, serializer)
+            return validate_update(instance, serializer, request.user)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
