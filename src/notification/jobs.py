@@ -6,6 +6,7 @@ from datetime import datetime, timedelta, timezone
 from account.models import Account
 from account.utils import send_mail_via_sendgrid
 from django.conf import settings
+from job.models import JobOffer
 
 scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), "default")
@@ -14,11 +15,21 @@ scheduler.start()
 
 def start_scheduler(pk):
     scheduler.add_job(send_notification_email, 'cron', [pk], hour='6', replace_existing=True, id=str(pk))
-    register_events(scheduler)
 
 
 def stop_scheduler(pk):
     scheduler.remove_job(str(pk))
+
+
+def archive_old_job_offers():
+    print('remove')
+    old_job_offers = JobOffer.objects.filter(expiration_date__day__lt=datetime.now().day)
+    for offer in old_job_offers:
+        offer.removed = True
+        offer.save()
+
+
+scheduler.add_job(archive_old_job_offers, 'cron', hour='1', replace_existing=True)
 
 
 def send_email(email, subject, content):
