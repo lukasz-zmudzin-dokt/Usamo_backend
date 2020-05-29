@@ -80,8 +80,6 @@ class ThreadView(RetrieveAPIView):
     def get_object(self):
         user = self.request.user
         other_username = self.kwargs['username']
-        qlookup1 = Q(first__username=user.username) & Q(second__username=other_username)
-        qlookup2 = Q(first__username=other_username) & Q(second__username=user.username)
 
-        thread = Thread.objects.filter(qlookup1 | qlookup2).first()
+        thread = Thread.objects.get_or_new(user, other_username)
         return thread

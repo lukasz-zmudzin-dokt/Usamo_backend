@@ -13,8 +13,8 @@ application = ProtocolTypeRouter({
         TokenAuthMiddlewareStack(
             URLRouter(
                 [
-                    url(r"^chat/(?P<username>[\w.@+-]+)/$", ChatConsumer),
-                    url("chat/", InboxConsumer),
+                    url(r"^chat/(?P<username>\S+)/$", ChatConsumer),
+                    # url("chat/", InboxConsumer),
                     url("notification/ws", NotificationConsumer)
                 ]
             )
