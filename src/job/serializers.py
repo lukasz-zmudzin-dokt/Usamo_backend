@@ -66,9 +66,10 @@ class JobOfferSerializer(serializers.ModelSerializer):
         instance.voivodeship = validated_data.get('voivodeship', instance.voivodeship)
         instance.expiration_date = validated_data.get('expiration_date', instance.expiration_date)
         instance.description = validated_data.get('description', instance.description)
+        instance.removed = False
+        instance.verified = False
         instance.save()
         return instance
-
 
     class Meta:
         model = JobOffer

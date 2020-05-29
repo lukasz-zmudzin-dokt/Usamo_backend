@@ -1,8 +1,10 @@
 from apscheduler.schedulers.background import BackgroundScheduler
+from notifications.signals import notify
 from python_http_client import ForbiddenError
 from sendgrid.helpers.mail import Mail, PlainTextContent
 from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
+from django.utils import timezone
 from account.models import Account
 from account.utils import send_mail_via_sendgrid
 from django.conf import settings
@@ -22,14 +24,19 @@ def stop_scheduler(pk):
 
 
 def archive_old_job_offers():
-    print('remove')
-    old_job_offers = JobOffer.objects.filter(expiration_date__day__lt=datetime.now().day)
+    old_job_offers = JobOffer.objects.filter(expiration_date__lt=timezone.now())\
+        .select_related('employer__user')
     for offer in old_job_offers:
         offer.removed = True
         offer.save()
+        notify.send(offer.employer.user, recipient=offer.employer.user,
+                    verb=f'Twoja oferta pracy {offer.offer_name} została zarchiwizowana',
+                    app='myOffers',
+                    object_id=None
+                    )
 
 
-scheduler.add_job(archive_old_job_offers, 'cron', hour='1', replace_existing=True)
+scheduler.add_job(archive_old_job_offers, 'cron', hour='0', replace_existing=True, id='archive_old_job_offers_task')
 
 
 def send_email(email, subject, content):
@@ -47,7 +54,7 @@ def send_email(email, subject, content):
 def send_notification_email(pk):
     user = Account.objects.get(id=pk)
     email = user.email
-    notifications = user.notifications.filter(timestamp__gte=datetime.now().astimezone(timezone.utc) - timedelta(days=1))
+    notifications = user.notifications.filter(timestamp__gte=timezone.now() - timedelta(days=1))
     if notifications.count() > 0:
         verbs = [notification.verb for notification in notifications]
         times = [notification.timestamp.strftime('%d/%m/%y %H:%M') for notification in notifications]
