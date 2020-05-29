@@ -81,5 +81,5 @@ class ThreadView(RetrieveAPIView):
         user = self.request.user
         other_username = self.kwargs['username']
 
-        thread = Thread.objects.get_or_new(user, other_username)
+        thread = Thread.objects.get_or_new(user, other_username)[0]
         return thread
