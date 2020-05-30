@@ -69,7 +69,7 @@ def send_notification_email(pk):
         part1 = f'Masz {notifications.count()} nieodczytane powiadomienia.'
         part2 = 'Aby je wyświetlić, zaloguj się, korzystając z poniższego linka:'
         part3 = login_url
-        send_email(email, subject, user.username, part1=part1, part2=part2, part3=part3)
+        send_email(email, subject, user.first_name, part1=part1, part2=part2, part3=part3)
    
 
 
@@ -82,7 +82,7 @@ def send_verification_email(pk):
               f'serwisie Usamodzielnieni zostało pomyślnie zweryfikowane. Możesz teraz zalogować się i korzystać ' \
               f'ze wszystkich dostępnych funkcji:'
     part2 = login_url
-    send_email(email, subject, user.username, part1=part1, part2=part2)
+    send_email(email, subject, user.first_name, part1=part1, part2=part2)
 
 
 def send_rejection_email(pk):
@@ -94,7 +94,7 @@ def send_rejection_email(pk):
               f'serwisie Usamodzielnieni nie spełnia wymogów naszego regulaminu.' 
     part2 =   f'Jeżeli uważasz, że zaszła pomyłka, prosimy o kontakt na adres {contact_email}' 
              
-    send_email(email, subject, user.username, part1=part1, part2=part2)
+    send_email(email, subject, user.first_name, part1=part1, part2=part2)
 
 
 def send_account_data_change_email(pk, data):
@@ -111,4 +111,4 @@ def send_account_data_change_email(pk, data):
     part3 =   f'Jeżeli uważasz, że zaszła pomyłka, prosimy o kontakt ' \
               f'na adres {contact_email}'
 
-    send_email(email, subject, user.username, part1=part1, part2=part2, part3=part3)
+    send_email(email, subject, user.first_name, part1=part1, part2=part2, part3=part3)
