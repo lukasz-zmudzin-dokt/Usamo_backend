@@ -6,6 +6,7 @@ from drf_yasg.utils import swagger_auto_schema
 from knox.views import LoginView as KnoxLoginView
 from knox.views import LogoutView as KnoxLogoutView
 from knox.views import LogoutAllView as KnoxLogoutAllView
+from django_apscheduler.models import DjangoJob
 from notifications.signals import notify
 from rest_framework import status
 from rest_framework import views
@@ -207,7 +208,10 @@ class UserDataView(views.APIView):
     )
     def get(self, request):
         serializer, user_type = self.get_serializer_class(request)
-        return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': serializer.data})
+        data = serializer.data
+        user_id = str(request.user.id)
+        data['is_subscribed'] = DjangoJob.objects.filter(name=user_id).exists()
+        return JsonResponse({'type': dict(ACCOUNT_TYPE_CHOICES)[user_type], 'data': data})
 
     @swagger_auto_schema(
         responses={
