@@ -9,7 +9,9 @@ from sendgrid.helpers.mail import Mail
 from account.utils import send_mail_via_sendgrid
 from account.account_type import AccountType
 from job.models import JobOffer
+from django_apscheduler.models import DjangoJob
 
+DjangoJob.objects.filter(next_run_time__lt=timezone.now()).delete()
 
 scheduler = BackgroundScheduler()
 scheduler.add_jobstore(DjangoJobStore(), "default")
