@@ -50,7 +50,7 @@ class AbstractRegistrationView(KnoxLoginView):
         response_data['token_data'] = token_data
         if isinstance(serializer, (DefaultAccountSerializer, EmployerAccountSerializer)):
             notify.send(user, recipient=Account.objects.filter(groups__name__contains='staff_verification'),
-                        verb=f'Założono nowe konto do weryfikacji: {user.username}',
+                        verb=f'Nowe konto do weryfikacji: {user.username}',
                         app='userApproval',
                         object_id=None
                         )

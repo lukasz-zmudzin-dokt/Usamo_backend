@@ -101,7 +101,7 @@ class JobOfferCreateView(views.APIView):
                 instance.employer_id = employer.id
                 instance.save()
                 notify.send(employer.user, recipient=Account.objects.filter(groups__name__contains='staff_jobs'),
-                            verb=f'Użytkownik {employer.user.username} utworzył_a nową ofertę pracy',
+                            verb=f'Użytkownik {employer.user.username} utworzył nową ofertę pracy',
                             app='offerApproval',
                             object_id=None
                             )
@@ -147,7 +147,7 @@ class JobOfferView(views.APIView):
                 instance.confirmed = False
                 instance.save()
                 notify.send(user, recipient=Account.objects.filter(groups__name__contains='staff_jobs'),
-                            verb=f'Użytkownik {user.username} zmienił_a swoją ofertę pracy',
+                            verb=f'Użytkownik {user.username} edytował swoją ofertę pracy',
                             app='offerApproval',
                             object_id=None
                             )
@@ -365,7 +365,7 @@ class CreateJobOfferApplicationView(views.APIView):
             
             notify.send(user.user, recipient=job_offer.employer.user,
 
-                        verb=f'Użytkownik {user.user.username} aplikował_a na Twoją ofertę pracy!',
+                        verb=f'Użytkownik {user.user.username} aplikował na Twoją ofertę pracy',
                         app='myOffers',
                         object_id=None
                         )

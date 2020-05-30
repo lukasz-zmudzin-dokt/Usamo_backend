@@ -56,7 +56,7 @@ class CreateCVView(views.APIView):
             cv = serializer.create(serializer.validated_data)
             response = {"cv_id": cv.pk}
             notify.send(request.user, recipient=Account.objects.filter(groups__name__contains='staff_cv'),
-                        verb=f'Użytkownik {def_account.user.username} utworzył_a nowe CV',
+                        verb=f'Użytkownik {def_account.user.username} utworzył nowe CV',
                         app='cvApproval',
                         object_id=None
                         )
@@ -352,7 +352,7 @@ class AdminFeedback(views.APIView):
         if serializer.is_valid():
             feedback = serializer.create(serializer.validated_data)
             notify.send(request.user, recipient=cv.cv_user.user,
-                        verb=f'Osoba z fundacji skomentowała twoje CV: {cv.name}',
+                        verb=f'Nowy komentarz do CV: {cv.name}',
                         app='myCVs',
                         object_id=None
                         )
@@ -419,7 +419,7 @@ class AdminCVVerificationView(views.APIView):
             cv.is_verified = True
             cv.save()
             notify.send(request.user, recipient=cv.cv_user.user,
-                        verb=f'Osoba z fundacji zatwierdziła twoje CV: {cv.name}',
+                        verb=f'CV {cv.name} zostało zatwierdzone',
                         app='myCVs',
                         object_id=None
                         )
@@ -575,4 +575,3 @@ class TemplatesListView(views.APIView):
     def get(self, request):
         templates = [k for (k, v) in TEMPLATES_CHOICES]
         return Response({"templates": templates}, status=status.HTTP_200_OK)
-
