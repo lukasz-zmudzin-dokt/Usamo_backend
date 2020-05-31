@@ -167,6 +167,11 @@ CORS_ALLOW_HEADERS = (
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'sec-websocket-protocol',
+    'sec-websocket-key',   
+    'sec-websocket-extensions',
+    'sec-websocket-versions',
+    'sec-websocket-accept',
 )
 
 DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
