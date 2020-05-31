@@ -2,7 +2,7 @@ import os
 from functools import wraps
 from django.utils.datastructures import MultiValueDictKeyError
 from notifications.signals import notify
-from account.permissions import IsNotAGuest
+from account.permissions import IsNotAGuest, GetRequestPublicPermission, IsVerified
 from account.models import StaffAccount, DefaultAccount, Account
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.decorators import method_decorator
@@ -15,7 +15,6 @@ from rest_framework.decorators import permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from account.account_type import StaffGroupType
-from account.permissions import GetRequestPublicPermission
 from django.contrib.auth.models import Group
 from rest_framework.parsers import MultiPartParser
 from rest_framework.permissions import IsAuthenticated
@@ -426,7 +425,7 @@ class BlogPostListView(generics.ListAPIView):
 
 
 class BlogPostCommentCreateView(views.APIView):
-    permission_classes = [IsAuthenticated, IsNotAGuest]
+    permission_classes = [IsVerified]
 
     @swagger_auto_schema(
         request_body=sample_comment_request(),

@@ -64,9 +64,7 @@ class CreateSubStep(generics.CreateAPIView):
 
 
 class GetRoot(views.APIView):
-    permission_classes = (AllowAny,)
     
-
     @swagger_auto_schema(
         responses={
             '200': RootSerializer,
@@ -91,7 +89,6 @@ class GetRoot(views.APIView):
 
 
 class GetStep(generics.RetrieveAPIView):
-    permission_classes = (AllowAny,)
     serializer_class = StepSerializer
     queryset = Step.objects.all()
 
@@ -113,7 +110,6 @@ class GetStep(generics.RetrieveAPIView):
 
 
 class GetStepList(generics.ListAPIView):
-    permission_classes = (AllowAny,)
     serializer_class = StepSerializer
     queryset = Step.objects.prefetch_related('children').prefetch_related('substeps').all()
 

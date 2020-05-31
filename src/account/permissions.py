@@ -55,6 +55,14 @@ class IsStaffMember(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
         return user and not user.is_anonymous and user.type == AccountType.STAFF.value and \
+            not user.groups.filter(name=StaffGroupType.STAFF_GUEST.value).exists()  
+
+
+class IsVerified(permissions.BasePermission):
+
+    def has_permission(self, request, view):
+        user = request.user
+        return user and not user.is_anonymous and user.status == AccountStatus.VERIFIED.value and \
             not user.groups.filter(name=StaffGroupType.STAFF_GUEST.value).exists()    
 
 
