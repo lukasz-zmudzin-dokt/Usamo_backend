@@ -9,7 +9,7 @@ from notification.token_auth import TokenAuthMiddlewareStack
 
 application = ProtocolTypeRouter({
     # Empty for now (http->django views is added by default)
-    'websocket': AllowedHostsOriginValidator(
+    'websocket': 
         TokenAuthMiddlewareStack(
             URLRouter(
                 [
@@ -18,6 +18,5 @@ application = ProtocolTypeRouter({
                     url("notification/ws", NotificationConsumer)
                 ]
             )
-        )
-    )
+        )   
 })

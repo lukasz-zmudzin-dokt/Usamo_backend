@@ -1,2 +1,2 @@
 release: bash release-tasks.sh
-web: daphne usamo.asgi:application --port $PORT --bind 0.0.0.0
+web: daphne usamo.asgi:application --port 8000 --bind 0.0.0.0
