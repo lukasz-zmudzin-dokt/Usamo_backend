@@ -1,7 +1,7 @@
 from channels.routing import ProtocolTypeRouter, URLRouter
 from django.conf.urls import url
 from channels.auth import AuthMiddlewareStack
-from channels.security.websocket import AllowedHostsOriginValidator, OriginValidator
+from channels.security.websocket import AllowedHostsOriginValidator
 from chat.consumers import ChatConsumer, InboxConsumer
 from notification.consumers import NotificationConsumer
 from notification.token_auth import TokenAuthMiddlewareStack

@@ -31,7 +31,7 @@ SECURE_HSTS_PRELOAD = True
 
 X_FRAME_OPTIONS = 'DENY'
 
-ALLOWED_HOSTS = ['.usamodzielnieni-backend.herokuapp.com']
+ALLOWED_HOSTS = ['usamodzielnieni-backend.herokuapp.com']
 
 CORS_ORIGIN_WHITELIST = ['https://usamodzielnieni.herokuapp.com', 'wss://usamodzielnieni.herokuapp.com']
 
@@ -117,6 +117,7 @@ CORS_ALLOW_HEADERS = (
     'user-agent',
     'x-csrftoken',
     'x-requested-with',
+    'sec-websocket-protocol'
 )
 
 DJANGO_REST_PASSWORDRESET_NO_INFORMATION_LEAKAGE = True
