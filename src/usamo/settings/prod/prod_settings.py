@@ -32,7 +32,7 @@ X_FRAME_OPTIONS = 'DENY'
 
 ALLOWED_HOSTS = ['usamodzielnieni.herokuapp.com', 'usamodzielnieni.pl']
 
-CORS_ORIGIN_WHITELIST = ['usamodzielnieni.herokuapp.com', 'usamodzielnieni.pl']
+CORS_ORIGIN_WHITELIST = ['https://usamodzielnieni.herokuapp.com', 'https://usamodzielnieni.pl']
 
 INSTALLED_APPS = INSTALLED_APPS
 
