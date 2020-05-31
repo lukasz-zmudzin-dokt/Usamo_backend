@@ -30,7 +30,7 @@ SECURE_HSTS_PRELOAD = True
 
 X_FRAME_OPTIONS = 'DENY'
 
-ALLOWED_HOSTS = ['usamodzielnieni-backend.herokuapp.com']
+ALLOWED_HOSTS = ['.usamodzielnieni-backend.herokuapp.com']
 
 CORS_ORIGIN_WHITELIST = ['https://usamodzielnieni.herokuapp.com', 'https://usamodzielnieni.pl']
 
