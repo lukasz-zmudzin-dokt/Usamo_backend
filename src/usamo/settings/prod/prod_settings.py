@@ -33,7 +33,7 @@ X_FRAME_OPTIONS = 'DENY'
 
 ALLOWED_HOSTS = ['127.0.0.1']
 
-CORS_ORIGIN_WHITELIST = [*]
+CORS_ORIGIN_WHITELIST = ['*']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -172,7 +172,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
