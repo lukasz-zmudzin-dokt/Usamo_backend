@@ -91,5 +91,7 @@ uritemplate==3.0.1
 urllib3==1.25.9
 wcwidth==0.1.9
 Werkzeug==0.16.0
+whitenoise==5.0.1
+wkhtmltopdf-pack @ git+git://github.com/johnfraney/wkhtmltopdf-pack.git@a4996edbd9ec1c9dfe316146e7fa17cc8f86a676
 wrapt==1.11.2
 zope.interface==5.1.0
