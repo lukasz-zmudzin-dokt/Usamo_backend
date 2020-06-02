@@ -14,7 +14,7 @@ from .enums import Voivodeships
 from .utils import create_job_offer_image_path
 from account.models import DefaultAccount, EmployerAccount, Address
 from cv.models import CV
-from job.jobs import delete_zip_file_after_delay
+from job.jobs import delete_zip_file
 
 
 class JobOfferCategory(models.Model):
@@ -66,7 +66,6 @@ class JobOffer(models.Model):
         zip_file.close()
         self.zip_file = url
         self.save()
-        delete_zip_file_after_delay(path)
         
 
 class JobOfferApplication(models.Model):

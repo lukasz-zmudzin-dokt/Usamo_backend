@@ -137,11 +137,16 @@ class JobOfferView(views.APIView):
             salary_min = data.get('salary_min')
             salary_max = data.get('salary_max')
             if salary_min and salary_max and salary_min > salary_max:
-                return ErrorResponse("Minimalne wynagrodzenie jest większe niż maksymalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
+                return ErrorResponse("Minimalne wynagrodzenie jest większe niż maksymalne wynagrodzenie",
+                                     status.HTTP_400_BAD_REQUEST)
             elif salary_min and not salary_max and salary_min > inst.salary_max:
-                return ErrorResponse("Podane minimalne wynagrodzenie jest większe niż aktualne maksymalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
+                return ErrorResponse(
+                    "Podane minimalne wynagrodzenie jest większe niż aktualne maksymalne wynagrodzenie",
+                    status.HTTP_400_BAD_REQUEST)
             elif not salary_min and salary_max and salary_max < inst.salary_min:
-                return ErrorResponse("Podane maskymalne wynagrodzenie jest mniejsze niż aktualne minimalne wynagrodzenie", status.HTTP_400_BAD_REQUEST)
+                return ErrorResponse(
+                    "Podane maskymalne wynagrodzenie jest mniejsze niż aktualne minimalne wynagrodzenie",
+                    status.HTTP_400_BAD_REQUEST)
             valid_serializer.update(inst, data)
             if user.type == 3:
                 instance.confirmed = False
@@ -165,7 +170,6 @@ class JobOfferView(views.APIView):
             return validate_update(instance, serializer, request.user)
         else:
             return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
-
 
     @swagger_auto_schema(
         manual_parameters=[
@@ -242,7 +246,7 @@ class JobOfferImageView(views.APIView):
             image = request.FILES['file']
         except MultiValueDictKeyError:
             return ErrorResponse('Nie znaleziono pliku. Upewnij się, że został on załączony pod kluczem file',
-                status.HTTP_400_BAD_REQUEST)
+                                 status.HTTP_400_BAD_REQUEST)
         try:
             instance = JobOffer.objects.get(pk=offer_id)
         except ObjectDoesNotExist:
@@ -309,10 +313,10 @@ class JobOfferListView(generics.ListAPIView):
     def get_queryset(self):
         job_offer_filters = self.filter_serializer.create(self.filter_serializer.validated_data)
         valid_filters = job_offer_filters.get_filters()
-        return JobOffer.objects.select_related('employer')\
-            .select_related('category')\
-            .select_related('offer_type')\
-            .select_related('company_address')\
+        return JobOffer.objects.select_related('employer') \
+            .select_related('category') \
+            .select_related('offer_type') \
+            .select_related('company_address') \
             .filter(removed=False, confirmed=True, **valid_filters)
 
     def get(self, request):
@@ -345,12 +349,14 @@ class CreateJobOfferApplicationView(views.APIView):
                 return ErrorResponse('Należy podać, jakie CV złożyć w aplikacji', status.HTTP_400_BAD_REQUEST)
         except CV.DoesNotExist:
             return ErrorResponse("CV o podanym id nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
-
-        prev_app = JobOfferApplication.objects.filter(cv__cv_user=user, 
-            job_offer__id=request.data['job_offer'])
+        try:
+            prev_app = JobOfferApplication.objects.filter(cv__cv_user=user,
+                                                          job_offer__id=request.data['job_offer'])
+        except KeyError:
+            return ErrorResponse('Musisz podać, na jaką ofertę aplikujesz!', status.HTTP_400_BAD_REQUEST)
 
         if prev_app:
-             return ErrorResponse("Aplikowałeś_aś już na tę ofertę", status.HTTP_403_FORBIDDEN)
+            return ErrorResponse("Aplikowałeś_aś już na tę ofertę", status.HTTP_403_FORBIDDEN)
 
         serializer = JobOfferApplicationSerializer(data=request.data)
         if serializer.is_valid():
@@ -362,7 +368,7 @@ class CreateJobOfferApplicationView(views.APIView):
                 "id": application.id
             }
             job_offer = JobOffer.objects.get(id=request.data['job_offer'])
-            
+
             notify.send(user.user, recipient=job_offer.employer.user,
 
                         verb=f'Użytkownik {user.user.username} aplikował na Twoją ofertę pracy',
@@ -383,8 +389,8 @@ class JobOfferApplicationView(views.APIView):
             '404': "Nie posiadasz takiej aplikacji"
         },
         manual_parameters=[
-            Parameter('offer_id', IN_PATH, type='string($uuid)', 
-                description='ID oferty, na którą aplikował obecny użytkownik')
+            Parameter('offer_id', IN_PATH, type='string($uuid)',
+                      description='ID oferty, na którą aplikował obecny użytkownik')
         ],
         operation_description="Zwraca aplikację obecnego użytkownika na daną ofertę pracy",
     )
@@ -392,7 +398,7 @@ class JobOfferApplicationView(views.APIView):
         user = DefaultAccount.objects.get(user=request.user)
         application = JobOfferApplication.objects.filter(cv__cv_user=user, job_offer__id=offer_id)
         if not application:
-             return ErrorResponse("Nie posiadasz takiej aplikacji", status.HTTP_404_NOT_FOUND)
+            return ErrorResponse("Nie posiadasz takiej aplikacji", status.HTTP_404_NOT_FOUND)
 
         serializer = JobOfferApplicationSerializer(application.first())
         return Response(serializer.data, status.HTTP_200_OK)
@@ -405,8 +411,8 @@ class JobOfferApplicationView(views.APIView):
         '404': "Nie znaleziono oferty"
     },
     manual_parameters=[
-        Parameter('offer_id', IN_PATH, type='string($uuid)', 
-                description='ID oferty, na którą użytkownicy aplikowali')
+        Parameter('offer_id', IN_PATH, type='string($uuid)',
+                  description='ID oferty, na którą użytkownicy aplikowali')
     ],
     operation_description="Zwraca listę aplikacji na daną ofertę pracy"
 ))
@@ -432,6 +438,7 @@ class EmployerApplicationListView(ListAPIView):
                 return ErrorResponse("Oferta nie należy do Ciebie", status.HTTP_403_FORBIDDEN)
         except ObjectDoesNotExist:
             return ErrorResponse("Nie znaleziono oferty", status.HTTP_404_NOT_FOUND)
+
 
 @method_decorator(name='get', decorator=swagger_auto_schema(
     filter_inspectors=[DjangoFilterDescriptionInspector],
@@ -465,7 +472,7 @@ class EmployerApplicationMarkAsReadView(views.APIView):
         },
         manual_parameters=[
             Parameter('application_id', IN_PATH, type='string($uuid)',
-                description='ID aplikacji na ofertę pracy')
+                      description='ID aplikacji na ofertę pracy')
         ],
         operation_description="Pozwala oznaczyć aplikację jako przeczytaną"
     )
@@ -497,7 +504,7 @@ class EmployerApplicationMarkAsUnreadView(views.APIView):
         },
         manual_parameters=[
             Parameter('application_id', IN_PATH, type='string($uuid)',
-                description='ID aplikacji na ofertę pracy')
+                      description='ID aplikacji na ofertę pracy')
         ],
         operation_description="Pozwala oznaczyć aplikację jako przeczytaną"
     )

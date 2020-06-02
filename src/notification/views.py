@@ -7,7 +7,6 @@ from rest_framework import views, generics, status
 from account.models import Account
 from job.views import MessageResponse, ErrorResponse
 from notification.serializers import *
-from notification.jobs import start_scheduler, stop_scheduler
 
 
 def slug2id(slug):
@@ -132,7 +131,7 @@ class StartDailyNotifications(views.APIView):
     )
     def post(self, request):
         pk = request.user.id
-        start_scheduler(pk)
+        #start_scheduler(pk)
         return MessageResponse('Powiadomienia będą wysyłane na adres mailowy codziennie o 06:00')
 
 
@@ -145,7 +144,7 @@ class StopDailyNotifications(views.APIView):
     )
     def post(self, request):
         pk = request.user.id
-        stop_scheduler(pk)
+        #stop_scheduler(pk)
         return MessageResponse('Powiadomienia nie będą już wysyłane na adres mailowy')
 
 
