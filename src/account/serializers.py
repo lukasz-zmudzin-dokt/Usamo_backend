@@ -15,6 +15,7 @@ from .validators import validate_nip
 
 
 class AbstractAccountSerializer(serializers.ModelSerializer):
+    tac_accepted = serializers.BooleanField(default=False, write_only=True)
 
     picture_url = serializers.CharField(read_only=True)
 
@@ -47,6 +48,11 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+    def validate_tac_accepted(self, value):
+        if value == False:
+            raise serializers.ValidationError("Regulamin nie został zaakceptowany")
+        return value   
+
     def validate(self, data):
         password = data.get('password', None)
         if password:
@@ -56,6 +62,7 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
                 errors = {}
                 errors['password'] = list(e.messages)
                 raise serializers.ValidationError(errors)
+        data.pop('tac_accepted', None)
         return data
 
     @staticmethod
@@ -134,7 +141,7 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
-                  'password', 'phone_number', 'facility_name', 'facility_address', 'picture_url']
+                  'password', 'phone_number', 'facility_name', 'facility_address', 'picture_url', 'tac_accepted']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -205,7 +212,7 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
-                  'password', 'phone_number', 'company_name', 'company_address', 'nip', 'picture_url']
+                  'password', 'phone_number', 'company_name', 'company_address', 'nip', 'picture_url', "tac_accepted"]
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -294,7 +301,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'first_name', 'last_name',
-                'password', 'group_type', 'role', 'picture_url']
+                'password', 'group_type', 'role', 'picture_url', 'tac_accepted']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
