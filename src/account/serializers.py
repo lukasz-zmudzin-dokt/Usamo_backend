@@ -15,7 +15,7 @@ from .validators import validate_nip
 
 
 class AbstractAccountSerializer(serializers.ModelSerializer):
-    tac_accepted = serializers.BooleanField(default=False, write_only=True)
+    terms_accepted = serializers.BooleanField(default=False, write_only=True)
 
     picture_url = serializers.CharField(read_only=True)
 
@@ -48,7 +48,7 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
-    def validate_tac_accepted(self, value):
+    def validate_terms_accepted(self, value):
         if value == False:
             raise serializers.ValidationError("Regulamin nie został zaakceptowany")
         return value   
@@ -141,7 +141,7 @@ class DefaultAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
-                  'password', 'phone_number', 'facility_name', 'facility_address', 'picture_url', 'tac_accepted']
+                  'password', 'phone_number', 'facility_name', 'facility_address', 'picture_url', 'terms_accepted']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -212,7 +212,7 @@ class EmployerAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'last_name', 'first_name',
-                  'password', 'phone_number', 'company_name', 'company_address', 'nip', 'picture_url', "tac_accepted"]
+                  'password', 'phone_number', 'company_name', 'company_address', 'nip', 'picture_url', "terms_accepted"]
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
@@ -301,7 +301,7 @@ class StaffAccountSerializer(AbstractAccountSerializer):
     class Meta:
         model = Account
         fields = ['email', 'username', 'first_name', 'last_name',
-                'password', 'group_type', 'role', 'picture_url', 'tac_accepted']
+                'password', 'group_type', 'role', 'picture_url', 'terms_accepted']
         extra_kwargs = {
             'password': {'write_only': True},
             'email': {'required': True},
