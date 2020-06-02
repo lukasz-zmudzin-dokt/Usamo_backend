@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 """
 
 import os
+import platform
 import dj_database_url
 from datetime import timedelta
 
@@ -25,7 +26,7 @@ FRONT_URL = os.getenv('FRONT_URL')
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', 'kontakt@usamodzielnieni.pl')
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 SENDGRID_TEMPLATE_ID = os.getenv('SENDGRID_TEMPLATE_ID')
-
+WKHTMLTOPDF_BINARY = 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe' if platform.system() == 'Windows' else 'wkhtmltopdf'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 

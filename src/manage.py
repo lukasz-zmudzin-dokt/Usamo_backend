@@ -3,10 +3,13 @@
 import os
 import sys
 import dotenv
+from django.conf import settings
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def main():
-    dotenv.read_dotenv(override=True)
+    dotenv.read_dotenv("usamo", override=True)
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'usamo.settings.settings')
     try:

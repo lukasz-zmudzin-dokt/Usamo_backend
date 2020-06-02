@@ -11,6 +11,7 @@ FRONT_URL = os.getenv('FRONT_URL')
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', 'kontakt@usamodzielnieni.pl')
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 SENDGRID_TEMPLATE_ID = os.getenv('SENDGRID_TEMPLATE_ID')
+WKHTMLTOPDF_BINARY = '/usr/local/bin/wkhtmltopdf'
 
 DEBUG = False
 
@@ -31,11 +32,38 @@ SECURE_HSTS_PRELOAD = True
 
 X_FRAME_OPTIONS = 'DENY'
 
-ALLOWED_HOSTS = ['usamodzielnieni-backend.herokuapp.com']
+ALLOWED_HOSTS = ['127.0.0.1']
 
-CORS_ORIGIN_WHITELIST = ['https://usamodzielnieni.herokuapp.com', 'wss://usamodzielnieni.herokuapp.com']
+CORS_ORIGIN_WHITELIST = ['*']
 
-INSTALLED_APPS = INSTALLED_APPS
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'channels',
+    'django_apscheduler',
+    'phonenumber_field',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'job.apps.JobConfig',
+    'chat.apps.ChatConfig',
+    'cv.apps.CvConfig',
+    'videos.apps.VideosConfig',
+    'account.apps.AccountConfig',
+    'blog.apps.BlogConfig',
+    'helpline.apps.HelplineConfig',
+    'notification.apps.NotificationConfig',
+    'steps.apps.StepsConfig',
+    'tiles.apps.TilesConfig',
+    'notifications',
+    'drf_yasg',
+    'django_rest_passwordreset',
+    'django_filters',
+    'knox'
+]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -46,7 +74,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',
     'usamo.middlewares.FilesSizeValidatorMiddleware'
 ]
 
@@ -83,10 +110,15 @@ TEMPLATES = [
 ASGI_APPLICATION = "usamo.routing.application"
 
 DATABASES = {
-    'default': {}
-}
-db_from_env = dj_database_url.config()
-DATABASES['default'].update(db_from_env)
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DATABASE_NAME'),
+        'USER': os.getenv('DATABASE_USER'),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
+        'HOST': os.getenv('DATABASE_HOST'),
+        'PORT': '5432'
+    }
+} 
 
 CHANNEL_LAYERS = {
     "default": {
@@ -141,11 +173,10 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = '/var/www/api.usamodzielnieni.pl/static/'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    # os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "static"),
 ]
 
 SWAGGER_ENABLED = False
@@ -169,7 +200,7 @@ SWAGGER_SETTINGS = {
     ],
 }
 DJANGO_NOTIFICATIONS_CONFIG = {'USE_JSONFIELD': True}
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = '/var/www/api.usamodzielnieni.pl/media/'
 MEDIA_URL = '/media/'
 
 # APScheduler
