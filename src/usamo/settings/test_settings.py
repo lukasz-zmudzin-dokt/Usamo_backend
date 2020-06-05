@@ -10,7 +10,7 @@ FRONT_URL = os.getenv('FRONT_URL')
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', 'kontakt@usamodzielnieni.pl')
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 SENDGRID_TEMPLATE_ID = os.getenv('SENDGRID_TEMPLATE_ID')
-WKHTMLTOPDF_BINARY = '/usr/local/bin/wkhtmltopdf'
+WKHTMLTOPDF_BINARY = 'wkhtmltopdf'
 
 DEBUG = False
 
@@ -31,9 +31,9 @@ SECURE_HSTS_PRELOAD = True
 
 X_FRAME_OPTIONS = 'DENY'
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['usamodzielnieni-backend.herokuapp.com']
 
-CORS_ORIGIN_WHITELIST = ['*']
+CORS_ORIGIN_WHITELIST = ['https://usamodzielnieni.herokuapp.com', 'wss://usamodzielnieni.herokuapp.com']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -72,6 +72,7 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'usamo.middlewares.FilesSizeValidatorMiddleware'
 ]
@@ -110,14 +111,12 @@ ASGI_APPLICATION = "usamo.routing.application"
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'),
-        'PORT': '5432'
+
     }
 } 
+
+db_from_env = dj_database_url.config()
+DATABASES['default'].update(db_from_env)
 
 CHANNEL_LAYERS = {
     "default": {
@@ -172,6 +171,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 STATIC_ROOT = '/var/www/api.usamodzielnieni.pl/static/'
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
@@ -201,6 +201,5 @@ SWAGGER_SETTINGS = {
 DJANGO_NOTIFICATIONS_CONFIG = {'USE_JSONFIELD': True}
 MEDIA_ROOT = '/var/www/api.usamodzielnieni.pl/media/'
 MEDIA_URL = '/media/'
-
 
 TEST_RUNNER = 'usamo.tests.TempMediaRunner'
