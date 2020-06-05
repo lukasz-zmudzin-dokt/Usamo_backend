@@ -10,7 +10,7 @@ FRONT_URL = os.getenv('FRONT_URL')
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', 'kontakt@usamodzielnieni.pl')
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 SENDGRID_TEMPLATE_ID = os.getenv('SENDGRID_TEMPLATE_ID')
-WKHTMLTOPDF_BINARY = 'wkhtmltopdf'
+WKHTMLTOPDF_BINARY = '/app/bin/wkhtmltopdf'
 
 DEBUG = False
 
