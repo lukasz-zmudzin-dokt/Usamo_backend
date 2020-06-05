@@ -9,7 +9,10 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 def main():
-    dotenv.read_dotenv("usamo", override=True)
+    try:
+        dotenv.read_dotenv("usamo/.env", override=True)
+    except Exception:
+        pass
 
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'usamo.settings.settings')
     try:
