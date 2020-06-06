@@ -90,4 +90,5 @@ urllib3==1.25.9
 wcwidth==0.1.9
 Werkzeug==0.16.0
 wrapt==1.11.2
+whitenoise
 zope.interface==5.1.0
