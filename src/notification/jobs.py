@@ -1,29 +1,10 @@
-from apscheduler.schedulers.background import BackgroundScheduler
 from notifications.signals import notify
-from python_http_client import ForbiddenError
-from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 from django.utils import timezone
 from account.models import Account
 from django.conf import settings
 from sendgrid.helpers.mail import Mail
 from account.utils import send_mail_via_sendgrid
-from account.account_type import AccountType
 from job.models import JobOffer
-from django_apscheduler.models import DjangoJob
-
-# DjangoJob.objects.filter(next_run_time__lt=timezone.now()).delete()
-
-scheduler = BackgroundScheduler()
-scheduler.add_jobstore(DjangoJobStore(), "default")
-scheduler.start()
-
-
-def start_scheduler(pk):
-    scheduler.add_job(send_notification_email, 'cron', [pk], hour='6', replace_existing=True, id=str(pk))
-
-
-def stop_scheduler(pk):
-    scheduler.remove_job(str(pk))
 
 
 def archive_old_job_offers():
@@ -37,9 +18,6 @@ def archive_old_job_offers():
                     app='myOffers',
                     object_id=None
                     )
-
-
-scheduler.add_job(archive_old_job_offers, 'cron', hour='0', replace_existing=True, id='archive_old_job_offers_task')
 
 
 def send_email(email, subject, name, part1=None, part2=None, part3=None):
@@ -71,7 +49,6 @@ def send_notification_email(pk):
         part3 = login_url
         send_email(email, subject, user.first_name, part1=part1, part2=part2, part3=part3)
    
-
 
 def send_verification_email(pk):
     user = Account.objects.get(id=pk)

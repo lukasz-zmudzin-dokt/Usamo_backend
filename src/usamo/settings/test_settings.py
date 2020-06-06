@@ -1,7 +1,6 @@
 import os
 import dj_database_url
 from datetime import timedelta
-from usamo.settings.settings import INSTALLED_APPS
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -11,6 +10,7 @@ FRONT_URL = os.getenv('FRONT_URL')
 CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', 'kontakt@usamodzielnieni.pl')
 SENDGRID_API_KEY = os.getenv('SENDGRID_API_KEY')
 SENDGRID_TEMPLATE_ID = os.getenv('SENDGRID_TEMPLATE_ID')
+WKHTMLTOPDF_BINARY = '/app/bin/wkhtmltopdf'
 
 DEBUG = False
 
@@ -35,7 +35,34 @@ ALLOWED_HOSTS = ['usamodzielnieni-backend.herokuapp.com']
 
 CORS_ORIGIN_WHITELIST = ['https://usamodzielnieni.herokuapp.com', 'wss://usamodzielnieni.herokuapp.com']
 
-INSTALLED_APPS = INSTALLED_APPS
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'channels',
+    'whitenoise.runserver_nostatic',
+    'phonenumber_field',
+    'rest_framework',
+    'rest_framework.authtoken',
+    'job.apps.JobConfig',
+    'chat.apps.ChatConfig',
+    'cv.apps.CvConfig',
+    'videos.apps.VideosConfig',
+    'account.apps.AccountConfig',
+    'blog.apps.BlogConfig',
+    'helpline.apps.HelplineConfig',
+    'notification.apps.NotificationConfig',
+    'steps.apps.StepsConfig',
+    'tiles.apps.TilesConfig',
+    'notifications',
+    'drf_yasg',
+    'django_rest_passwordreset',
+    'django_filters',
+    'knox'
+]
 
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -45,8 +72,8 @@ MIDDLEWARE = [
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'usamo.middlewares.FilesSizeValidatorMiddleware'
 ]
 
@@ -83,8 +110,11 @@ TEMPLATES = [
 ASGI_APPLICATION = "usamo.routing.application"
 
 DATABASES = {
-    'default': {}
-}
+    'default': {
+
+    }
+} 
+
 db_from_env = dj_database_url.config()
 DATABASES['default'].update(db_from_env)
 
@@ -142,10 +172,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
-    # os.path.join(BASE_DIR, "static"),
+    os.path.join(BASE_DIR, "static"),
 ]
 
 SWAGGER_ENABLED = False
@@ -169,18 +199,7 @@ SWAGGER_SETTINGS = {
     ],
 }
 DJANGO_NOTIFICATIONS_CONFIG = {'USE_JSONFIELD': True}
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
 MEDIA_URL = '/media/'
-
-# APScheduler
-SCHEDULER_CONFIG = {
-    "apscheduler.jobstores.default": {
-        "class": "django_apscheduler.jobstores:DjangoJobStore"
-    },
-    'apscheduler.executors.processpool': {
-        "type": "threadpool"
-    },
-}
-SCHEDULER_AUTOSTART = True
 
 TEST_RUNNER = 'usamo.tests.TempMediaRunner'

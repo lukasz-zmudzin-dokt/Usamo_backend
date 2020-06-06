@@ -15,7 +15,7 @@ from .validators import validate_nip
 
 
 class AbstractAccountSerializer(serializers.ModelSerializer):
-
+    terms_accepted = serializers.BooleanField(default=False, write_only=True)
     picture_url = serializers.CharField(read_only=True)
 
     def create(self, validated_data):
@@ -56,6 +56,7 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
                 errors = {}
                 errors['password'] = list(e.messages)
                 raise serializers.ValidationError(errors)
+        data.pop('terms_accepted', None)
         return data
 
     @staticmethod
