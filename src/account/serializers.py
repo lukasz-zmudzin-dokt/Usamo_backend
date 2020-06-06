@@ -62,7 +62,7 @@ class AbstractAccountSerializer(serializers.ModelSerializer):
                 errors = {}
                 errors['password'] = list(e.messages)
                 raise serializers.ValidationError(errors)
-        data.pop('tac_accepted', None)
+        data.pop('terms_accepted', None)
         return data
 
     @staticmethod
