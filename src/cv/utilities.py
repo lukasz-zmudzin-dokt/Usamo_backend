@@ -9,18 +9,11 @@ import pdfkit
 import platform
 import io
 import sys
-import subprocess
 from .templates.templates import TEMPLATES_CHOICES
 
 
 def _get_pdfkit_config():
-    if platform.system() == 'Windows':
-        return pdfkit.configuration(wkhtmltopdf=os.environ.get('WKHTMLTOPDF_BINARY', 'C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe'))
-    else:
-        os.environ['PATH'] += os.pathsep + os.path.dirname(sys.executable)
-        WKHTMLTOPDF_CMD = subprocess.Popen(['which', os.environ.get(
-            'WKHTMLTOPDF_BINARY', 'wkhtmltopdf')], stdout=subprocess.PIPE).communicate()[0].strip()
-        return pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_CMD)
+    return pdfkit.configuration(wkhtmltopdf=settings.WKHTMLTOPDF_BINARY)
 
 
 def create_unique_filename(prefix, ext):
